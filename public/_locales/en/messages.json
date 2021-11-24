@@ -1,0 +1,84 @@
+{
+  "settings": {
+    "message": "settings",
+    "description": "Top level settings window/modal name"
+  },
+  "open_settings": {
+    "message": "open settings",
+    "description": "Open settings window/modal"
+  },
+  "shortcuts": {
+    "message": "shortcuts",
+    "description": "Shortcuts window/modal name"
+  },
+  "close": {
+    "message": "close",
+    "description": "General close action, such as closing modal"
+  },
+  "undo": {
+    "message": "undo",
+    "description": "Undo action name"
+  },
+  "redo": {
+    "message": "redo",
+    "description": "Redo action name"
+  },
+  "loading": {
+    "message": "Loading",
+    "description": "Loading in progress"
+  },
+  "search__form_label": {
+    "message": "Sessions and tabs",
+    "description": "Search input context label which describes what is being searched"
+  },
+  "search__input_placeholder": {
+    "message": "Search",
+    "description": "Input placeholder"
+  },
+  "search__input_clear": {
+    "message": "Clear",
+    "description": "Input text clear"
+  },
+  "import__form__textarea_label": {
+    "message": "Import session",
+    "description": "Session import paste textarea label"
+  },
+  "import__form__textarea_placeholder": {
+    "message": "Paste exported session content",
+    "description": "Session import paste textarea placeholder"
+  },
+  "import__form__file_select": {
+    "message": "Select file",
+    "description": "Import file selector click action text"
+  },
+  "import__form__submit": {
+    "message": "Import",
+    "description": "Import click action and submit form text"
+  },
+  "import__form__popup_warning": {
+    "message": "Using \"Select file\" may cause the popup to close. Try opening the extension in a new tab first.",
+    "description": "Warns user about select file action when extension is open as popup"
+  },
+  "import__form__prompt_unsaved": {
+    "message": "Discard unsubmitted changes?",
+    "description": "Ask user if changes should be discarded"
+  },
+  "import__form__error_no_session_found": {
+    "message": "No session found",
+    "description": "Error when form is submitted but no session is found"
+  },
+  "import__form__error_no_file_found": {
+    "message": "No file found",
+    "description": "Error when no file is found"
+  },
+  "error": {
+    "message": "Error: $details$",
+    "description": "Generic error template. Expects error parameter to be passed in.",
+    "placeholders": {
+      "details": {
+        "content": "$1",
+        "example": "Failed to fetch RSS feed."
+      }
+    }
+  }
+}
