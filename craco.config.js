@@ -1,9 +1,12 @@
-const CracoEsbuildPlugin = require("craco-esbuild");
-const { ProvidePlugin } = require("webpack");
-const path = require("path");
+const CracoEsbuildPlugin = require('craco-esbuild')
+const { ProvidePlugin } = require('webpack')
+const path = require('path')
 
-const isProd = process.env.NODE_ENV === "production";
+const isProd = process.env.NODE_ENV === 'production'
 
+/**
+ * Craco extends CRA internals
+ */
 module.exports = {
   devServer: (config) => ({
     ...config,
@@ -15,21 +18,21 @@ module.exports = {
         // Since devServer is modified, output in dev goes to `dist` dir by default
         // and ignores the `BUILD_PATH` - https://create-react-app.dev/docs/advanced-configuration
         // modifying build output: https://github.com/gsoft-inc/craco/issues/104
-        paths.appBuild = webpackConfig.output.path = path.resolve("build");
+        paths.appBuild = webpackConfig.output.path = path.resolve('build')
       }
-      return webpackConfig;
+      return webpackConfig
     },
     plugins: [
       // https://github.com/pradel/create-react-app-esbuild/issues/7
       new ProvidePlugin({
-        React: "react",
+        React: 'react',
       }),
     ],
   },
   // https://tailwindcss.com/docs/guides/create-react-app
   style: {
     postcss: {
-      plugins: [require("tailwindcss"), require("autoprefixer")],
+      plugins: [require('tailwindcss'), require('autoprefixer')],
     },
   },
   plugins: [
@@ -38,16 +41,12 @@ module.exports = {
       plugin: CracoEsbuildPlugin,
       options: {
         enableSvgr: true,
-        esbuildLoaderOptions: {
-          loader: "tsx",
-          target: "esnext",
-        },
         esbuildMinimizerOptions: {
-          target: "esnext",
+          target: 'esnext',
           css: true,
         },
         skipEsbuildJest: true,
       },
     },
   ],
-};
+}

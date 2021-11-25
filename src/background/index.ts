@@ -1,7 +1,7 @@
 const main = async () => {
-  console.log("background started...");
-};
+  console.log('background started...')
+}
 
-void main();
+void main()
 
-export {};
+export {}

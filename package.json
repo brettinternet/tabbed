@@ -10,17 +10,17 @@
     "build:app": "craco build",
     "build:background": "esbuild src/background/index.ts --bundle --minify --sourcemap --target=chrome58,firefox57,safari11,edge16 --outdir=build/background",
     "build:create-manifest": "run-s create-manifest",
-    "test": "craco test",
     "eject": "react-scripts eject",
     "clean": "ts-node -P scripts/tsconfig.json scripts/clean",
     "copy-public": "ts-node -P scripts/tsconfig.json scripts/copy-public",
-    "create-manifest": "ts-node -P scripts/tsconfig.json scripts/create-manifest"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+    "create-manifest": "ts-node -P scripts/tsconfig.json scripts/create-manifest",
+    "format": "run-p format:*",
+    "format:packagejson": "sort-package-json",
+    "format:prettier": "prettier --write \"**/*.{ts,js}\"",
+    "test": "run-s test:*",
+    "test:jest": "craco test",
+    "test:lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "test:ts": "tsc --noEmit"
   },
   "browserslist": {
     "production": [
@@ -34,31 +34,48 @@
       "last 1 safari version"
     ]
   },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
   "dependencies": {
     "@headlessui/react": "^1.4.2",
+    "date-fns": "^2.26.0",
     "framer-motion": "^5.3.1",
+    "jotai": "^1.4.5",
+    "lodash": "^4.17.21",
+    "loglevel": "^1.8.0",
     "react": "^17.0.2",
     "react-beautiful-dnd": "^13.1.0",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
-    "typescript": "^4.1.2",
-    "web-vitals": "^1.0.1"
+    "teenyicons": "^0.4.1",
+    "web-vitals": "^1.0.1",
+    "webextension-polyfill": "^0.8.0"
   },
   "devDependencies": {
     "@craco/craco": "^6.4.1",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
+    "@types/chrome": "^0.0.164",
     "@types/jest": "^26.0.15",
+    "@types/lodash": "^4.14.177",
     "@types/node": "^16.11.10",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
+    "@types/webextension-polyfill": "^0.8.2",
     "autoprefixer": "^9.8.8",
     "craco-esbuild": "^0.4.2",
     "esbuild": "^0.13.15",
     "npm-run-all": "^4.1.5",
     "postcss": "^7.0.39",
+    "prettier": "^2.4.1",
+    "sort-package-json": "^1.53.1",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.2.17",
-    "ts-node": "^10.4.0"
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.2"
   }
 }
