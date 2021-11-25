@@ -4,21 +4,21 @@ import type { Valueof } from 'utils/helpers'
 export const layouts = {
   LIST: 'list',
   GRID: 'grid',
-}
+} as const
 export type Layout = Valueof<typeof layouts>
 
 export const extensionClickActions = {
   TAB: 'tab',
   POPUP: 'popup',
   SIDEBAR: 'sidebar',
-}
+} as const
 export type ExtensionClickAction = Valueof<typeof extensionClickActions>
 
 export const themes = {
   DARK: 'dark',
   LIGHT: 'light',
   SYSTEM: 'system',
-}
+} as const
 export type Theme = Valueof<typeof themes>
 
 export type Settings = {

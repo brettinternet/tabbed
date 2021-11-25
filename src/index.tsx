@@ -1,9 +1,11 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import './index.css'
+
 import { App } from 'components/app'
-import { reportWebVitals } from 'utils/report-web-vitals'
 import { log } from 'utils/logger'
+import { reportWebVitals } from 'utils/report-web-vitals'
+
+import './index.css'
 
 ReactDOM.render(
   <React.StrictMode>

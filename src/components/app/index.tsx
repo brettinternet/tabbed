@@ -1,5 +1,7 @@
 // import { useEffect, useState } from 'react'
 import { Layout } from 'components/layout'
+import { ToastProvider } from 'components/toast'
+
 // import { setupListeners } from './listeners'
 // import { log } from 'utils/logger'
 
@@ -40,8 +42,8 @@ export const App = () => {
       onClickSettings={openSettings}
       height={isPopup ? settings.popupDimensions?.height : undefined}
     >
-      hiiii
       {/* <Modal /> */}
+      <ToastProvider />
     </Layout>
   )
 }

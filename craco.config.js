@@ -13,14 +13,20 @@ module.exports = {
     writeToDisk: true,
   }),
   webpack: {
-    configure: (webpackConfig, { paths }) => {
+    configure: (config, { paths }) => {
       if (!isProd) {
         // Since devServer is modified, output in dev goes to `dist` dir by default
         // and ignores the `BUILD_PATH` - https://create-react-app.dev/docs/advanced-configuration
         // modifying build output: https://github.com/gsoft-inc/craco/issues/104
-        paths.appBuild = webpackConfig.output.path = path.resolve('build')
+        paths.appBuild = config.output.path = path.resolve('build')
       }
-      return webpackConfig
+      // For new versions of node incompatible with Framer Motion and CRA: https://github.com/framer/motion/issues/1307
+      config.module.rules.push({
+        type: 'javascript/auto',
+        test: /\.mjs$/,
+        include: /node_modules/,
+      })
+      return config
     },
     plugins: [
       // https://github.com/pradel/create-react-app-esbuild/issues/7

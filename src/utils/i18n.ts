@@ -1,8 +1,8 @@
 import en from 'date-fns/locale/en-US'
 import browser from 'webextension-polyfill'
 
-import { log } from 'utils/logger'
 import { isProd } from 'utils/env'
+import { log } from 'utils/logger'
 
 const logContext = 'utils/i18n'
 

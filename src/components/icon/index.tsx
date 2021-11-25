@@ -1,19 +1,26 @@
+import cn, { Argument as ClassNames } from 'classnames'
 import { cloneElement, useEffect, useState } from 'react'
+
+import { Valueof } from 'utils/helpers'
 
 /**
  * Map friendly name
  */
-export enum IconName {
-  SETTINGS = 'cog',
-  CLOSE = 'x',
-}
+export const Name = {
+  COG: 'cog',
+  X: 'x',
+} as const
 
-enum Size {
-  'SM',
-  'MD',
-}
+type NameType = Valueof<typeof Name>
 
-const getSizeClass = (size: Size) => {
+export const Size = {
+  SM: 'sm',
+  MD: 'md',
+} as const
+
+type SizeType = Valueof<typeof Size>
+
+const getSizeClass = (size: SizeType) => {
   switch (size) {
     case Size.SM:
       return 'h-2 w-2'
@@ -22,10 +29,11 @@ const getSizeClass = (size: Size) => {
   }
 }
 
-type IconProps = {
-  name: string | IconName
-  size?: Size
+export type IconProps = {
+  name: NameType
+  size?: SizeType
   type?: 'outline' | 'solid'
+  className?: ClassNames
 }
 
 type IconElement = React.DetailedReactHTMLElement<
@@ -39,9 +47,9 @@ export const Icon: React.FC<IconProps> = ({
   name,
   size = Size.MD,
   type = 'outline',
+  className,
 }) => {
   const [Icon, setIcon] = useState<IconElement>()
-  console.log('Icon: ', Icon)
 
   useEffect(() => {
     ;(async () => {
@@ -54,5 +62,5 @@ export const Icon: React.FC<IconProps> = ({
     return null
   }
 
-  return cloneElement(Icon, { className: getSizeClass(size) })
+  return cloneElement(Icon, { className: cn(className, getSizeClass(size)) })
 }

@@ -1,5 +1,6 @@
 import { writeFile } from 'fs/promises'
 import { resolve } from 'path'
+
 const pkg = require('../package.json')
 
 const projectRoot = resolve(__dirname, '..')

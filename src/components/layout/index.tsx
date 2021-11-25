@@ -1,6 +1,6 @@
-import { appName } from 'utils/env'
 import { Head } from 'components/head'
 import { Header } from 'components/header'
+import { appName } from 'utils/env'
 
 type LayoutProps = {
   onClickSettings: () => void
@@ -16,7 +16,7 @@ export const Layout: React.FC<LayoutProps> = ({
     {...(height
       ? {
           id: 'popup',
-          style: { height },
+          style: { height, width: 400 },
           className: 'scroll overflow-y-auto',
         }
       : {})}

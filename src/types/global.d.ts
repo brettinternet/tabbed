@@ -16,27 +16,4 @@ declare global {
   namespace chrome {
     export const app: unknown | undefined
   }
-
-  /**
-   * Extends @types/webextension-polyfill
-   * Types for promisified extension API
-   * https://github.com/mozilla/webextension-polyfill
-   */
-  namespace Browser {
-    namespace Tabs {
-      interface Tab {
-        /**
-         * Chrome specific when status === 'loading'
-         *
-         * @source https://developer.chrome.com/docs/extensions/reference/tabs/
-         */
-        pendingUrl?: string
-
-        /**
-         * value is `-1` if tab is not assigned to a group, not supported by the polyfill yet
-         */
-        groupId?: number
-      }
-    }
-  }
 }

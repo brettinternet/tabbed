@@ -1,6 +1,6 @@
-// import { Layout } from "utils/settings";
+import { Button } from 'components/button'
 import { getMessage } from 'utils/i18n'
-import { Icon, IconName } from 'components/icon'
+
 import { Search } from './search'
 
 type HeaderProps = {
@@ -15,14 +15,14 @@ export const Header: React.FC<HeaderProps> = ({ onClickSettings }) => (
       </li>
       {onClickSettings && (
         <li className="lg:ml-auto">
-          <button
+          <Button
             className="px-4 py-1 h-full rounded-sm"
             onClick={onClickSettings}
             aria-label={getMessage('open_settings', 'open settings')}
             title={getMessage('open_settings', 'open settings')}
-          >
-            <Icon name={IconName.SETTINGS} />
-          </button>
+            variant="none"
+            iconProps={{ name: 'cog' }}
+          />
         </li>
       )}
     </ul>
