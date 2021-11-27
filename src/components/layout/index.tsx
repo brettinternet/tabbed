@@ -16,8 +16,8 @@ export const Layout: React.FC<LayoutProps> = ({
     {...(height
       ? {
           id: 'popup',
-          style: { height, width: 400 },
-          className: 'scroll overflow-y-auto',
+          style: { height, width: 600 },
+          // className: 'scroll overflow-y-auto',
         }
       : {})}
   >

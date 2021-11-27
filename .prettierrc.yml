@@ -3,3 +3,10 @@ singleQuote: true
 trailingComma: 'es5'
 importOrder: ['^(components|utils|background|tests)/(.*)$', '^[./]']
 importOrderSeparation: true
+importOrderParserPlugins:
+  [
+    'jsx',
+    'typescript',
+    'classProperties',
+    '["decorators", { "decoratorsBeforeExport": true }]',
+  ]

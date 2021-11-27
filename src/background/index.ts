@@ -1,19 +1,21 @@
+import 'reflect-metadata'
 import browser from 'webextension-polyfill'
 
-import { readSettings } from 'utils/browser/storage'
 import { buildVersion, buildTime } from 'utils/env'
 import { concatTruthy } from 'utils/helpers'
 import { updateLogLevel, log } from 'utils/logger'
+import { readSettings } from 'utils/settings'
 
 import { loadExtensionActions } from './configuration'
 import { setupListeners } from './listeners'
-import { startupValidation } from './sessions/validation'
+
+// import { startupValidation } from './sessions/validation'
 
 const logContext = 'background/index'
 const getBytesInUse = browser.storage.local.getBytesInUse
 
 const main = async () => {
-  log.debug(logContext, 'main')
+  log.debug(logContext, 'main()')
 
   const settings = await readSettings()
   updateLogLevel(settings.debugMode)
@@ -23,7 +25,7 @@ const main = async () => {
   // can be reloaded through messages from client
   await loadExtensionActions(settings.extensionClickAction)
   // initial session validation
-  await startupValidation()
+  // await startupValidation()
 
   const bytesUsed = getBytesInUse && (await getBytesInUse())
 

@@ -1,7 +1,7 @@
 import { debounce } from 'lodash'
 import browser from 'webextension-polyfill'
 
-import { saveCurrentSession } from 'background/sessions/create'
+// import { saveCurrentSession } from 'background/sessions/create'
 import {
   openExtensionPopup,
   openExtensionSidebar,
@@ -9,9 +9,9 @@ import {
   openExtensionExistingTab,
   openExtensionPopout,
 } from 'utils/browser/actions'
-import { writeSetting } from 'utils/browser/storage'
 import { popupUrl, sidebarUrl } from 'utils/env'
 import { log } from 'utils/logger'
+import { writeSetting } from 'utils/settings'
 import { Settings, extensionClickActions } from 'utils/settings'
 
 const logContext = 'background/configuration'
@@ -83,13 +83,13 @@ const setupMenus = async (popupDisabled?: boolean) => {
     contexts: ['page'],
     onclick: async () => {
       try {
-        await saveCurrentSession()
-        await browser.notifications.create({
-          type: 'basic',
-          iconUrl: 'icons/icon-32x32.png',
-          title: 'Session saved',
-          message: 'The current session has been saved',
-        })
+        // await saveCurrentSession()
+        // await browser.notifications.create({
+        //   type: 'basic',
+        //   iconUrl: 'icons/icon-32x32.png',
+        //   title: 'Session saved',
+        //   message: 'The current session has been saved',
+        // })
       } catch (err) {
         log.error(err)
       }

@@ -22,11 +22,11 @@ import {
   loadExtensionActions,
   loadTabCountListeners,
 } from './configuration'
-import { setupSearchListeners } from './search/listeners'
-import {
-  setupSessionListeners,
-  loadClosedWindowListener,
-} from './sessions/listeners'
+// import { setupSearchListeners } from './search/listeners'
+// import {
+//   setupSessionListeners,
+//   loadClosedWindowListener,
+// } from './sessions/listeners'
 import { setupUndoListeners } from './undo/listeners'
 
 const logContext = 'background/listeners'
@@ -52,13 +52,13 @@ const setupConfigurationListeners = () => {
     }
   })
 
-  browser.runtime.onMessage.addListener(
-    (message: ReloadClosedWindowListenerMessage) => {
-      if (message.type === MESSAGE_TYPE_RELOAD_CLOSED_WINDOW_LISTENER) {
-        void loadClosedWindowListener(message.value)
-      }
-    }
-  )
+  // browser.runtime.onMessage.addListener(
+  //   (message: ReloadClosedWindowListenerMessage) => {
+  //     if (message.type === MESSAGE_TYPE_RELOAD_CLOSED_WINDOW_LISTENER) {
+  //       void loadClosedWindowListener(message.value)
+  //     }
+  //   }
+  // )
 
   browser.runtime.onMessage.addListener(
     (message: UpdatePopoutPositionMessage) => {
@@ -73,9 +73,9 @@ export const setupListeners = (settings: Settings) => {
   log.debug(logContext, 'setupListeners()', settings)
 
   void setupConfigurationListeners()
-  void setupSessionListeners()
+  // void setupSessionListeners()
   void loadTabCountListeners(settings.showTabCountBadge)
-  void loadClosedWindowListener(settings.saveClosedWindows)
-  void setupSearchListeners()
+  // void loadClosedWindowListener(settings.saveClosedWindows)
+  // void setupSearchListeners()
   void setupUndoListeners()
 }

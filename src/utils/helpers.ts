@@ -67,3 +67,43 @@ export const insert = <T>(list: T[], item: T, index: number) => {
 export const move = <T>(arr: T[], fromIndex: number, toIndex: number) => {
   arr.splice(toIndex, 0, arr.splice(fromIndex, 1)[0])
 }
+
+/**
+ * Reorder item in list with splice
+ */
+export const reorder = <T>(
+  list: T[],
+  startIndex: number,
+  endIndex: number,
+  mutate?: (target: T) => T
+): T[] => {
+  const copy = list.slice()
+  let [target] = copy.splice(startIndex, 1)
+  if (mutate) {
+    target = mutate(target)
+  }
+  copy.splice(endIndex, 0, target)
+  return copy
+}
+
+/**
+ * Reorder item in list with splice
+ */
+export const spliceSeparate = <T>(
+  from: T[],
+  to: T[],
+  startIndex: number,
+  endIndex: number,
+  mutate?: (target: T) => T
+): [T[], T[]] => {
+  const fromCopy = from.slice()
+  const toCopy = to.slice()
+  let [target] = fromCopy.splice(startIndex, 1)
+  if (mutate) {
+    target = mutate(target)
+  }
+  toCopy.splice(endIndex, 0, target)
+  return [fromCopy, toCopy]
+}
+
+export const generateFallbackId = () => new Date().valueOf()

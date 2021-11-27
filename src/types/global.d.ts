@@ -4,6 +4,9 @@ declare global {
   interface Window {
     // Identifies Firefox when missing: https://stackoverflow.com/a/9851769
     InstallTrigger?: unknown
+
+    // For debugging in dev
+    browser?: unkown
   }
 
   /**

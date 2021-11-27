@@ -1,7 +1,7 @@
 import browser, { Tabs, Windows } from 'webextension-polyfill'
 
-import { readSettings } from 'utils/browser/storage'
 import { isDefined } from 'utils/helpers'
+import { readSettings } from 'utils/settings'
 
 /**
  * `pendingUrl` for Chrome browsers where status === 'loading'

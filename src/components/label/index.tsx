@@ -12,7 +12,7 @@ export const Label: React.FC<LabelProps> = ({
   className,
   required,
 }) => (
-  <label className={cn(text && 'pb-2', className)}>
+  <label className={cn('block', text && 'pb-2', className)}>
     {text}
     {required && (
       <span

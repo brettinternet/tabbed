@@ -1,5 +1,6 @@
 // import { useEffect, useState } from 'react'
 import { Layout } from 'components/layout'
+import { SessionLayout } from 'components/session'
 import { ToastProvider } from 'components/toast'
 
 // import { setupListeners } from './listeners'
@@ -9,7 +10,7 @@ import { ToastProvider } from 'components/toast'
 
 const settings = {
   popupDimensions: {
-    height: 700,
+    height: 600,
   },
 }
 
@@ -43,6 +44,7 @@ export const App = () => {
       height={isPopup ? settings.popupDimensions?.height : undefined}
     >
       {/* <Modal /> */}
+      <SessionLayout />
       <ToastProvider />
     </Layout>
   )

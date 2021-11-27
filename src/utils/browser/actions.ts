@@ -2,8 +2,7 @@ import browser from 'webextension-polyfill'
 
 import { openTabOrFocus, openTab } from 'utils/browser/query'
 import { tabUrl, popoutUrl } from 'utils/env'
-
-import { readSettings } from './storage'
+import { readSettings } from 'utils/settings'
 
 export const openExtensionPopup = () => browser.browserAction.openPopup()
 

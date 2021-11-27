@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^1.4.2",
+    "class-transformer": "^0.5.1",
     "classnames": "^2.3.1",
     "date-fns": "^2.26.0",
     "framer-motion": "^4.1.17",
@@ -53,6 +54,7 @@
     "react-beautiful-dnd": "^13.1.0",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
+    "reflect-metadata": "^0.1.13",
     "teenyicons": "^0.4.1",
     "uuid": "^8.3.2",
     "web-vitals": "^1.0.1",
@@ -69,6 +71,7 @@
     "@types/lodash": "^4.14.177",
     "@types/node": "^16.11.10",
     "@types/react": "^17.0.0",
+    "@types/react-beautiful-dnd": "^13.1.2",
     "@types/react-dom": "^17.0.0",
     "@types/uuid": "^8.3.3",
     "@types/webextension-polyfill": "^0.8.2",

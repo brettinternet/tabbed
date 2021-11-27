@@ -1,5 +1,7 @@
+import { LocalStorage } from 'utils/browser/storage'
 import { isProd } from 'utils/env'
 import type { Valueof } from 'utils/helpers'
+import { isDefined, insert } from 'utils/helpers'
 
 export const layouts = {
   LIST: 'list',
@@ -76,4 +78,17 @@ chrome-extension://*`,
     parsed: ['chrome://bookmarks', 'chrome-extension://*'],
     error: undefined,
   },
+}
+
+export const readSettings = async (): Promise<Settings> => {
+  const settings = await LocalStorage.get<Settings>(LocalStorage.key.SETTINGS)
+  return Object.assign({}, defaultSettings, settings)
+}
+
+export const writeSetting = async (settings: Partial<Settings>) => {
+  const currentSettings = await readSettings()
+  await LocalStorage.set(
+    LocalStorage.key.SETTINGS,
+    Object.assign({}, currentSettings, settings)
+  )
 }

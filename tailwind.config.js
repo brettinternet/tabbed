@@ -22,14 +22,14 @@ module.exports = {
         'menu-accordion': 80,
         modal: 150,
         overlay: 140,
-        'context-menu': 200,
+        menu: 200,
         toast: 1000,
       },
       fontSize: {
         xxs: '.6rem',
       },
       height: {
-        header: '60px',
+        header: '50px',
         main: 'calc(100vh - 60px)',
       },
       minHeight: {
@@ -53,8 +53,10 @@ module.exports = {
   },
   variants: {
     extend: {
+      textColor: ['disabled'],
       borderWidth: ['focus'],
       outline: ['dark'],
+      display: ['group-hover'],
     },
   },
   plugins: [],

@@ -7,8 +7,18 @@ import { Valueof } from 'utils/helpers'
  * Map friendly name
  */
 export const Name = {
-  COG: 'cog',
-  X: 'x',
+  COG: 'cog', // settings
+  X: 'x', // close
+  MORE_VERTICAL: 'more-vertical', // button dropdown
+  SOUND_OFF: 'sound-off', // tab muted
+  THUMBTACK: 'thumbtack', // tab pinned
+  FILE_NO_ACCESS: 'file-no-access', // tab discarded
+  ALARM: 'alarm', // tab attention
+  FILE_TICK: 'file-tick', // tab active
+  BIN: 'bin', // delete/trash
+  DRAG_VERTICAL: 'drag-vertical', // drag indicator
+  RIGHT_CIRCLE: 'right-circle', // go or open
+  FILE_PLUS: 'file-plus', // open window
 } as const
 
 type NameType = Valueof<typeof Name>
@@ -16,6 +26,7 @@ type NameType = Valueof<typeof Name>
 export const Size = {
   SM: 'sm',
   MD: 'md',
+  LG: 'lg',
 } as const
 
 type SizeType = Valueof<typeof Size>
@@ -23,9 +34,11 @@ type SizeType = Valueof<typeof Size>
 const getSizeClass = (size: SizeType) => {
   switch (size) {
     case Size.SM:
-      return 'h-2 w-2'
+      return 'h-3 w-3'
     case Size.MD:
       return 'h-4 w-4'
+    case Size.LG:
+      return 'h-5 w-5'
   }
 }
 
@@ -34,10 +47,12 @@ export type IconProps = {
   size?: SizeType
   type?: 'outline' | 'solid'
   className?: ClassNames
+  title?: string
+  ariaLabel?: string
 }
 
 type IconElement = React.DetailedReactHTMLElement<
-  React.HTMLProps<HTMLElement> & {
+  React.HTMLAttributes<HTMLElement> & {
     title?: string
   },
   HTMLElement
@@ -48,6 +63,8 @@ export const Icon: React.FC<IconProps> = ({
   size = Size.MD,
   type = 'outline',
   className,
+  title,
+  ariaLabel,
 }) => {
   const [Icon, setIcon] = useState<IconElement>()
 
@@ -62,5 +79,9 @@ export const Icon: React.FC<IconProps> = ({
     return null
   }
 
-  return cloneElement(Icon, { className: cn(className, getSizeClass(size)) })
+  return cloneElement(Icon, {
+    className: cn(className, getSizeClass(size)),
+    title,
+    'aria-label': ariaLabel || title,
+  })
 }
