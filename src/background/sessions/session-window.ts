@@ -1,43 +1,19 @@
-import browser, { Tabs, Windows } from 'webextension-polyfill'
+import { Type } from 'class-transformer'
+import { Tabs, Windows } from 'webextension-polyfill'
 
+import { closeWindow, focusWindow, openWindow } from 'background/browser'
 import { generateFallbackId } from 'utils/helpers'
 import { log, AppError } from 'utils/logger'
+import { SessionWindowClass, SessionWindowOptions } from 'utils/sessions'
 
-import { closeWindow, focusWindow, openWindow } from './query'
 import { SessionTab } from './session-tab'
 
 const logContext = 'utils/browser/session-window'
 
-type Position = {
-  height: number | undefined
-  width: number | undefined
-  top: number | undefined
-  left: number | undefined
-}
-
-export type SessionWindowOptions = {
-  id: number
-  tabs: SessionTab[]
-  title?: string
-  incognito: boolean
-  focused: boolean
-  state: Windows.WindowState
-  position: Position
-  /**
-   * Whether window is part of an active session
-   */
-  activeSession: boolean
-}
-
+export interface SessionWindow extends SessionWindowClass {}
 export class SessionWindow {
-  id: number
+  @Type(() => SessionTab)
   tabs: SessionTab[]
-  title?: string
-  incognito: boolean
-  focused: boolean
-  state: Windows.WindowState
-  position: Position
-  activeSession: boolean
 
   constructor({
     id,
@@ -47,7 +23,10 @@ export class SessionWindow {
     focused,
     state,
     activeSession,
-    position,
+    top,
+    left,
+    width,
+    height,
   }: SessionWindowOptions) {
     this.id = id
     this.tabs = tabs
@@ -55,7 +34,10 @@ export class SessionWindow {
     this.incognito = incognito
     this.focused = focused
     this.state = state
-    this.position = position
+    this.top = top
+    this.left = left
+    this.width = width
+    this.height = height
     this.activeSession = activeSession
   }
 
@@ -87,7 +69,10 @@ export class SessionWindow {
       incognito,
       state: state || 'normal',
       activeSession,
-      position: { height, width, top, left },
+      height,
+      width,
+      top,
+      left,
     })
   }
 
@@ -95,14 +80,23 @@ export class SessionWindow {
     tabs: Tabs.Tab[],
     meta: { windowId: number; incognito: boolean; activeSession: boolean }
   ): SessionTab[] {
-    return tabs.reduce<SessionTab[]>((acc, tab) => {
-      const maybeTab = SessionTab.fromTab(tab, meta)
-      return maybeTab ? acc.concat(maybeTab) : acc
-    }, [])
+    return (
+      tabs
+        // TODO: is this always necessary?
+        .sort((a, b) => a.index - b.index)
+        .reduce<SessionTab[]>((acc, tab) => {
+          const maybeTab = SessionTab.fromTab(tab, meta)
+          return maybeTab ? acc.concat(maybeTab) : acc
+        }, [])
+    )
   }
 
   findTab(tabId: number) {
     return this.tabs.find((t) => t.id === tabId)
+  }
+
+  private findTabIndex(tabId: number) {
+    return this.tabs.findIndex((t) => t.id === tabId)
   }
 
   // deleteTab(tabId: number) {
@@ -117,19 +111,55 @@ export class SessionWindow {
   //   }
   // }
 
+  update({
+    focused,
+    state,
+    top,
+    left,
+    width,
+    height,
+  }: Partial<
+    Pick<
+      SessionWindowOptions,
+      'focused' | 'state' | 'top' | 'left' | 'width' | 'height'
+    >
+  >) {
+    this.focused = focused || this.focused
+    this.state = state || this.state
+    this.top = top || this.top
+    this.left = left || this.left
+    this.width = width || this.width
+    this.height = height || this.height
+  }
+
   async remove() {
     if (this.activeSession) {
       await closeWindow(this.id)
     }
   }
 
-  async open() {
+  async focusOrOpen() {
     if (this.activeSession) {
       await focusWindow(this.id)
     } else {
-      const { id, tabs, position } = this
-      // TODO: convert tabs?
-      // openWindow({ id, tabs, ...position })
+      this.open()
+    }
+  }
+
+  async open() {
+    const { tabs, incognito, state, top, left, width, height } = this
+    return openWindow({ tabs, state, incognito, top, left, width, height })
+  }
+
+  deleteTab(tabId: number) {
+    const index = this.findTabIndex(tabId)
+    if (index > -1) {
+      this.tabs.splice(index, 1)
+    } else {
+      new AppError({
+        message: `Unable to find tab by ID ${tabId}`,
+        context: logContext,
+      })
     }
   }
 

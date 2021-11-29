@@ -1,17 +1,23 @@
 import { instanceToPlain, plainToInstance, Type } from 'class-transformer'
+import { lightFormat } from 'date-fns'
+import { debounce } from 'lodash'
 
+import { LocalStorage } from 'background/storage'
+import { appName } from 'utils/env'
+import { downloadJson } from 'utils/helpers'
 import { AppError } from 'utils/logger'
-
-import { getAllWindows } from './query'
 import {
-  Session,
   SessionStatus,
   SessionStatusType,
   UpdateSessionOptions,
-} from './session'
-import { LocalStorage } from './storage'
+  SessionDataExport,
+  SessionsManagerOptions,
+  SessionsManagerClass,
+} from 'utils/sessions'
 
-const logContext = 'utils/browser/sessions'
+import { Session } from './session'
+
+const logContext = 'background/sessions/sessions-manager'
 
 type SavedSessions = { previous: Session[]; saved: Session[] }
 
@@ -21,6 +27,7 @@ type SavedSessions = { previous: Session[]; saved: Session[] }
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_Management#cycles_are_no_longer_a_problem
  * `class-transformer` serialization ignores circular references for us
  */
+export interface SessionsManager extends SessionsManagerClass {}
 export class SessionsManager {
   @Type(() => Session)
   current: Session
@@ -31,7 +38,7 @@ export class SessionsManager {
   @Type(() => Session)
   previous: Session[]
 
-  constructor(current: Session, saved: Session[], previous: Session[]) {
+  constructor({ current, saved, previous }: SessionsManagerOptions) {
     this.current = current
     this.saved = saved
     this.previous = previous
@@ -41,11 +48,8 @@ export class SessionsManager {
     const { saved = [], previous = [] } =
       (await LocalStorage.get<SavedSessions>(LocalStorage.key.SESSIONS)) || {}
 
-    const startTime = performance.now()
     const current = await this.getCurrent()
-    const endTime = performance.now()
-    console.log(`Call to getCurrent took ${endTime - startTime} milliseconds`)
-    return new SessionsManager(current, saved, previous)
+    return new SessionsManager({ current, saved, previous })
   }
 
   async save() {
@@ -63,6 +67,7 @@ export class SessionsManager {
       status: SessionStatus.PREVIOUS,
     }))
     this.current.status = SessionStatus.CURRENT
+    // TODO: check for duplicate IDs
   }
 
   get allSessions(): Session[] {
@@ -74,8 +79,10 @@ export class SessionsManager {
   }
 
   static fromJSON(json: string) {
-    const parsed: { current: Session } & SavedSessions = JSON.parse(json)
-    return new SessionsManager(parsed.current, parsed.saved, parsed.previous)
+    const { current, saved, previous }: { current: Session } & SavedSessions =
+      JSON.parse(json)
+    // return plainToInstance(SessionsManager, parsed)
+    return new SessionsManager({ current, saved, previous })
   }
 
   /**
@@ -95,12 +102,19 @@ export class SessionsManager {
     }
   }
 
+  // TODO: When to overwrite current and unshift previous current to "previous"
   static async getCurrent(): Promise<Session> {
-    return new Session({
-      windows: await getAllWindows({ populate: true }, true),
-      status: SessionStatus.CURRENT,
-      active: true,
-    })
+    return await Session.createFromCurrentWindows()
+  }
+
+  async updateCurrent(debounceUpdate?: boolean): Promise<void> {
+    if (debounceUpdate) {
+      debounce(async () => {
+        await this.updateCurrent()
+      }, 250)
+    } else {
+      this.current = await SessionsManager.getCurrent()
+    }
   }
 
   /**
@@ -131,10 +145,7 @@ export class SessionsManager {
     return session
   }
 
-  /**
-   * To add current to previous, simply use `addCurrent`
-   */
-  private async addPrevious(session: Session) {
+  async addPrevious(session: Session) {
     session.status = SessionStatus.PREVIOUS
     this.previous.unshift(session)
     return session
@@ -143,18 +154,18 @@ export class SessionsManager {
   /**
    * Look in current, saved, previous
    */
-  get(sessionId: string, status?: SessionStatusType) {
+  find(sessionId: string, status?: SessionStatusType) {
     if (status === SessionStatus.CURRENT) {
       return this.current
     } else {
-      return this.find(sessionId, status)
+      return this.search(sessionId, status)
     }
   }
 
   /**
    * Look only in saved, previous
    */
-  find(
+  search(
     sessionId: string,
     status?: Extract<SessionStatusType, 'previous' | 'saved'>
   ) {
@@ -167,7 +178,7 @@ export class SessionsManager {
     params: UpdateSessionOptions,
     status?: SessionStatusType
   ) {
-    const session = this.get(sessionId, status)
+    const session = this.find(sessionId, status)
     if (session) {
       session.update(params)
     } else {
@@ -191,5 +202,21 @@ export class SessionsManager {
         context: logContext,
       })
     }
+  }
+
+  async download(sessionIds?: string[]) {
+    await this.updateCurrent()
+    const sessions = sessionIds
+      ? this.allSessions.filter(({ id }) => sessionIds.includes(id))
+      : this.allSessions
+
+    const now = new Date()
+    const timestamp = lightFormat(now, 'yyyy-MM-dd-hh-mm-ss-SS')
+    const data: SessionDataExport = {
+      exportedDate: now,
+      sessions,
+    }
+    const filename = `${appName}-${timestamp}.json`
+    downloadJson(filename, data)
   }
 }

@@ -1,34 +1,22 @@
+// polyfill for class-transformer lib
 import 'reflect-metadata'
 import browser from 'webextension-polyfill'
 
+import { startListeners as startAppListeners } from 'background/app'
+import { Settings } from 'background/app/settings'
+import { startListeners as startSessionListeners } from 'background/sessions'
+import { SessionsManager } from 'background/sessions/sessions-manager'
 import { buildVersion, buildTime } from 'utils/env'
 import { concatTruthy } from 'utils/helpers'
-import { updateLogLevel, log } from 'utils/logger'
-import { readSettings } from 'utils/settings'
-
-import { loadExtensionActions } from './configuration'
-import { setupListeners } from './listeners'
+import { log } from 'utils/logger'
 
 // import { startupValidation } from './sessions/validation'
 
 const logContext = 'background/index'
 const getBytesInUse = browser.storage.local.getBytesInUse
 
-const main = async () => {
-  log.debug(logContext, 'main()')
-
-  const settings = await readSettings()
-  updateLogLevel(settings.debugMode)
-  // "setup" fns are invoked once on background startup
-  setupListeners(settings)
-  // "load" fns are invoked once on background startup and
-  // can be reloaded through messages from client
-  await loadExtensionActions(settings.extensionClickAction)
-  // initial session validation
-  // await startupValidation()
-
+const logStartup = async () => {
   const bytesUsed = getBytesInUse && (await getBytesInUse())
-
   const status = [
     `loaded: ${new Date().toISOString()}`,
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -43,6 +31,17 @@ const main = async () => {
   ]
 
   log.info(status.join('\n'))
+}
+
+const main = async () => {
+  log.debug(logContext, 'main()')
+
+  const settings = await Settings.load()
+  const sessionsManager = await SessionsManager.load()
+  startAppListeners(sessionsManager, settings)
+  startSessionListeners(sessionsManager, settings)
+
+  await logStartup()
 }
 
 void main()

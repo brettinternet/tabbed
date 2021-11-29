@@ -1,38 +1,11 @@
 import { Tabs } from 'webextension-polyfill'
 
+import { closeTab, focusWindowTab, openTab } from 'background/browser'
 import { generateFallbackId } from 'utils/helpers'
+import { SessionTabClass, SessionTabOptions } from 'utils/sessions'
 
-import { closeTab, focusWindowTab, openTab } from './query'
-
-export type SessionTabOptions = {
-  id: number
-  url: string
-  title?: string
-  windowId: number
-  active: boolean
-  pinned: boolean
-  muted: boolean
-  discarded: boolean
-  attention: boolean
-  groupId?: number
-  incognito: boolean
-  activeSession: boolean
-}
-
+export interface SessionTab extends SessionTabClass {}
 export class SessionTab {
-  id: number
-  url: string
-  title?: string
-  windowId: number
-  active: boolean
-  pinned: boolean
-  muted: boolean
-  discarded: boolean
-  attention: boolean
-  groupId?: number
-  incognito: boolean
-  activeSession: boolean
-
   constructor({
     id,
     url,
@@ -122,5 +95,40 @@ export class SessionTab {
     const { url, pinned, windowId } = this
     await openTab({ url, pinned, windowId, incognito: this.incognito })
     // await openTabOrFocus({ url, pinned, windowId }, this.incognito)
+  }
+
+  update({
+    url,
+    title,
+    windowId,
+    active,
+    pinned,
+    muted,
+    discarded,
+    attention,
+    groupId,
+  }: Partial<
+    Pick<
+      SessionTabOptions,
+      | 'url'
+      | 'title'
+      | 'windowId'
+      | 'active'
+      | 'pinned'
+      | 'muted'
+      | 'discarded'
+      | 'attention'
+      | 'groupId'
+    >
+  >) {
+    this.url = url || this.url
+    this.title = title || this.title
+    this.windowId = windowId || this.windowId
+    this.active = active || this.active
+    this.pinned = pinned || this.pinned
+    this.muted = muted || this.muted
+    this.discarded = discarded || this.discarded
+    this.attention = attention || this.attention
+    this.groupId = groupId || this.groupId
   }
 }

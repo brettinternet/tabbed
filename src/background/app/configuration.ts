@@ -1,62 +1,21 @@
 import { debounce } from 'lodash'
 import browser from 'webextension-polyfill'
 
-// import { saveCurrentSession } from 'background/sessions/create'
 import {
   openExtensionPopup,
   openExtensionSidebar,
   openExtensionNewTab,
   openExtensionExistingTab,
   openExtensionPopout,
-} from 'utils/browser/actions'
+} from 'background/browser'
+import { SessionsManager } from 'background/sessions/sessions-manager'
 import { popupUrl, sidebarUrl } from 'utils/env'
+import { isDefined } from 'utils/helpers'
 import { log } from 'utils/logger'
-import { writeSetting } from 'utils/settings'
-import { Settings, extensionClickActions } from 'utils/settings'
+import { ExtensionClickActions } from 'utils/settings'
+import { SettingsOptions } from 'utils/settings'
 
-const logContext = 'background/configuration'
-
-export const updatePopoutPosition = async (
-  popoutState: Settings['popoutState']
-) => {
-  await writeSetting({ popoutState })
-}
-
-const enablePopup = async () => {
-  log.debug(logContext, 'enablePopup()')
-
-  await browser.browserAction.setPopup({ popup: popupUrl })
-}
-
-const disablePopup = async () => {
-  log.debug(logContext, 'disablePopup()')
-
-  await browser.browserAction.setPopup({ popup: '' })
-}
-
-/**
- * Setup browser toolbar context menus
- */
-const setupMenus = async (popupDisabled?: boolean) => {
-  log.debug(logContext, 'setupMenus()', popupDisabled)
-
-  // reset to avoid duplicates
-  await browser.contextMenus.removeAll()
-
-  browser.contextMenus.create({
-    title: 'Open popup',
-    contexts: ['browser_action'],
-    onclick: async () => {
-      if (popupDisabled) {
-        await enablePopup()
-        await openExtensionPopup()
-        await disablePopup()
-      } else {
-        await openExtensionPopup()
-      }
-    },
-  })
-
+export const configureExtension = (sessionsManager: SessionsManager) => {
   if (browser.sidebarAction) {
     browser.contextMenus.create({
       title: 'Open sidebar',
@@ -83,13 +42,13 @@ const setupMenus = async (popupDisabled?: boolean) => {
     contexts: ['page'],
     onclick: async () => {
       try {
-        // await saveCurrentSession()
-        // await browser.notifications.create({
-        //   type: 'basic',
-        //   iconUrl: 'icons/icon-32x32.png',
-        //   title: 'Session saved',
-        //   message: 'The current session has been saved',
-        // })
+        await sessionsManager.addSaved(sessionsManager.current)
+        await browser.notifications.create({
+          type: 'basic',
+          iconUrl: 'icons/icon-32x32.png',
+          title: 'Session saved',
+          message: 'The current session has been saved',
+        })
       } catch (err) {
         log.error(err)
       }
@@ -97,20 +56,28 @@ const setupMenus = async (popupDisabled?: boolean) => {
   })
 }
 
+const enablePopup = async () => {
+  await browser.browserAction.setPopup({ popup: popupUrl })
+}
+
+const disablePopup = async () => {
+  await browser.browserAction.setPopup({ popup: '' })
+}
+
+let extensionActionMenuId: string | number | undefined
+
 /**
  * Setup certain browser actions related to the browser toolbar
  */
-export const loadExtensionActions = async (
-  extensionClickAction: Settings['extensionClickAction']
+export const configureExtensionActions = async (
+  extensionClickAction: SettingsOptions['extensionClickAction']
 ) => {
-  log.debug(logContext, 'loadExtensionActions()', extensionClickAction)
-
-  if (extensionClickAction === extensionClickActions.TAB) {
+  if (extensionClickAction === ExtensionClickActions.TAB) {
     await disablePopup()
     browser.browserAction.onClicked.removeListener(openExtensionSidebar)
     browser.browserAction.onClicked.addListener(openExtensionExistingTab)
   } else if (
-    extensionClickAction === extensionClickActions.SIDEBAR &&
+    extensionClickAction === ExtensionClickActions.SIDEBAR &&
     !!browser.sidebarAction
   ) {
     await disablePopup()
@@ -125,13 +92,29 @@ export const loadExtensionActions = async (
     await enablePopup()
   }
 
-  await setupMenus(extensionClickAction !== extensionClickActions.POPUP)
+  // reset to avoid duplicates
+  if (isDefined(extensionActionMenuId)) {
+    await browser.contextMenus.remove(extensionActionMenuId)
+  }
+
+  extensionActionMenuId = browser.contextMenus.create({
+    title: 'Open popup',
+    contexts: ['browser_action'],
+    onclick: async () => {
+      if (extensionClickAction !== ExtensionClickActions.POPUP) {
+        await enablePopup()
+        await openExtensionPopup()
+        await disablePopup()
+      } else {
+        await openExtensionPopup()
+      }
+    },
+  })
 }
 
 const BADGE_BACKGROUND_COLOR = '#3b82f6'
 const updateTabCountBadge = async () => {
   try {
-    log.debug(logContext, 'updateTabCountBadge()')
     const tabs = await browser.tabs.query({})
     const count = tabs.length
     await browser.browserAction.setBadgeBackgroundColor({
@@ -149,9 +132,7 @@ const clearTabCountBadge = async () => {
 
 const updateTabCountDebounce = debounce(updateTabCountBadge, 250)
 
-export const loadTabCountListeners = (showTabCountBadge: boolean) => {
-  log.debug(logContext, 'loadTabCountListeners()', showTabCountBadge)
-
+export const configureTabCountListeners = (showTabCountBadge: boolean) => {
   if (showTabCountBadge) {
     void updateTabCountDebounce()
     browser.tabs.onUpdated.addListener(updateTabCountDebounce)

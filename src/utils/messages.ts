@@ -1,9 +1,13 @@
 import { Tabs, Windows } from 'webextension-polyfill'
 
-import type { SearchSessionsResults } from 'background/search/sessions'
 import type { ToastOptions } from 'components/toast/store'
-import type { SessionLists, Session } from 'utils/browser/storage'
-import type { Settings } from 'utils/settings'
+// import type { SearchSessionsResults } from 'background/search/sessions'
+import {
+  SessionsManagerClass,
+  SessionClass,
+  SessionStatusType,
+} from 'utils/sessions'
+import type { SettingsOptions } from 'utils/settings'
 
 type MessageWithValue<T, U = undefined> = {
   type: T
@@ -17,16 +21,10 @@ type Message<T> = {
 // TODO: add detailed comments describing each message's usage
 
 // settings
-export const MESSAGE_TYPE_RELOAD_ACTIONS = 'reload_actions'
-export type ReloadActionsMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_RELOAD_ACTIONS,
-  Settings['extensionClickAction']
->
-
-export const MESSAGE_TYPE_RELOAD_TAB_LISTENERS = 'reload_tab_listeners'
-export type ReloadTabListenersMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_RELOAD_TAB_LISTENERS,
-  boolean
+export const MESSAGE_TYPE_UPDATE_SETTINGS = 'update_settings'
+export type UpdateSettingsMessage = MessageWithValue<
+  typeof MESSAGE_TYPE_UPDATE_SETTINGS,
+  Partial<SettingsOptions>
 >
 
 export const MESSAGE_TYPE_UPDATE_LOG_LEVEL = 'update_log_level'
@@ -35,17 +33,10 @@ export type UpdateLogLevelMessage = MessageWithValue<
   boolean
 >
 
-export const MESSAGE_TYPE_RELOAD_CLOSED_WINDOW_LISTENER =
-  'reload_closed_window_listener'
-export type ReloadClosedWindowListenerMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_RELOAD_CLOSED_WINDOW_LISTENER,
-  boolean
->
-
 export const MESSAGE_TYPE_UPDATE_POPOUT_POSITION = 'update_popout_position'
 export type UpdatePopoutPositionMessage = MessageWithValue<
   typeof MESSAGE_TYPE_UPDATE_POPOUT_POSITION,
-  Settings['popoutState']
+  SettingsOptions['popoutState']
 >
 
 // session list
@@ -53,20 +44,20 @@ export const MESSAGE_TYPE_PUSH_UPDATE_SESSION_LISTS =
   'push_update_session_lists'
 export type PushUpdateSessionListsMessage = MessageWithValue<
   typeof MESSAGE_TYPE_PUSH_UPDATE_SESSION_LISTS,
-  SessionLists
+  SessionsManagerClass
 >
 
 export const MESSAGE_TYPE_GET_SESSION_LISTS = 'get_session_lists'
 export type GetSessionListsMessage = Message<
   typeof MESSAGE_TYPE_GET_SESSION_LISTS
 >
-export type GetSessionListsResponse = SessionLists
+export type GetSessionListsResponse = SessionsManagerClass
 
 export const MESSAGE_TYPE_GET_ALL_SESSIONS = 'get_all_sessions'
 export type GetAllSessionsMessage = Message<
   typeof MESSAGE_TYPE_GET_ALL_SESSIONS
 >
-export type GetAllSessionsResponse = Session[]
+export type GetAllSessionsResponse = SessionClass[]
 
 // query sessions
 export type SessionQuery = {
@@ -78,7 +69,7 @@ export type QuerySessionMessage = MessageWithValue<
   typeof MESSAGE_TYPE_QUERY_SESSION,
   SessionQuery
 >
-export type QuerySessionResponse = Session | undefined
+export type QuerySessionResponse = SessionClass | undefined
 
 // session actions
 
@@ -111,7 +102,7 @@ export type OpenSessionMessage = MessageWithValue<
 >
 
 export type OpenWindowOptions = {
-  noFocus?: boolean
+  forceOpen?: boolean
 }
 export const MESSAGE_TYPE_OPEN_SESSION_WINDOW = 'open_session_window'
 export type OpenSessionWindowMessage = MessageWithValue<
@@ -120,7 +111,7 @@ export type OpenSessionWindowMessage = MessageWithValue<
 >
 
 export type OpenTabOptions = {
-  noFocus?: boolean
+  forceOpen?: boolean
 }
 export const MESSAGE_TYPE_OPEN_SESSION_TAB = 'open_session_tab'
 export type OpenSessionTabMessage = MessageWithValue<
@@ -137,7 +128,10 @@ export type OpenSessionTabMessage = MessageWithValue<
 export const MESSAGE_TYPE_DELETE_SESSION = 'delete_session'
 export type DeleteSessionMessage = MessageWithValue<
   typeof MESSAGE_TYPE_DELETE_SESSION,
-  { sessionId: string }
+  {
+    sessionId: string
+    status: Exclude<SessionStatusType, 'current'>
+  }
 >
 
 export const MESSAGE_TYPE_REMOVE_SESSION_WINDOW = 'remove_session_window'
@@ -199,7 +193,7 @@ export type MoveTabsMessage = MessageWithValue<
 export const MESSAGE_TYPE_DISCARD_TABS = 'discard_tabs'
 export type DiscardTabsMessage = MessageWithValue<
   typeof MESSAGE_TYPE_DISCARD_TABS,
-  { tabIds: number | number[] }
+  { sessionId: string; windowId: number; tabIds: number | number[] }
 >
 
 export const MESSAGE_TYPE_FIND_DUPLICATE_SESSION_TABS =
@@ -212,7 +206,7 @@ export type FindDuplicateSessionTabsResponse = string[] // urls
 
 // download/backup
 export type DownloadSessionsOptions = {
-  sessionIds?: string | string[]
+  sessionIds?: string[]
 }
 export const MESSAGE_TYPE_DOWNLOAD_SESSIONS = 'download_sessions'
 export type DownloadSessionsMessage = MessageWithValue<
@@ -233,7 +227,7 @@ export type SearchSessionsMessage = MessageWithValue<
   typeof MESSAGE_TYPE_SEARCH_SESSIONS,
   { text: string }
 >
-export type SearchSessionsResponse = SearchSessionsResults
+// export type SearchSessionsResponse = SearchSessionsResults
 
 // undo
 export const MESSAGE_TYPE_UNDO = 'undo'

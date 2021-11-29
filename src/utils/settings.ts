@@ -1,31 +1,36 @@
-import { LocalStorage } from 'utils/browser/storage'
-import { isProd } from 'utils/env'
-import type { Valueof } from 'utils/helpers'
-import { isDefined, insert } from 'utils/helpers'
+// Types shared between background and client
+import { Valueof } from 'utils/helpers'
 
-export const layouts = {
+export const Layouts = {
   LIST: 'list',
   GRID: 'grid',
 } as const
-export type Layout = Valueof<typeof layouts>
+export type LayoutType = Valueof<typeof Layouts>
 
-export const extensionClickActions = {
+export const ExtensionClickActions = {
   TAB: 'tab',
   POPUP: 'popup',
   SIDEBAR: 'sidebar',
 } as const
-export type ExtensionClickAction = Valueof<typeof extensionClickActions>
+export type ExtensionClickActionType = Valueof<typeof ExtensionClickActions>
 
-export const themes = {
+export const Themes = {
   DARK: 'dark',
   LIGHT: 'light',
   SYSTEM: 'system',
 } as const
-export type Theme = Valueof<typeof themes>
+export type ThemeType = Valueof<typeof Themes>
 
-export type Settings = {
-  layout: Layout
-  extensionClickAction: ExtensionClickAction
+type WindowPosition = {
+  top: number
+  left: number
+  height: number
+  width: number
+}
+
+export type SettingsOptions = {
+  layout: LayoutType
+  extensionClickAction: ExtensionClickActionType
   showTabCountBadge: boolean
   shortcuts: boolean
   fontSize: number
@@ -33,13 +38,8 @@ export type Settings = {
     width: number
     height: number
   }
-  popoutState: {
-    top: number
-    left: number
-    height: number
-    width: number
-  }
-  theme: Theme
+  popoutState: WindowPosition
+  theme: ThemeType
   debugMode: boolean
   saveClosedWindows: boolean
   sortFocusedWindowFirst: boolean
@@ -49,46 +49,4 @@ export type Settings = {
     parsed: string[]
     error: string | undefined
   }
-}
-
-export const defaultSettings: Settings = {
-  layout: layouts.LIST,
-  extensionClickAction: extensionClickActions.POPUP,
-  showTabCountBadge: true,
-  shortcuts: true,
-  fontSize: 16,
-  popupDimensions: {
-    width: 600,
-    height: 600,
-  },
-  popoutState: {
-    top: 0,
-    left: 0,
-    height: 600,
-    width: 600,
-  },
-  theme: themes.LIGHT,
-  debugMode: !isProd,
-  saveClosedWindows: false,
-  sortFocusedWindowFirst: false,
-  saveIncognito: false,
-  excludedUrls: {
-    raw: `chrome://bookmarks
-chrome-extension://*`,
-    parsed: ['chrome://bookmarks', 'chrome-extension://*'],
-    error: undefined,
-  },
-}
-
-export const readSettings = async (): Promise<Settings> => {
-  const settings = await LocalStorage.get<Settings>(LocalStorage.key.SETTINGS)
-  return Object.assign({}, defaultSettings, settings)
-}
-
-export const writeSetting = async (settings: Partial<Settings>) => {
-  const currentSettings = await readSettings()
-  await LocalStorage.set(
-    LocalStorage.key.SETTINGS,
-    Object.assign({}, currentSettings, settings)
-  )
 }

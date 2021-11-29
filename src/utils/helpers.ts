@@ -7,6 +7,14 @@ export const isDefined = <T>(arg: T | undefined): arg is T =>
   typeof arg !== 'undefined'
 
 /**
+ * @usage typed version of Object.keys
+ * https://stackoverflow.com/a/59459000
+ */
+export const getKeys = Object.keys as <T extends Record<string, unknown>>(
+  obj: T
+) => Array<keyof T>
+
+/**
  * Spread a truthy value or an explicitly inserted value into an array
  *
  * @usage
@@ -61,15 +69,9 @@ export const insert = <T>(list: T[], item: T, index: number) => {
 }
 
 /**
+ * Reorder item in list with splice
  * @source https://github.com/lodash/lodash/issues/1701
  * https://stackoverflow.com/a/5306832
- */
-export const move = <T>(arr: T[], fromIndex: number, toIndex: number) => {
-  arr.splice(toIndex, 0, arr.splice(fromIndex, 1)[0])
-}
-
-/**
- * Reorder item in list with splice
  */
 export const reorder = <T>(
   list: T[],
@@ -107,3 +109,25 @@ export const spliceSeparate = <T>(
 }
 
 export const generateFallbackId = () => new Date().valueOf()
+
+/**
+ * Downloads data as JSON by creating a url blog, adding an anchor to
+ * the DOM and initiliazing the download
+ */
+export const downloadJson = (filename: string, data: unknown) => {
+  const url = window.URL.createObjectURL(
+    new Blob([JSON.stringify(data, null, '\t')], {
+      type: 'application/json',
+    })
+  )
+
+  // https://stackoverflow.com/a/19328891
+  const anchor = document.createElement('a')
+  anchor.style.display = 'none'
+  anchor.setAttribute('href', url)
+  anchor.setAttribute('download', filename)
+  document.body.append(anchor)
+  anchor.click()
+  window.URL.revokeObjectURL(url)
+  anchor.remove()
+}

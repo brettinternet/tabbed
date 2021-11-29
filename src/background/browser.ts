@@ -1,7 +1,34 @@
 import browser, { Tabs, Windows } from 'webextension-polyfill'
 
+import { tabUrl, popoutUrl } from 'utils/env'
 import { isDefined } from 'utils/helpers'
-import { readSettings } from 'utils/settings'
+import { Settings } from 'utils/settings'
+
+export const openExtensionPopup = () => browser.browserAction.openPopup()
+
+export const openExtensionSidebar = async () => browser.sidebarAction.open()
+
+export const openExtensionNewTab = async () => {
+  const url = browser.runtime.getURL(tabUrl)
+  await openTab({ url, incognito: browser.extension.inIncognitoContext })
+}
+
+export const openExtensionExistingTab = async () => {
+  const url = browser.runtime.getURL(tabUrl)
+  const incognito = browser.extension.inIncognitoContext
+  await openTabOrFocus({ url }, incognito)
+}
+
+export const openExtensionPopout = async (
+  popoutState: Settings['popoutState']
+) => {
+  await browser.windows.create({
+    type: 'popup',
+    focused: true,
+    url: popoutUrl,
+    ...popoutState,
+  })
+}
 
 /**
  * `pendingUrl` for Chrome browsers where status === 'loading'
@@ -98,7 +125,8 @@ export const getCurrentWindow = (options?: Windows.GetInfo) =>
  */
 export const sortWindows = async (
   _windows: Windows.Window[],
-  focusedWindowId: number = browser.windows.WINDOW_ID_NONE
+  focusedWindowId: number = browser.windows.WINDOW_ID_NONE,
+  sortFocusedWindowFirst = false
 ) => {
   const windows = _windows.slice() // copy
   windows.sort((a, b) => {
@@ -115,8 +143,7 @@ export const sortWindows = async (
     return 0
   })
 
-  const settings = await readSettings()
-  if (settings.sortFocusedWindowFirst) {
+  if (sortFocusedWindowFirst) {
     if (focusedWindowId === browser.windows.WINDOW_ID_NONE) {
       focusedWindowId =
         windows.find(({ focused }) => focused)?.id ||
@@ -176,25 +203,22 @@ export const focusWindowTab = async (windowId: number, tabId: number) => {
   await activateTab(tabId)
 }
 
-type OpenTabOptions = {
+type TabOptions = {
   url: string
   pinned?: boolean
   windowId?: number
   incognito?: boolean
-  focus?: boolean
+  active?: boolean
 }
 
 /**
  * Find existing tab with matching query, otherwise
  * open with matching incognito state
  */
-export const openTab = async ({
-  url,
-  pinned,
-  windowId,
-  incognito,
-  focus = true,
-}: OpenTabOptions) => {
+export const openTab = async (
+  { url, pinned, windowId, incognito, active }: TabOptions,
+  focus: boolean = true
+) => {
   const allowed = await browser.extension.isAllowedIncognitoAccess()
   if (incognito && !allowed) {
     /**
@@ -217,31 +241,29 @@ export const openTab = async ({
     })
     newTab = newWindow.tabs?.[0]
     if (pinned && newTab?.id) {
-      await browser.tabs.update(newTab.id, { pinned, active: focus })
+      await browser.tabs.update(newTab.id, { pinned, active })
     }
   } else {
-    newTab = await browser.tabs.create({ url, pinned, windowId, active: focus })
+    newTab = await browser.tabs.create({ url, pinned, windowId, active })
   }
   return newTab
 }
 
-const openTabs = async (tabs: Tabs.Tab[], windowId?: number) => {
-  const tasks = tabs
-    .sort((a, b) => a.index - b.index)
-    .map(async (tab) => {
-      const { url, pinned, index, active } = tab
-      /**
-       * some fields such as `discarded` and reader mode ought to be supported,
-       * but throw an error in Chrome in spite of the polyfill
-       */
-      return await browser.tabs.create({
-        url,
-        pinned,
-        index,
-        active,
-        windowId,
-      })
+const openTabs = async (tabs: TabOptions[], windowId?: number) => {
+  const tasks = tabs.map(async (tab, index) => {
+    const { url, pinned, active } = tab
+    /**
+     * some fields such as `discarded` and reader mode ought to be supported,
+     * but throw an error in Chrome in spite of the polyfill
+     */
+    return await browser.tabs.create({
+      url,
+      pinned,
+      index,
+      active,
+      windowId,
     })
+  })
   await Promise.all(tasks)
 }
 
@@ -270,11 +292,21 @@ export const openTabOrFocus = async (
   }
 }
 
+type WindowOptions = {
+  state?: Windows.WindowState
+  height?: number
+  width?: number
+  top?: number
+  left?: number
+  incognito?: boolean
+  tabs: TabOptions[]
+}
+
 // TODO: Add find option to optionally search by ID
 /**
  * @returns newly opened window ID
  */
-export const openWindow = async (w: Windows.Window) => {
+export const openWindow = async (w: WindowOptions) => {
   const options: Windows.CreateCreateDataType = {
     state: w.state,
   }
@@ -291,9 +323,8 @@ export const openWindow = async (w: Windows.Window) => {
       break
   }
 
-  const firstTab = w.tabs?.[0]
   const createdWindow = await browser.windows.create({
-    incognito: firstTab?.incognito,
+    incognito: w.incognito,
     ...options,
   })
 
@@ -320,7 +351,7 @@ export const openWindow = async (w: Windows.Window) => {
  * @returns array of window IDs
  */
 export const openWindows = async (
-  windows: Windows.Window[]
+  windows: WindowOptions[]
 ): Promise<number[]> => {
   const tasks = windows.map(openWindow)
   const results = await Promise.all(tasks)
