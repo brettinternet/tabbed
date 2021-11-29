@@ -2,16 +2,13 @@ import browser from 'webextension-polyfill'
 
 import { log } from 'utils/logger'
 import type {
-  SearchSessionsMessage,
-  SearchSessionsResponse,
+  SearchSessionsMessage, // SearchSessionsResponse,
 } from 'utils/messages'
 import { MESSAGE_TYPE_SEARCH_SESSIONS } from 'utils/messages'
 
 const logContext = 'components/search/send'
 
-export const searchSessions = async (
-  text: string
-): Promise<SearchSessionsResponse> => {
+export const searchSessions = async (text: string): Promise<any> => {
   log.debug(logContext, 'searchSessions()', text)
 
   const message: SearchSessionsMessage = {

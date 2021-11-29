@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 import { DraggableLocation, DropResult } from 'react-beautiful-dnd'
 
-import { SessionWindow } from 'utils/browser/session-window'
-import { SessionsManager } from 'utils/browser/sessions'
 import { parseNum, reorder, spliceSeparate } from 'utils/helpers'
+import { SessionsManagerData, SessionWindowData } from 'utils/sessions'
+
+import { getSessionsManagerData } from './api'
 
 const shouldPin = (
-  target: SessionWindow['tabs'][number],
-  previous: SessionWindow['tabs'][number] | undefined,
-  next: SessionWindow['tabs'][number] | undefined
+  target: SessionWindowData['tabs'][number],
+  previous: SessionWindowData['tabs'][number] | undefined,
+  next: SessionWindowData['tabs'][number] | undefined
 ) => {
   if (next?.pinned) {
     return true
@@ -22,10 +23,10 @@ const shouldPin = (
 }
 
 const reorderTabs = (
-  _windows: SessionWindow[],
+  _windows: SessionWindowData[],
   source: DraggableLocation,
   destination: DraggableLocation
-): SessionWindow[] => {
+): SessionWindowData[] => {
   const windows = _windows.slice()
 
   const currentWindowIndex = windows.findIndex(
@@ -40,9 +41,9 @@ const reorderTabs = (
       source.index > destination.index
         ? destination.index
         : destination.index + 1
-    const nextTab: SessionWindow['tabs'][number] | undefined =
+    const nextTab: SessionWindowData['tabs'][number] | undefined =
       windows[nextWindowIndex].tabs[index]
-    const previousTab: SessionWindow['tabs'][number] | undefined =
+    const previousTab: SessionWindowData['tabs'][number] | undefined =
       windows[nextWindowIndex].tabs[index - 1]
 
     if (source.droppableId === destination.droppableId) {
@@ -80,26 +81,22 @@ const reorderTabs = (
 }
 
 export const useWindowsDrag = () => {
-  const [sessionManager, setSessionManager] = useState<SessionsManager>()
-  const [windows, setWindows] = useState<SessionWindow[]>([])
+  const [sessionManager, setSessionManager] = useState<SessionsManagerData>()
+  const [windows, setWindows] = useState<SessionWindowData[]>([])
 
   useEffect(() => {
     const fetch = async () => {
       const startTime = performance.now()
-      const manager = await SessionsManager.load()
+      const manager = await getSessionsManagerData()
       const endTime = performance.now()
-      console.log(`Call to load took ${endTime - startTime} milliseconds`)
-
-      const startTime1 = performance.now()
-      console.log('manager: ', manager)
-      const json = manager.toJSON()
-      console.log('json: ', json)
-      const newManager = SessionsManager.fromJSON(json)
-      const endTime1 = performance.now()
-      console.log('newManager: ', newManager)
-      console.log(`Call to JSON took ${endTime1 - startTime1} milliseconds`)
-      setSessionManager(newManager)
-      setWindows(manager.current.windows)
+      console.log(
+        `Call to load manager took ${endTime - startTime} milliseconds`
+      )
+      if (manager) {
+        console.log('manager: ', manager)
+        setSessionManager(manager)
+        setWindows(manager.current.windows)
+      }
     }
 
     void fetch()
@@ -137,7 +134,6 @@ export const useWindowsDrag = () => {
       setWindows(reorderedWindowTabs)
     }
 
-    sessionManager.save()
     return {
       onDragEnd,
       sessionManager,

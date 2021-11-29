@@ -7,9 +7,9 @@ import { isDefined } from 'utils/helpers'
 import { AppError } from 'utils/logger'
 import {
   SessionClass,
-  SessionOptions,
+  SessionData,
   SessionStatus,
-  UpdateSessionOptions,
+  UpdateSessionData,
 } from 'utils/sessions'
 
 import { SessionWindow } from './session-window'
@@ -28,7 +28,7 @@ export class Session {
     createdDate,
     status,
     active = false,
-  }: SessionOptions) {
+  }: SessionData) {
     const now = new Date()
 
     this.active = active
@@ -40,7 +40,7 @@ export class Session {
     this.status = status
   }
 
-  static async createFromCurrentWindows(options?: Partial<SessionOptions>) {
+  static async createFromCurrentWindows(options?: Partial<SessionData>) {
     const windows = await getAllWindows({ populate: true }, true)
     return new Session({
       windows: windows.map((win) => SessionWindow.fromWindow(win, true)),
@@ -73,7 +73,7 @@ export class Session {
     return this.windows.findIndex((w) => w.id === windowId)
   }
 
-  update({ title, windows }: UpdateSessionOptions) {
+  update({ title, windows }: UpdateSessionData) {
     this.title = title || this.title
     this.windows = windows || this.windows
     this.lastModifiedDate = new Date()

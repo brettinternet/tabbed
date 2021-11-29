@@ -4,7 +4,7 @@ import { Tabs, Windows } from 'webextension-polyfill'
 import { closeWindow, focusWindow, openWindow } from 'background/browser'
 import { generateFallbackId } from 'utils/helpers'
 import { log, AppError } from 'utils/logger'
-import { SessionWindowClass, SessionWindowOptions } from 'utils/sessions'
+import { SessionWindowClass, SessionWindowData } from 'utils/sessions'
 
 import { SessionTab } from './session-tab'
 
@@ -27,7 +27,7 @@ export class SessionWindow {
     left,
     width,
     height,
-  }: SessionWindowOptions) {
+  }: SessionWindowData) {
     this.id = id
     this.tabs = tabs
     this.title = title
@@ -120,7 +120,7 @@ export class SessionWindow {
     height,
   }: Partial<
     Pick<
-      SessionWindowOptions,
+      SessionWindowData,
       'focused' | 'state' | 'top' | 'left' | 'width' | 'height'
     >
   >) {

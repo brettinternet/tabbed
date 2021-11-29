@@ -1,4 +1,5 @@
 import { atom, useAtom } from 'jotai'
+import { useCallback } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
 import { Valueof } from 'utils/helpers'
@@ -36,45 +37,51 @@ const toastsAtom = atom<Toast[]>([])
 export const useToasts = () => {
   const [_toasts, setToasts] = useAtom(toastsAtom)
 
+  const add = (toastOptions: ToastOptions) => {
+    const toast = {
+      autoDismiss: true,
+      duration: 4000,
+      variant: ToastVariant.NONE,
+      ...toastOptions,
+      id: uuidv4(),
+    }
+    setToasts((toasts) => [...toasts, toast])
+  }
+
+  const update = (id: Toast['id'], toastOptions: ToastOptions) => {
+    setToasts((toasts) => {
+      const index = toasts.findIndex((t) => t.id === id)
+      if (index > -1) {
+        toasts[index] = { ...toasts[index], ...toastOptions }
+      } else {
+        log.error(logContext, 'update()', `Unable to find toast ID '${id}'`)
+      }
+      return toasts.slice()
+    })
+  }
+
+  const remove = (id: Toast['id']) => {
+    setToasts((toasts) => {
+      const index = toasts.findIndex((t) => t.id === id)
+      if (index > -1) {
+        const [toast] = toasts.splice(index, 1)
+        if (toast.onDismiss) {
+          toast.onDismiss(toast.id)
+        }
+      } else {
+        log.error(logContext, 'remove()', `Unable to find toast ID '${id}'`)
+      }
+      return toasts.slice()
+    })
+  }
+
   return {
     toasts: _toasts,
-    add: (toastOptions: ToastOptions) => {
-      const toast = {
-        autoDismiss: true,
-        duration: 4000,
-        variant: ToastVariant.NONE,
-        ...toastOptions,
-        id: uuidv4(),
-      }
-      setToasts((toasts) => [...toasts, toast])
-    },
-    update: (id: Toast['id'], toastOptions: ToastOptions) => {
-      setToasts((toasts) => {
-        const index = toasts.findIndex((t) => t.id === id)
-        if (index > -1) {
-          toasts[index] = { ...toasts[index], ...toastOptions }
-        } else {
-          log.error(logContext, 'update()', `Unable to find toast ID '${id}'`)
-        }
-        return toasts.slice()
-      })
-    },
-    remove: (id: Toast['id']) => {
-      setToasts((toasts) => {
-        const index = toasts.findIndex((t) => t.id === id)
-        if (index > -1) {
-          const [toast] = toasts.splice(index, 1)
-          if (toast.onDismiss) {
-            toast.onDismiss(toast.id)
-          }
-        } else {
-          log.error(logContext, 'remove()', `Unable to find toast ID '${id}'`)
-        }
-        return toasts.slice()
-      })
-    },
-    removeAll: () => {
+    add: useCallback(add, [setToasts]),
+    update: useCallback(update, [setToasts]),
+    remove: useCallback(remove, [setToasts]),
+    removeAll: useCallback(() => {
       setToasts([])
-    },
+    }, [setToasts]),
   }
 }

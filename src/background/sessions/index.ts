@@ -5,7 +5,8 @@ import { focusWindow } from 'background/browser'
 import { reorder } from 'utils/helpers'
 import { AppError } from 'utils/logger'
 import {
-  MESSAGE_TYPE_GET_SESSION_LISTS,
+  MESSAGE_TYPE_GET_SESSIONS_MANAGER_DATA,
+  GetSessionsManagerDataMessage,
   MESSAGE_TYPE_SAVE_EXISTING_SESSION,
   MESSAGE_TYPE_SAVE_WINDOW,
   MESSAGE_TYPE_OPEN_SESSION,
@@ -22,11 +23,9 @@ import {
   MESSAGE_TYPE_DOWNLOAD_SESSIONS,
   MESSAGE_TYPE_FIND_DUPLICATE_SESSION_TABS,
   MESSAGE_TYPE_IMPORT_SESSIONS_FROM_TEXT,
-  MESSAGE_TYPE_GET_ALL_SESSIONS,
   MESSAGE_TYPE_QUERY_SESSION,
 } from 'utils/messages'
 import type {
-  GetSessionListsMessage,
   QuerySessionMessage,
   SaveExistingSessionMessage,
   SaveWindowMessage,
@@ -44,10 +43,9 @@ import type {
   DownloadSessionsMessage,
   FindDuplicateSessionTabsMessage,
   ImportSessionsFromTextMessage,
-  GetAllSessionsMessage,
 } from 'utils/messages'
 import { SessionDataExport, SessionStatus } from 'utils/sessions'
-import { SettingsOptions } from 'utils/settings'
+import { SettingsData } from 'utils/settings'
 
 import { Session } from './session'
 import { SessionTab } from './session-tab'
@@ -55,7 +53,7 @@ import { SessionWindow } from './session-window'
 import { SessionsManager } from './sessions-manager'
 
 export const configureClosedWindowListener = (
-  { saveIncognito, saveClosedWindows }: SettingsOptions,
+  { saveIncognito, saveClosedWindows }: SettingsData,
   sessionsManager: SessionsManager
 ) => {
   // Auto save closed windows
@@ -82,8 +80,7 @@ export const configureClosedWindowListener = (
     browser.windows.onRemoved.addListener(handleClosedWindow)
   } else {
     const updateCurrent = async () => {
-      await sessionsManager.updateCurrent(true)
-      // send current session to frontend
+      await sessionsManager.updateCurrentDebounce()
     }
 
     browser.windows.onRemoved.removeListener(handleClosedWindow)
@@ -97,11 +94,10 @@ export const startListeners = async (
 ) => {
   configureClosedWindowListener(settings, sessionsManager)
 
-  // abstract repeated code
   const updateCurrent = async () => {
-    await sessionsManager.updateCurrent(true)
-    // send current session to frontend
+    await sessionsManager.updateCurrentDebounce()
   }
+  // TODO: then, send current session to frontend
 
   browser.windows.onCreated.addListener(updateCurrent)
   browser.tabs.onUpdated.addListener(updateCurrent)
@@ -109,11 +105,13 @@ export const startListeners = async (
   browser.tabs.onRemoved.addListener(updateCurrent)
   browser.tabs.onMoved.addListener(updateCurrent)
 
-  browser.runtime.onMessage.addListener((message: GetAllSessionsMessage) => {
-    if (message.type === MESSAGE_TYPE_GET_ALL_SESSIONS) {
-      return Promise.resolve(sessionsManager.toJSON())
+  browser.runtime.onMessage.addListener(
+    (message: GetSessionsManagerDataMessage) => {
+      if (message.type === MESSAGE_TYPE_GET_SESSIONS_MANAGER_DATA) {
+        return Promise.resolve(sessionsManager.toJSON())
+      }
     }
-  })
+  )
 
   browser.runtime.onMessage.addListener((message: QuerySessionMessage) => {
     if (message.type === MESSAGE_TYPE_QUERY_SESSION) {

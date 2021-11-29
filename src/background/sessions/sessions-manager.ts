@@ -9,9 +9,9 @@ import { AppError } from 'utils/logger'
 import {
   SessionStatus,
   SessionStatusType,
-  UpdateSessionOptions,
+  UpdateSessionData,
   SessionDataExport,
-  SessionsManagerOptions,
+  SessionsManagerData,
   SessionsManagerClass,
 } from 'utils/sessions'
 
@@ -38,7 +38,7 @@ export class SessionsManager {
   @Type(() => Session)
   previous: Session[]
 
-  constructor({ current, saved, previous }: SessionsManagerOptions) {
+  constructor({ current, saved, previous }: SessionsManagerData) {
     this.current = current
     this.saved = saved
     this.previous = previous
@@ -107,15 +107,12 @@ export class SessionsManager {
     return await Session.createFromCurrentWindows()
   }
 
-  async updateCurrent(debounceUpdate?: boolean): Promise<void> {
-    if (debounceUpdate) {
-      debounce(async () => {
-        await this.updateCurrent()
-      }, 250)
-    } else {
-      this.current = await SessionsManager.getCurrent()
-    }
+  async updateCurrent() {
+    this.current = await SessionsManager.getCurrent()
+    console.log('update current', this.current)
   }
+
+  updateCurrentDebounce = debounce(this.updateCurrent, 250)
 
   /**
    * Avoid conflicts with imported sessions by assigned a new ID
@@ -175,7 +172,7 @@ export class SessionsManager {
 
   update(
     sessionId: string,
-    params: UpdateSessionOptions,
+    params: UpdateSessionData,
     status?: SessionStatusType
   ) {
     const session = this.find(sessionId, status)

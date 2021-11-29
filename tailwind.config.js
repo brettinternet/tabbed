@@ -18,8 +18,8 @@ module.exports = {
     },
     extend: {
       zIndex: {
+        'tab-actions': 10,
         header: 100,
-        'menu-accordion': 80,
         modal: 150,
         overlay: 140,
         menu: 200,

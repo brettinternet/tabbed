@@ -9,6 +9,7 @@ combine windows
 combine tabs - turn into group?
 animate slide to previous history sessions https://www.framer.com/docs/examples/
 copy to clipboard https://github.com/chakra-ui/chakra-ui/blob/main/packages/hooks/src/use-clipboard.ts
+preview tab with captureTab ?
  -->
 
 <!--

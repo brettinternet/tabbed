@@ -9,15 +9,13 @@ import {
   DraggableStateSnapshot,
 } from 'react-beautiful-dnd'
 
-import { Session } from 'utils/browser/session'
-import { SessionWindow } from 'utils/browser/session-window'
-
-import { Tab, TabProps } from './tab'
+import { Tab } from 'components/tab'
+import { SessionData, SessionWindowData } from 'utils/sessions'
 
 type InnerTabListProps = {
-  windowId: SessionWindow['id']
-  sessionId: Session['id']
-  tabs: SessionWindow['tabs']
+  windowId: SessionWindowData['id']
+  sessionId: SessionData['id']
+  tabs: SessionWindowData['tabs']
 }
 
 const InnerTabList: React.FC<InnerTabListProps> = ({
@@ -34,14 +32,20 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
             dragProvided: DraggableProvided,
             dragSnapshot: DraggableStateSnapshot
           ) => (
-            <Tab
-              key={id}
-              tab={tab}
-              sessionId={sessionId}
-              windowId={windowId}
-              isDragging={dragSnapshot.isDragging}
-              provided={dragProvided}
-            />
+            <div
+              ref={dragProvided.innerRef}
+              {...dragProvided.draggableProps}
+              {...dragProvided.dragHandleProps}
+              className="mb-2"
+            >
+              <Tab
+                key={id}
+                tab={tab}
+                sessionId={sessionId}
+                windowId={windowId}
+                isDragging={dragSnapshot.isDragging}
+              />
+            </div>
           )}
         </Draggable>
       )
@@ -52,9 +56,9 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
 const MemoizedInnerTabList = memo(InnerTabList)
 
 type TabsListProps = {
-  window: SessionWindow
-  windowId: SessionWindow['id']
-  sessionId: Session['id']
+  window: SessionWindowData
+  windowId: SessionWindowData['id']
+  sessionId: SessionData['id']
   className?: ClassNames
 }
 

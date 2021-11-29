@@ -15,16 +15,6 @@ export const getKeys = Object.keys as <T extends Record<string, unknown>>(
 ) => Array<keyof T>
 
 /**
- * Spread a truthy value or an explicitly inserted value into an array
- *
- * @usage
- * [...concatTruthy(false, 'ignore me')].length === [].length
- * [...concatTruthy(true)].length !== [].length
- */
-export const concatTruthy = <T>(val: T | unknown, insert?: T) =>
-  val ? [insert || val] : []
-
-/**
  * Returns value if exists in object
  */
 export const objValue = <T extends Record<string, unknown>>(

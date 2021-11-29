@@ -1,4 +1,5 @@
 // Types shared between background and client
+import { isProd } from 'utils/env'
 import { Valueof } from 'utils/helpers'
 
 export const Layouts = {
@@ -28,7 +29,7 @@ type WindowPosition = {
   width: number
 }
 
-export type SettingsOptions = {
+export type SettingsData = {
   layout: LayoutType
   extensionClickAction: ExtensionClickActionType
   showTabCountBadge: boolean
@@ -49,4 +50,33 @@ export type SettingsOptions = {
     parsed: string[]
     error: string | undefined
   }
+}
+
+export const defaultSettings: SettingsData = {
+  layout: Layouts.LIST,
+  extensionClickAction: ExtensionClickActions.POPUP,
+  showTabCountBadge: true,
+  shortcuts: true,
+  fontSize: 16,
+  popupDimensions: {
+    width: 600,
+    height: 600,
+  },
+  popoutState: {
+    top: 0,
+    left: 0,
+    height: 600,
+    width: 600,
+  },
+  theme: Themes.LIGHT,
+  debugMode: !isProd,
+  saveClosedWindows: false,
+  sortFocusedWindowFirst: false,
+  saveIncognito: false,
+  excludedUrls: {
+    raw: `chrome://bookmarks
+chrome-extension://*`,
+    parsed: ['chrome://bookmarks', 'chrome-extension://*'],
+    error: undefined,
+  },
 }

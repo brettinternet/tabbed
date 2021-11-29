@@ -22,7 +22,10 @@ export const Layout: React.FC<LayoutProps> = ({
       : {})}
   >
     <Head title={appName} />
-    <Header onClickSettings={onClickSettings} />
+    <Header
+      onClickSettings={onClickSettings}
+      className="mx-auto max-w-screen-2xl"
+    />
     <main id="main" className="mx-auto max-w-screen-2xl">
       {children}
     </main>

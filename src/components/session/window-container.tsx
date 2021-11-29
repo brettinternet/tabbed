@@ -5,17 +5,16 @@ import {
   DraggableStateSnapshot,
 } from 'react-beautiful-dnd'
 
-import { Button } from 'components/button'
 import { Dropdown } from 'components/dropdown'
-import { Session } from 'utils/browser/session'
-import { SessionWindow } from 'utils/browser/session-window'
+import { Icon } from 'components/icon'
+import { SessionData, SessionWindowData } from 'utils/sessions'
 
 import { TabsList } from './tabs-list'
 
 type SessionWindowProps = {
-  sessionId: Session['id']
+  sessionId: SessionData['id']
   index: number
-  window: SessionWindow
+  window: SessionWindowData
 }
 
 const getContainerBackground = ({
@@ -36,30 +35,20 @@ const getContainerBackground = ({
   return 'bg-gray-100'
 }
 
-const getHeaderBackground = ({
-  isDragging,
-  focused,
-}: {
-  isDragging: boolean
-  focused: boolean
-}) => {
-  if (isDragging) {
-    return 'bg-blue-200'
-  }
-
-  if (focused) {
-    return 'bg-green-100'
-  }
-
-  return 'hover:bg-blue-100'
-}
-
 export const WindowContainer: React.FC<SessionWindowProps> = ({
   sessionId,
   index,
   window: win,
 }) => {
   const { incognito, focused, title, state } = win
+
+  const handleOpen: React.MouseEventHandler<
+    HTMLDivElement | HTMLButtonElement
+  > = () => {
+    if (!focused) {
+      // win.open()
+    }
+  }
   return (
     <Draggable draggableId={`${sessionId}-${win.id}`} index={index}>
       {(
@@ -68,37 +57,42 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
       ) => (
         <div
           className={cn(
-            'transition duration-150',
+            'transition-colors duration-150 pb-3',
             getContainerBackground({
               isDragging: dragSnapshot.isDragging,
               incognito,
-            })
+            }),
+            dragSnapshot.isDragging && 'rounded shadow-lg'
           )}
           ref={dragProvided.innerRef}
           {...dragProvided.draggableProps}
           {...dragProvided.dragHandleProps}
         >
           <div
-            className={cn(
-              'flex justify-between items-center py-3 px-6 transition-colors duration-75',
-              getHeaderBackground({
-                isDragging: dragSnapshot.isDragging,
-                focused,
-              })
-            )}
+            onDoubleClick={handleOpen}
+            className="flex justify-between items-center py-3 px-6 transition-colors duration-75 hover:bg-gray-200"
           >
             <div className="space-y-2">
               {title && <div>{title}</div>}
-              <div className="text-gray-500 text-xs">{state}</div>
+              <div className="flex items-center flex-wrap">
+                <div className="text-gray-500 text-xs mr-2">{state}</div>
+                {focused && (
+                  <Icon
+                    title="active"
+                    name="file-tick"
+                    className="mr-2"
+                    size="sm"
+                  />
+                )}
+              </div>
             </div>
             <div>
               <Dropdown
+                buttonVariant="none"
                 actionGroups={[
                   [
                     {
-                      onClick: () => {
-                        win.open()
-                      },
+                      onClick: handleOpen,
                       text: win.activeSession ? 'Focus' : 'Open',
                       iconProps: { name: 'file-plus' },
                       disabled: win.focused,
@@ -107,7 +101,7 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
                   [
                     {
                       onClick: () => {
-                        win.remove()
+                        // win.remove()
                       },
                       text: win.activeSession ? 'Close' : 'Delete',
                       iconProps: { name: 'bin' },

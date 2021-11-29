@@ -3,11 +3,11 @@ import { Tabs, Windows } from 'webextension-polyfill'
 import type { ToastOptions } from 'components/toast/store'
 // import type { SearchSessionsResults } from 'background/search/sessions'
 import {
-  SessionsManagerClass,
-  SessionClass,
+  SessionsManagerData,
+  SessionData,
   SessionStatusType,
 } from 'utils/sessions'
-import type { SettingsOptions } from 'utils/settings'
+import type { SettingsData } from 'utils/settings'
 
 type MessageWithValue<T, U = undefined> = {
   type: T
@@ -21,11 +21,22 @@ type Message<T> = {
 // TODO: add detailed comments describing each message's usage
 
 // settings
+export const MESSAGE_TYPE_GET_SETTINGS = 'get_settings'
+export type GetSettingsMessage = Message<typeof MESSAGE_TYPE_GET_SETTINGS>
+export type GetSettingsResponse = SettingsData
+
+export const MESSAGE_TYPE_PUSH_SETTINGS = 'push_settings'
+export type PushSettingsMessage = MessageWithValue<
+  typeof MESSAGE_TYPE_PUSH_SETTINGS,
+  SettingsData
+>
+
 export const MESSAGE_TYPE_UPDATE_SETTINGS = 'update_settings'
 export type UpdateSettingsMessage = MessageWithValue<
   typeof MESSAGE_TYPE_UPDATE_SETTINGS,
-  Partial<SettingsOptions>
+  Partial<SettingsData>
 >
+export type UpdateSettingsResponse = SettingsData
 
 export const MESSAGE_TYPE_UPDATE_LOG_LEVEL = 'update_log_level'
 export type UpdateLogLevelMessage = MessageWithValue<
@@ -33,31 +44,26 @@ export type UpdateLogLevelMessage = MessageWithValue<
   boolean
 >
 
-export const MESSAGE_TYPE_UPDATE_POPOUT_POSITION = 'update_popout_position'
-export type UpdatePopoutPositionMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_UPDATE_POPOUT_POSITION,
-  SettingsOptions['popoutState']
->
-
 // session list
-export const MESSAGE_TYPE_PUSH_UPDATE_SESSION_LISTS =
-  'push_update_session_lists'
-export type PushUpdateSessionListsMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_PUSH_UPDATE_SESSION_LISTS,
-  SessionsManagerClass
+export const MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA =
+  'push_sessions_manager_data'
+export type PushSessionManagerDataMessage = MessageWithValue<
+  typeof MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA,
+  SessionsManagerData
 >
 
-export const MESSAGE_TYPE_GET_SESSION_LISTS = 'get_session_lists'
-export type GetSessionListsMessage = Message<
-  typeof MESSAGE_TYPE_GET_SESSION_LISTS
+export const MESSAGE_TYPE_GET_SESSIONS_MANAGER_DATA =
+  'get_sessions_manager_data'
+export type GetSessionsManagerDataMessage = Message<
+  typeof MESSAGE_TYPE_GET_SESSIONS_MANAGER_DATA
 >
-export type GetSessionListsResponse = SessionsManagerClass
+export type GetSessionListsResponse = SessionsManagerData
 
 export const MESSAGE_TYPE_GET_ALL_SESSIONS = 'get_all_sessions'
 export type GetAllSessionsMessage = Message<
   typeof MESSAGE_TYPE_GET_ALL_SESSIONS
 >
-export type GetAllSessionsResponse = SessionClass[]
+export type GetAllSessionsResponse = SessionData[]
 
 // query sessions
 export type SessionQuery = {
@@ -69,7 +75,7 @@ export type QuerySessionMessage = MessageWithValue<
   typeof MESSAGE_TYPE_QUERY_SESSION,
   SessionQuery
 >
-export type QuerySessionResponse = SessionClass | undefined
+export type QuerySessionResponse = SessionData | undefined
 
 // session actions
 

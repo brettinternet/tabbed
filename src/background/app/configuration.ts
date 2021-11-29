@@ -13,30 +13,53 @@ import { popupUrl, sidebarUrl } from 'utils/env'
 import { isDefined } from 'utils/helpers'
 import { log } from 'utils/logger'
 import { ExtensionClickActions } from 'utils/settings'
-import { SettingsOptions } from 'utils/settings'
+import { SettingsData } from 'utils/settings'
 
-export const configureExtension = (sessionsManager: SessionsManager) => {
+type MenuId = string | number
+let menuIds: {
+  popout?: MenuId
+  sidebar?: MenuId
+  tab?: MenuId
+  saveContext?: MenuId
+  popup?: MenuId
+} = {}
+
+export const configurePopoutAction = (
+  popoutState: SettingsData['popoutState']
+) => {
+  menuIds.popout = browser.contextMenus.create({
+    title: 'Open in popout window',
+    contexts: ['browser_action'],
+    onclick: async () => {
+      await openExtensionPopout(popoutState)
+    },
+  })
+}
+
+export const configureExtension = async (sessionsManager: SessionsManager) => {
+  await Promise.all(
+    [menuIds.sidebar, menuIds.tab, menuIds.saveContext].map(async (id) => {
+      if (isDefined(id)) {
+        await browser.contextMenus.remove(id)
+      }
+    })
+  )
+
   if (browser.sidebarAction) {
-    browser.contextMenus.create({
+    menuIds.sidebar = browser.contextMenus.create({
       title: 'Open sidebar',
       contexts: ['browser_action'],
       onclick: openExtensionSidebar,
     })
   }
 
-  browser.contextMenus.create({
+  menuIds.tab = browser.contextMenus.create({
     title: 'Open in tab',
     contexts: ['browser_action'],
     onclick: openExtensionNewTab,
   })
 
-  browser.contextMenus.create({
-    title: 'Open in popout window',
-    contexts: ['browser_action'],
-    onclick: openExtensionPopout,
-  })
-
-  browser.contextMenus.create({
+  menuIds.saveContext = browser.contextMenus.create({
     id: 'save-session',
     title: 'Save session',
     contexts: ['page'],
@@ -64,13 +87,11 @@ const disablePopup = async () => {
   await browser.browserAction.setPopup({ popup: '' })
 }
 
-let extensionActionMenuId: string | number | undefined
-
 /**
  * Setup certain browser actions related to the browser toolbar
  */
 export const configureExtensionActions = async (
-  extensionClickAction: SettingsOptions['extensionClickAction']
+  extensionClickAction: SettingsData['extensionClickAction']
 ) => {
   if (extensionClickAction === ExtensionClickActions.TAB) {
     await disablePopup()
@@ -92,12 +113,11 @@ export const configureExtensionActions = async (
     await enablePopup()
   }
 
-  // reset to avoid duplicates
-  if (isDefined(extensionActionMenuId)) {
-    await browser.contextMenus.remove(extensionActionMenuId)
+  if (isDefined(menuIds.popup)) {
+    await browser.contextMenus.remove(menuIds.popup)
   }
 
-  extensionActionMenuId = browser.contextMenus.create({
+  menuIds.popup = browser.contextMenus.create({
     title: 'Open popup',
     contexts: ['browser_action'],
     onclick: async () => {

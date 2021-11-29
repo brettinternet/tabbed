@@ -2,7 +2,7 @@ import { Tabs } from 'webextension-polyfill'
 
 import { closeTab, focusWindowTab, openTab } from 'background/browser'
 import { generateFallbackId } from 'utils/helpers'
-import { SessionTabClass, SessionTabOptions } from 'utils/sessions'
+import { SessionTabClass, SessionTabData } from 'utils/sessions'
 
 export interface SessionTab extends SessionTabClass {}
 export class SessionTab {
@@ -19,7 +19,7 @@ export class SessionTab {
     groupId,
     incognito,
     activeSession,
-  }: SessionTabOptions) {
+  }: SessionTabData) {
     this.id = id
     this.url = url
     this.title = title
@@ -109,7 +109,7 @@ export class SessionTab {
     groupId,
   }: Partial<
     Pick<
-      SessionTabOptions,
+      SessionTabData,
       | 'url'
       | 'title'
       | 'windowId'

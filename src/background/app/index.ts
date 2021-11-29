@@ -5,16 +5,15 @@ import { SessionsManager } from 'background/sessions/sessions-manager'
 import { updateLogLevel, log } from 'utils/logger'
 import {
   MESSAGE_TYPE_UPDATE_LOG_LEVEL,
-  MESSAGE_TYPE_UPDATE_POPOUT_POSITION,
-  UpdateSettingsMessage,
-  MESSAGE_TYPE_UPDATE_SETTINGS,
-} from 'utils/messages'
-import type {
   UpdateLogLevelMessage,
-  UpdatePopoutPositionMessage,
+  MESSAGE_TYPE_GET_SETTINGS,
+  GetSettingsMessage,
+  MESSAGE_TYPE_UPDATE_SETTINGS,
+  UpdateSettingsMessage,
 } from 'utils/messages'
 
 import {
+  configurePopoutAction,
   configureExtension,
   configureExtensionActions,
   configureTabCountListeners,
@@ -53,18 +52,31 @@ const handleSettingsSideEffects = async <K extends keyof Settings>(
       void configureClosedWindowListener(settings, sessionsManager)
       break
     }
+    case 'popoutState': {
+      configurePopoutAction(settings.popoutState)
+      break
+    }
   }
 }
 
-export const startListeners = (
+export const startListeners = async (
   sessionsManager: SessionsManager,
   settings: Settings
 ) => {
   log.debug(logContext, 'startListeners()', settings)
 
-  configureExtension(sessionsManager)
+  // reset to avoid duplicates
+  await browser.contextMenus.removeAll()
+  void configureExtension(sessionsManager)
+  configurePopoutAction(settings.popoutState)
   void configureTabCountListeners(settings.showTabCountBadge)
   void configureExtensionActions(settings.extensionClickAction)
+
+  browser.runtime.onMessage.addListener((message: GetSettingsMessage) => {
+    if (message.type === MESSAGE_TYPE_GET_SETTINGS) {
+      return Promise.resolve(settings)
+    }
+  })
 
   browser.runtime.onMessage.addListener((message: UpdateSettingsMessage) => {
     if (message.type === MESSAGE_TYPE_UPDATE_SETTINGS) {
@@ -89,12 +101,4 @@ export const startListeners = (
       void updateLogLevel(message.value)
     }
   })
-
-  browser.runtime.onMessage.addListener(
-    (message: UpdatePopoutPositionMessage) => {
-      if (message.type === MESSAGE_TYPE_UPDATE_POPOUT_POSITION) {
-        return settings.update({ popoutState: message.value })
-      }
-    }
-  )
 }

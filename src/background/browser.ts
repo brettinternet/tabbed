@@ -2,7 +2,7 @@ import browser, { Tabs, Windows } from 'webextension-polyfill'
 
 import { tabUrl, popoutUrl } from 'utils/env'
 import { isDefined } from 'utils/helpers'
-import { Settings } from 'utils/settings'
+import { SettingsData } from 'utils/settings'
 
 export const openExtensionPopup = () => browser.browserAction.openPopup()
 
@@ -20,7 +20,7 @@ export const openExtensionExistingTab = async () => {
 }
 
 export const openExtensionPopout = async (
-  popoutState: Settings['popoutState']
+  popoutState: SettingsData['popoutState']
 ) => {
   await browser.windows.create({
     type: 'popup',

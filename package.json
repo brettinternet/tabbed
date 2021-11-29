@@ -5,10 +5,10 @@
   "scripts": {
     "start": "run-s clean copy-public create-manifest && run-p start:*",
     "start:app": "craco start | cat",
-    "start:background": "esbuild src/background/index.ts --bundle --minify --sourcemap --outdir=build/background --watch",
+    "start:background": "esbuild src/background/index.ts --bundle --sourcemap --outdir=build/background --inject:env.js --watch",
     "build": "run-s build:app build:background build:manifest",
     "build:app": "craco build",
-    "build:background": "esbuild src/background/index.ts --bundle --minify --sourcemap --outdir=build/background",
+    "build:background": "esbuild src/background/index.ts --bundle --minify --sourcemap --outdir=build/background --inject:env.js",
     "build:create-manifest": "run-s create-manifest",
     "eject": "react-scripts eject",
     "clean": "ts-node -P scripts/tsconfig.json scripts/clean",
