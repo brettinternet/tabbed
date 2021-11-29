@@ -40,7 +40,7 @@ export const Tab: React.FC<TabProps> = ({ tab, isDragging }) => {
     >
       <div className="space-y-2 w-full">
         <div className="flex items-center justify-between">
-          <div style={{ maxWidth: '95%' }}>
+          <div className="max-w-tab-content">
             {title && <div>{title}</div>}
             <div className="truncate max-w-full inline-block text-blue-500">
               {url}

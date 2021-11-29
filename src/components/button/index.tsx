@@ -36,7 +36,7 @@ const getShapeClass = (shape: ShapeType) => {
     case Shape.ROUNDED:
       return 'p-2 rounded-full'
     case Shape.ITEM:
-      return 'p-2 w-full'
+      return 'p-2 w-full rounded'
   }
 }
 

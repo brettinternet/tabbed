@@ -20,7 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
       className
     )}
   >
-    <ul className="w-full m-0 flex items-center justify-between px-4">
+    <ul className="w-full m-0 flex items-center justify-between px-6">
       <li className="w-full mr-3 md:ml-auto md:mr-0 md:max-w-xs">
         <Search />
       </li>
