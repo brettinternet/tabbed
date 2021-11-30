@@ -62,7 +62,7 @@ export const Dropdown: React.FC<MenuProps> = (props) => {
         <M.Items
           as="ul"
           className={cn(
-            'z-menu absolute right-0 w-32 mt-1 origin-top-right rounded shadow-lg bg-white dark:bg-gray-800',
+            'z-menu absolute right-0 min-w-32 mt-1 origin-top-right rounded shadow-lg bg-white dark:bg-gray-800',
             'actionGroups' in props && 'divide-y divide-gray-100',
             'ring-1 ring-black ring-opacity-5 focus:outline-none'
           )}

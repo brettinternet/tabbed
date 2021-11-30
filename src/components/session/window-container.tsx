@@ -5,63 +5,10 @@ import {
   DraggableStateSnapshot,
 } from 'react-beautiful-dnd'
 
-import { Dropdown } from 'components/dropdown'
-import { Icon } from 'components/icon'
+import { WindowHeader } from 'components/window'
 import { SessionData, SessionWindowData } from 'utils/sessions'
 
 import { TabsList } from './tabs-list'
-
-const WindowHeader: React.FC<{ window: SessionWindowData }> = ({
-  window: { focused, title, state, activeSession },
-}) => {
-  const handleOpen: React.MouseEventHandler<
-    HTMLDivElement | HTMLButtonElement
-  > = () => {
-    if (!focused) {
-      // win.open()
-    }
-  }
-  return (
-    <div
-      onDoubleClick={handleOpen}
-      className="flex justify-between items-center py-3 px-6 transition-colors duration-75 hover:bg-gray-200"
-    >
-      <div className="space-y-2">
-        {title && <div>{title}</div>}
-        <div className="flex items-center flex-wrap">
-          <div className="text-gray-500 text-xs mr-2">{state}</div>
-          {focused && (
-            <Icon title="active" name="file-tick" className="mr-2" size="sm" />
-          )}
-        </div>
-      </div>
-      <div>
-        <Dropdown
-          buttonVariant="none"
-          actionGroups={[
-            [
-              {
-                onClick: handleOpen,
-                text: activeSession ? 'Focus' : 'Open',
-                iconProps: { name: 'file-plus' },
-                disabled: focused,
-              },
-            ],
-            [
-              {
-                onClick: () => {
-                  // win.remove()
-                },
-                text: activeSession ? 'Close' : 'Delete',
-                iconProps: { name: 'bin' },
-              },
-            ],
-          ]}
-        />
-      </div>
-    </div>
-  )
-}
 
 type SessionWindowProps = {
   sessionId: SessionData['id']
@@ -110,7 +57,7 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
         {...dragProvided.draggableProps}
         {...dragProvided.dragHandleProps}
       >
-        <WindowHeader window={win} />
+        <WindowHeader sessionId={sessionId} window={win} />
         <TabsList sessionId={sessionId} windowId={win.id} window={win} />
       </div>
     )}

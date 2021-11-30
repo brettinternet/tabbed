@@ -52,7 +52,7 @@ export class SessionsManager {
   @Type(() => Session)
   previous: Session[]
 
-  constructor({ current, saved, previous }: SessionsManagerData) {
+  constructor({ current, saved, previous }: SessionsManagerData<Session>) {
     this.current = current
     this.saved = saved
     this.previous = previous

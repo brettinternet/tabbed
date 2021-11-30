@@ -19,6 +19,9 @@ export const Name = {
   DRAG_VERTICAL: 'drag-vertical', // drag indicator
   RIGHT_CIRCLE: 'right-circle', // go or open
   FILE_PLUS: 'file-plus', // open window
+  FILE_MINUS: 'file-minus', // minimized window
+  FILE: 'file', // generic window
+  SAVE: 'save', // save
 } as const
 
 type NameType = Valueof<typeof Name>

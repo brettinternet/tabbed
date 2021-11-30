@@ -41,6 +41,7 @@ module.exports = {
       },
       minWidth: {
         5: '1.25rem', // `window-list.svelte` image container
+        32: '8rem' /* 128px */, // dropdown menu item
       },
       maxWidth: {
         'tab-content': 'calc(100% - 32px)', // 32px dropdown button

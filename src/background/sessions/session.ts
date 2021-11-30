@@ -1,8 +1,7 @@
 import { Type } from 'class-transformer'
 import { v4 as uuidv4 } from 'uuid'
-import { Windows } from 'webextension-polyfill'
 
-import { getAllWindows, openWindows } from 'background/browser'
+import { closeWindow, getAllWindows, openWindows } from 'background/browser'
 import { isDefined } from 'utils/helpers'
 import { AppError } from 'utils/logger'
 import {
@@ -12,6 +11,7 @@ import {
   UpdateSessionData,
 } from 'utils/sessions'
 
+import { generateSessionTitle } from './generate'
 import { SessionWindow } from './session-window'
 
 const logContext = 'utils/browser/session'
@@ -28,7 +28,7 @@ export class Session {
     createdDate,
     status,
     active = false,
-  }: SessionData) {
+  }: Omit<SessionData<SessionWindow>, 'id'> & { id?: string }) {
     const now = new Date()
 
     this.active = active
@@ -40,12 +40,20 @@ export class Session {
     this.status = status
   }
 
-  static async createFromCurrentWindows(options?: Partial<SessionData>) {
-    const windows = await getAllWindows({ populate: true }, true)
+  static async createFromCurrentWindows(
+    options?: Partial<
+      Omit<SessionData<SessionWindow>, 'windows' | 'active' | 'status'>
+    >
+  ): Promise<Session> {
+    const browserWindows = await getAllWindows({ populate: true }, true)
+    const windows: SessionWindow[] = browserWindows.map<SessionWindow>((win) =>
+      SessionWindow.fromWindow(win, true)
+    )
     return new Session({
-      windows: windows.map((win) => SessionWindow.fromWindow(win, true)),
+      windows,
       status: SessionStatus.CURRENT,
       active: true,
+      title: generateSessionTitle(windows),
       ...options,
     })
   }
@@ -54,6 +62,7 @@ export class Session {
     if (this.status === SessionStatus.CURRENT) {
       const windows = await getAllWindows({ populate: true }, true)
       this.windows = windows.map((win) => SessionWindow.fromWindow(win, true))
+      this.title = generateSessionTitle(this.windows)
     }
   }
 
@@ -86,7 +95,15 @@ export class Session {
     this.lastModifiedDate = new Date()
   }
 
-  deleteWindow(windowId: number) {
+  removeWindow(windowId: number) {
+    if (this.active) {
+      closeWindow(windowId)
+    } else {
+      this.deleteWindow(windowId)
+    }
+  }
+
+  private deleteWindow(windowId: number) {
     const index = this.findWindowIndex(windowId)
     if (index > -1) {
       this.windows.splice(index, 1)

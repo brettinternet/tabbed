@@ -6,6 +6,7 @@ import { generateFallbackId } from 'utils/helpers'
 import { log, AppError } from 'utils/logger'
 import { SessionWindowClass, SessionWindowData } from 'utils/sessions'
 
+import { generateWindowTitle } from './generate'
 import { SessionTab } from './session-tab'
 
 const logContext = 'utils/browser/session-window'
@@ -27,7 +28,7 @@ export class SessionWindow {
     left,
     width,
     height,
-  }: SessionWindowData) {
+  }: SessionWindowData<SessionTab>) {
     this.id = id
     this.tabs = tabs
     this.title = title
@@ -65,7 +66,7 @@ export class SessionWindow {
       id,
       focused,
       tabs,
-      title,
+      title: title || generateWindowTitle(tabs),
       incognito,
       state: state || 'normal',
       activeSession,

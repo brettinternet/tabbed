@@ -68,7 +68,7 @@ export type SessionStatusType = Valueof<typeof SessionStatus>
  * Session data
  */
 export type SessionData<T extends SessionWindowData = SessionWindowData> = {
-  id?: string
+  id: string
   title?: string
   windows: T[]
   createdDate?: Date
@@ -81,14 +81,14 @@ export type SessionData<T extends SessionWindowData = SessionWindowData> = {
   active?: boolean
 }
 
-export type UpdateSessionData = Partial<Pick<SessionData, 'title' | 'windows'>>
+export type UpdateSessionData = Partial<
+  Pick<SessionData<SessionWindow>, 'title' | 'windows'>
+>
 
 /**
  * Session class interface with data
  */
-export type SessionClass = SessionData<SessionWindow> & {
-  id: string
-}
+export type SessionClass = SessionData<SessionWindow>
 
 /**
  * Session manager data, collection of sessions

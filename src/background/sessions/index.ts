@@ -111,7 +111,7 @@ export const startListeners = async (
   browser.runtime.onMessage.addListener(
     (message: GetSessionsManagerDataMessage) => {
       if (message.type === MESSAGE_TYPE_GET_SESSIONS_MANAGER_DATA) {
-        return Promise.resolve(sessionsManager)
+        return Promise.resolve(sessionsManager.toJSON())
       }
     }
   )
@@ -254,7 +254,7 @@ export const startListeners = async (
           const { sessionId, windowId } = message.value
           const session = sessionsManager.find(sessionId)
           if (session) {
-            resolve(session.deleteWindow(windowId))
+            resolve(session.removeWindow(windowId))
           }
         })
       }
