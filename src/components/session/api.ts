@@ -45,10 +45,26 @@ import {
   QuerySessionMessage,
   QuerySessionResponse,
   SessionQuery,
+  PushSessionManagerDataMessage,
+  MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA,
 } from 'utils/messages'
-import { SessionStatusType } from 'utils/sessions'
+import { SessionsManagerData, SessionStatusType } from 'utils/sessions'
 
 const logContext = 'components/sessions/api'
+
+export const startListeners = (
+  setSessionsManager: React.Dispatch<
+    React.SetStateAction<SessionsManagerData | undefined>
+  >
+) => {
+  browser.runtime.onMessage.addListener(
+    (message: PushSessionManagerDataMessage) => {
+      if (message.type === MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA) {
+        setSessionsManager(JSON.parse(message.value))
+      }
+    }
+  )
+}
 
 export const getSessionsManagerData = async (): Promise<
   GetSessionListsResponse | undefined

@@ -25,6 +25,7 @@ export const MESSAGE_TYPE_GET_SETTINGS = 'get_settings'
 export type GetSettingsMessage = Message<typeof MESSAGE_TYPE_GET_SETTINGS>
 export type GetSettingsResponse = SettingsData
 
+// huh? when?
 export const MESSAGE_TYPE_PUSH_SETTINGS = 'push_settings'
 export type PushSettingsMessage = MessageWithValue<
   typeof MESSAGE_TYPE_PUSH_SETTINGS,
@@ -45,19 +46,19 @@ export type UpdateLogLevelMessage = MessageWithValue<
 >
 
 // session list
-export const MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA =
-  'push_sessions_manager_data'
-export type PushSessionManagerDataMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA,
-  SessionsManagerData
->
-
 export const MESSAGE_TYPE_GET_SESSIONS_MANAGER_DATA =
   'get_sessions_manager_data'
 export type GetSessionsManagerDataMessage = Message<
   typeof MESSAGE_TYPE_GET_SESSIONS_MANAGER_DATA
 >
 export type GetSessionListsResponse = SessionsManagerData
+
+export const MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA =
+  'push_sessions_manager_data'
+export type PushSessionManagerDataMessage = MessageWithValue<
+  typeof MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA,
+  string // stringified `SessionsManagerData`
+>
 
 export const MESSAGE_TYPE_GET_ALL_SESSIONS = 'get_all_sessions'
 export type GetAllSessionsMessage = Message<

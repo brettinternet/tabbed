@@ -50,6 +50,13 @@ export class Session {
     })
   }
 
+  async updateCurrentWindows() {
+    if (this.status === SessionStatus.CURRENT) {
+      const windows = await getAllWindows({ populate: true }, true)
+      this.windows = windows.map((win) => SessionWindow.fromWindow(win, true))
+    }
+  }
+
   newId() {
     this.id = uuidv4()
     return this.id
@@ -90,11 +97,4 @@ export class Session {
       })
     }
   }
-
-  // async updateCurrentWindows() {
-  //   if (this.status === SessionStatus.CURRENT) {
-  //     const windows = await getAllWindows({ populate: true }, true)
-  //     this.windows = this.mapWindows(windows)
-  //   }
-  // }
 }

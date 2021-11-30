@@ -1,11 +1,21 @@
-import { instanceToPlain, plainToInstance, Type } from 'class-transformer'
+import {
+  Exclude,
+  instanceToPlain,
+  plainToInstance,
+  Type,
+} from 'class-transformer'
 import { lightFormat } from 'date-fns'
 import { debounce } from 'lodash'
+import browser from 'webextension-polyfill'
 
 import { LocalStorage } from 'background/storage'
 import { appName } from 'utils/env'
 import { downloadJson } from 'utils/helpers'
-import { AppError } from 'utils/logger'
+import { AppError, handleError } from 'utils/logger'
+import {
+  MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA,
+  PushSessionManagerDataMessage,
+} from 'utils/messages'
 import {
   SessionStatus,
   SessionStatusType,
@@ -26,6 +36,10 @@ type SavedSessions = { previous: Session[]; saved: Session[] }
  * To reference parent class, but that's probably okay
  * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_Management#cycles_are_no_longer_a_problem
  * `class-transformer` serialization ignores circular references for us
+ *
+ * Two side-effects are maintained here:
+ * 1. save the data to storage when it changes
+ * 2. push data to frontend
  */
 export interface SessionsManager extends SessionsManagerClass {}
 export class SessionsManager {
@@ -52,7 +66,10 @@ export class SessionsManager {
     return new SessionsManager({ current, saved, previous })
   }
 
-  async save() {
+  /**
+   * Save to local storage
+   */
+  private async save() {
     this.validate()
     await LocalStorage.set(LocalStorage.key.SESSIONS, {
       saved: this.saved,
@@ -60,7 +77,34 @@ export class SessionsManager {
     })
   }
 
-  validate() {
+  /**
+   * Push update to frontend
+   */
+  private async sendUpdate() {
+    const message: PushSessionManagerDataMessage = {
+      type: MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA,
+      value: this.toJSON(),
+    }
+
+    try {
+      await browser.runtime.sendMessage(message)
+    } catch (err) {
+      handleError(err)
+    }
+  }
+
+  /**
+   * Handle side effects when the data changes
+   * TODO: handle partial updates and set patch to frontend
+   */
+  async handleChange() {
+    Promise.all([this.save(), this.sendUpdate()])
+  }
+
+  /**
+   * Validate data before save
+   */
+  private validate() {
     this.saved.map((session) => ({ ...session, status: SessionStatus.SAVED }))
     this.previous.map((session) => ({
       ...session,
@@ -87,15 +131,14 @@ export class SessionsManager {
 
   /**
    * add a session according to its status
+   * any session with a 'current' status will be added to 'previous'
    */
   add(session: Session) {
     switch (session.status) {
-      case SessionStatus.CURRENT:
-        this.addCurrent(session)
-        break
       case SessionStatus.SAVED:
         this.addSaved(session)
         break
+      case SessionStatus.CURRENT:
       case SessionStatus.PREVIOUS:
         this.addPrevious(session)
         break
@@ -108,10 +151,11 @@ export class SessionsManager {
   }
 
   async updateCurrent() {
-    this.current = await SessionsManager.getCurrent()
-    console.log('update current', this.current)
+    await this.current.updateCurrentWindows()
+    await this.handleChange()
   }
 
+  @Exclude()
   updateCurrentDebounce = debounce(this.updateCurrent, 250)
 
   /**
@@ -120,31 +164,21 @@ export class SessionsManager {
   import(session: Session) {
     session.newId()
     this.add(session)
-  }
-
-  /**
-   * Adds session to current session
-   * If there's already a current session, then it saved current to previous
-   * If no session is provided, then the current session is pulled from extension API
-   */
-  async addCurrent(session?: Session) {
-    if (this.current) {
-      await this.addPrevious(this.current)
-    }
-    this.current = session || (await SessionsManager.getCurrent())
-    return session
+    this.handleChange()
   }
 
   async addSaved(session: Session) {
     session.status = SessionStatus.SAVED
     session.userSavedDate = new Date()
     this.saved.unshift(session)
+    this.handleChange()
     return session
   }
 
   async addPrevious(session: Session) {
     session.status = SessionStatus.PREVIOUS
     this.previous.unshift(session)
+    this.handleChange()
     return session
   }
 
@@ -178,6 +212,7 @@ export class SessionsManager {
     const session = this.find(sessionId, status)
     if (session) {
       session.update(params)
+      this.handleChange()
     } else {
       new AppError({
         message: `Unable to find session by ID ${sessionId}`,
@@ -193,6 +228,7 @@ export class SessionsManager {
     const index = this[status].findIndex((s) => s.id === sessionId)
     if (index > -1) {
       this[status].splice(index, 1)
+      this.handleChange()
     } else {
       new AppError({
         message: `Unable to find session by ID ${sessionId}`,

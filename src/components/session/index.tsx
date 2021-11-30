@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import {
   DragDropContext,
   Droppable,
@@ -6,15 +7,20 @@ import {
 
 import { useSettings, isPopup } from 'components/app/store'
 
+import { startListeners } from './api'
 import { useWindowsDrag } from './store'
 import { WindowContainer } from './window-container'
 
 export const SessionLayout = () => {
   const [settings] = useSettings()
-  const { onDragEnd, sessionManager, windows } = useWindowsDrag()
+  const { onDragEnd, sessionsManager, setSessionsManager } = useWindowsDrag()
 
-  if (sessionManager) {
-    const session = sessionManager.current
+  useEffect(() => {
+    startListeners(setSessionsManager)
+  }, [setSessionsManager])
+
+  if (sessionsManager) {
+    const session = sessionsManager.current
     return (
       <div
         style={{
@@ -26,7 +32,7 @@ export const SessionLayout = () => {
           <Droppable droppableId="session" type="SESSION" direction="vertical">
             {(provided: DroppableProvided) => (
               <div ref={provided.innerRef} {...provided.droppableProps}>
-                {windows.map((win, index) => (
+                {session.windows.map((win, index) => (
                   <WindowContainer
                     key={`${session.id}-${win.id}`}
                     index={index}

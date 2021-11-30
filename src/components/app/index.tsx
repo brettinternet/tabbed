@@ -7,7 +7,7 @@ import { ToastContainer } from 'components/toast'
 import { useToasts } from 'components/toast/store'
 
 import { getSettings, startListeners } from './api'
-import { useSettings, isPopup } from './store'
+import { useSettings } from './store'
 
 // import { setupListeners } from './listeners'
 // import { log } from 'utils/logger'
@@ -29,7 +29,7 @@ import { useSettings, isPopup } from './store'
 const openSettings = () => {}
 
 export const App = () => {
-  const [settings, setSettings] = useSettings()
+  const [, setSettings] = useSettings()
   const [isLoading, setLoading] = useState(true)
   const { add: addToast } = useToasts()
   // const [Modal, setModal] = useState()
@@ -40,7 +40,6 @@ export const App = () => {
       if (settings) {
         setSettings(settings)
       } else {
-        console.log('NO SETTINGS')
         addToast({
           title: 'Error',
           message: 'Unable to load app',
@@ -62,10 +61,7 @@ export const App = () => {
 
   if (!isLoading) {
     return (
-      <Layout
-        onClickSettings={openSettings}
-        height={isPopup ? settings.popupDimensions.height : undefined}
-      >
+      <Layout onClickSettings={openSettings}>
         {/* <Modal /> */}
         <SessionLayout />
         <ToastContainer />

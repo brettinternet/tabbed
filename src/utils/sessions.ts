@@ -5,6 +5,9 @@ import type { SessionTab } from 'background/sessions/session-tab'
 import type { SessionWindow } from 'background/sessions/session-window'
 import { Valueof } from 'utils/helpers'
 
+/**
+ * Tab data
+ */
 export type SessionTabData = {
   id: number
   url: string
@@ -20,11 +23,17 @@ export type SessionTabData = {
   activeSession: boolean
 }
 
+/**
+ * Tab class interface with data
+ */
 export type SessionTabClass = SessionTabData
 
-export type SessionWindowData = {
+/**
+ * Window data
+ */
+export type SessionWindowData<T extends SessionTabData = SessionTabData> = {
   id: number
-  tabs: SessionTab[]
+  tabs: T[]
   title?: string
   incognito: boolean
   focused: boolean
@@ -39,8 +48,14 @@ export type SessionWindowData = {
   activeSession: boolean
 }
 
-export type SessionWindowClass = SessionWindowData
+/**
+ * Window class interface with data
+ */
+export type SessionWindowClass = SessionWindowData<SessionTab>
 
+/**
+ * Session categories, group together in session manager
+ */
 export const SessionStatus = {
   CURRENT: 'current',
   PREVIOUS: 'previous',
@@ -49,10 +64,13 @@ export const SessionStatus = {
 
 export type SessionStatusType = Valueof<typeof SessionStatus>
 
-export type SessionData = {
+/**
+ * Session data
+ */
+export type SessionData<T extends SessionWindowData = SessionWindowData> = {
   id?: string
   title?: string
-  windows: SessionWindow[]
+  windows: T[]
   createdDate?: Date
   lastModifiedDate?: Date
   userSavedDate?: Date
@@ -65,17 +83,26 @@ export type SessionData = {
 
 export type UpdateSessionData = Partial<Pick<SessionData, 'title' | 'windows'>>
 
-export type SessionClass = SessionData & {
+/**
+ * Session class interface with data
+ */
+export type SessionClass = SessionData<SessionWindow> & {
   id: string
 }
 
-export type SessionsManagerData = {
-  current: Session
-  saved: Session[]
-  previous: Session[]
+/**
+ * Session manager data, collection of sessions
+ */
+export type SessionsManagerData<T extends SessionData = SessionData> = {
+  current: T
+  saved: T[]
+  previous: T[]
 }
 
-export type SessionsManagerClass = SessionsManagerData
+/**
+ * Session manager class interface
+ */
+export type SessionsManagerClass = SessionsManagerData<Session>
 
 export type SessionDataExport = {
   exportedDate: Date

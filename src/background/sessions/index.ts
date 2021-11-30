@@ -48,8 +48,6 @@ import { SessionDataExport, SessionStatus } from 'utils/sessions'
 import { SettingsData } from 'utils/settings'
 
 import { Session } from './session'
-import { SessionTab } from './session-tab'
-import { SessionWindow } from './session-window'
 import { SessionsManager } from './sessions-manager'
 
 export const configureClosedWindowListener = (
@@ -97,18 +95,23 @@ export const startListeners = async (
   const updateCurrent = async () => {
     await sessionsManager.updateCurrentDebounce()
   }
-  // TODO: then, send current session to frontend
 
   browser.windows.onCreated.addListener(updateCurrent)
+  browser.windows.onFocusChanged.addListener(updateCurrent)
   browser.tabs.onUpdated.addListener(updateCurrent)
   browser.tabs.onDetached.addListener(updateCurrent)
+  browser.tabs.onCreated.addListener(updateCurrent)
   browser.tabs.onRemoved.addListener(updateCurrent)
   browser.tabs.onMoved.addListener(updateCurrent)
+  browser.tabs.onActivated.addListener(updateCurrent)
+  browser.tabs.onHighlighted.addListener(updateCurrent)
+  browser.tabs.onReplaced.addListener(updateCurrent)
+  browser.tabs.onAttached.addListener(updateCurrent)
 
   browser.runtime.onMessage.addListener(
     (message: GetSessionsManagerDataMessage) => {
       if (message.type === MESSAGE_TYPE_GET_SESSIONS_MANAGER_DATA) {
-        return Promise.resolve(sessionsManager.toJSON())
+        return Promise.resolve(sessionsManager)
       }
     }
   )

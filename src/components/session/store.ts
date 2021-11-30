@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { DraggableLocation, DropResult } from 'react-beautiful-dnd'
 
 import { parseNum, reorder, spliceSeparate } from 'utils/helpers'
@@ -81,8 +81,7 @@ const reorderTabs = (
 }
 
 export const useWindowsDrag = () => {
-  const [sessionManager, setSessionManager] = useState<SessionsManagerData>()
-  const [windows, setWindows] = useState<SessionWindowData[]>([])
+  const [sessionsManager, setSessionsManager] = useState<SessionsManagerData>()
 
   useEffect(() => {
     const fetch = async () => {
@@ -94,56 +93,59 @@ export const useWindowsDrag = () => {
       )
       if (manager) {
         console.log('manager: ', manager)
-        setSessionManager(manager)
-        setWindows(manager.current.windows)
+        setSessionsManager(manager)
       }
     }
 
     void fetch()
   }, [])
 
-  if (sessionManager) {
-    const onDragEnd = (result: DropResult) => {
-      const { source, destination } = result
+  const onDragEnd = useCallback((result: DropResult) => {
+    const { source, destination } = result
 
-      // dropped nowhere
-      if (!destination) {
-        return
-      }
-
-      // did not move anywhere
-      if (
-        source.droppableId === destination.droppableId &&
-        source.index === destination.index
-      ) {
-        return
-      }
-
-      // reordering window
-      if (result.type === 'SESSION') {
-        const reorderedWindows = reorder(
-          windows,
-          source.index,
-          destination.index
-        )
-        setWindows(reorderedWindows)
-        return
-      }
-
-      const reorderedWindowTabs = reorderTabs(windows, source, destination)
-      setWindows(reorderedWindowTabs)
+    // dropped nowhere
+    if (!destination) {
+      return
     }
 
-    return {
-      onDragEnd,
-      sessionManager,
-      windows,
+    // did not move anywhere
+    if (
+      source.droppableId === destination.droppableId &&
+      source.index === destination.index
+    ) {
+      return
     }
-  }
+
+    // reordering window
+    if (result.type === 'SESSION') {
+      setSessionsManager((sessionsManager) => {
+        if (sessionsManager) {
+          const windows = sessionsManager.current.windows
+          const reorderedWindows = reorder(
+            windows,
+            source.index,
+            destination.index
+          )
+          sessionsManager.current.windows = reorderedWindows
+          return sessionsManager
+        }
+      })
+      return
+    }
+
+    setSessionsManager((sessionsManager) => {
+      if (sessionsManager) {
+        const windows = sessionsManager.current.windows
+        const reorderedWindowTabs = reorderTabs(windows, source, destination)
+        sessionsManager.current.windows = reorderedWindowTabs
+        return sessionsManager
+      }
+    })
+  }, [])
 
   return {
-    onDragEnd: () => {},
-    sessionManager,
-    windows,
+    onDragEnd,
+    sessionsManager,
+    setSessionsManager,
   }
 }
