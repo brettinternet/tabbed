@@ -34,6 +34,9 @@ export type Toast = ToastOptions & {
 
 const toastsAtom = atom<Toast[]>([])
 
+/**
+ * TODO: add pause/play timer
+ */
 export const useToasts = () => {
   const [_toasts, setToasts] = useAtom(toastsAtom)
 

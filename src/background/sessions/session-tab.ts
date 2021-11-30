@@ -81,12 +81,6 @@ export class SessionTab {
     this.pinned = !this.pinned
   }
 
-  async remove() {
-    if (this.activeSession) {
-      await closeTab(this.id)
-    }
-  }
-
   async focus() {
     await focusWindowTab(this.windowId, this.id)
   }

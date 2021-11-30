@@ -2,8 +2,11 @@ import cn from 'classnames'
 
 import { Dropdown } from 'components/dropdown'
 import { Icon } from 'components/icon'
+import { useToasts } from 'components/toast/store'
 import { isDefined } from 'utils/helpers'
 import { SessionData, SessionWindowData, SessionTabData } from 'utils/sessions'
+
+import { useHandlers } from './handlers'
 
 export type TabProps = {
   windowId: SessionWindowData['id']
@@ -12,9 +15,27 @@ export type TabProps = {
   tab: SessionTabData
 }
 
-export const Tab: React.FC<TabProps> = ({ tab, isDragging }) => {
-  const { url, title, muted, pinned, discarded, attention, active, groupId } =
-    tab
+export const Tab: React.FC<TabProps> = ({
+  sessionId,
+  windowId,
+  tab,
+  isDragging,
+}) => {
+  const { add: addToast } = useToasts()
+  const { handleOpenTab, handleRemoveTab, handleUpdateTab, handleDiscardTab } =
+    useHandlers(addToast)
+
+  const {
+    id: tabId,
+    url,
+    title,
+    muted,
+    pinned,
+    discarded,
+    attention,
+    active,
+    groupId,
+  } = tab
 
   const handleOpen:
     | React.MouseEventHandler<HTMLButtonElement | HTMLDivElement>
@@ -22,12 +43,13 @@ export const Tab: React.FC<TabProps> = ({ tab, isDragging }) => {
     ? (ev) => {
         ev.preventDefault()
         if (!active) {
-          // tab.focus()
+          handleOpenTab({ sessionId, windowId, tabId })
         }
         return false
       }
     : undefined
 
+  // TODO: animate presence (delete) https://www.framer.com/docs/animate-presence/
   return (
     <div
       aria-disabled={tab.activeSession && tab.active}
@@ -58,7 +80,12 @@ export const Tab: React.FC<TabProps> = ({ tab, isDragging }) => {
                   },
                   {
                     onClick: () => {
-                      // tab.togglePin()
+                      handleUpdateTab({
+                        sessionId,
+                        windowId,
+                        tabId,
+                        options: { pinned: !pinned },
+                      })
                     },
                     text: pinned ? 'Unpin' : 'Pin',
                     iconProps: { name: 'thumbtack' },
@@ -67,7 +94,15 @@ export const Tab: React.FC<TabProps> = ({ tab, isDragging }) => {
                 [
                   {
                     onClick: () => {
-                      // tab.remove()
+                      handleDiscardTab({ sessionId, windowId, tabId })
+                    },
+                    text: 'Free memory',
+                    iconProps: { name: 'section-remove' },
+                    disabled: discarded,
+                  },
+                  {
+                    onClick: () => {
+                      handleRemoveTab({ sessionId, windowId, tabId })
                     },
                     text: tab.activeSession ? 'Close' : 'Remove',
                     iconProps: { name: 'bin' },

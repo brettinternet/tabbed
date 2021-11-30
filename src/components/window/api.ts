@@ -2,22 +2,27 @@ import browser from 'webextension-polyfill'
 
 import {
   MESSAGE_TYPE_OPEN_SESSION_WINDOW,
-  MESSAGE_TYPE_OPEN_SESSION_TAB,
-  MESSAGE_TYPE_REMOVE_SESSION_WINDOW,
-  MESSAGE_TYPE_PATCH_WINDOW,
-  MESSAGE_TYPE_DOWNLOAD_SESSIONS,
-} from 'utils/messages'
-import type {
   OpenSessionWindowMessage,
-  OpenSessionTabMessage,
-  RemoveSessionWindowMessage,
   OpenWindowOptions,
-  OpenTabOptions,
-  PatchWindowOptions,
+  MESSAGE_TYPE_REMOVE_SESSION_WINDOW,
+  RemoveSessionWindowMessage,
+  MESSAGE_TYPE_PATCH_WINDOW,
   PatchWindowMessage,
+  PatchWindowOptions,
+  MESSAGE_TYPE_DOWNLOAD_SESSIONS,
   DownloadSessionsMessage,
   DownloadSessionsOptions,
+  MESSAGE_TYPE_SAVE_WINDOW,
+  SaveWindowMessage,
 } from 'utils/messages'
+
+export const saveWindow = async (sessionId: string, windowId: number) => {
+  const message: SaveWindowMessage = {
+    type: MESSAGE_TYPE_SAVE_WINDOW,
+    value: { sessionId, windowId },
+  }
+  await browser.runtime.sendMessage(message)
+}
 
 export const openWindow = async (
   sessionId: string,
@@ -27,19 +32,6 @@ export const openWindow = async (
   const message: OpenSessionWindowMessage = {
     type: MESSAGE_TYPE_OPEN_SESSION_WINDOW,
     value: { sessionId, windowId, options },
-  }
-  await browser.runtime.sendMessage(message)
-}
-
-export const openTab = async (
-  sessionId: string,
-  windowId: number,
-  tabId: number,
-  options?: OpenTabOptions
-) => {
-  const message: OpenSessionTabMessage = {
-    type: MESSAGE_TYPE_OPEN_SESSION_TAB,
-    value: { sessionId, windowId, tabId, options },
   }
   await browser.runtime.sendMessage(message)
 }
@@ -64,10 +56,10 @@ export const patchWindow = async (
   await browser.runtime.sendMessage(message)
 }
 
-export const downloadSessions = async (options: DownloadSessionsOptions) => {
+export const downloadSessions = async (value: DownloadSessionsOptions) => {
   const message: DownloadSessionsMessage = {
     type: MESSAGE_TYPE_DOWNLOAD_SESSIONS,
-    value: options,
+    value,
   }
   await browser.runtime.sendMessage(message)
 }

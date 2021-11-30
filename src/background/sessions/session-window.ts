@@ -1,7 +1,12 @@
 import { Type } from 'class-transformer'
 import { Tabs, Windows } from 'webextension-polyfill'
 
-import { closeWindow, focusWindow, openWindow } from 'background/browser'
+import {
+  closeTab,
+  closeWindow,
+  focusWindow,
+  openWindow,
+} from 'background/browser'
 import { generateFallbackId } from 'utils/helpers'
 import { log, AppError } from 'utils/logger'
 import { SessionWindowClass, SessionWindowData } from 'utils/sessions'
@@ -152,7 +157,15 @@ export class SessionWindow {
     return openWindow({ tabs, state, incognito, top, left, width, height })
   }
 
-  deleteTab(tabId: number) {
+  async removeTab(tabId: number) {
+    if (this.activeSession) {
+      await closeTab(tabId)
+    } else {
+      this.deleteTab(tabId)
+    }
+  }
+
+  private deleteTab(tabId: number) {
     const index = this.findTabIndex(tabId)
     if (index > -1) {
       this.tabs.splice(index, 1)

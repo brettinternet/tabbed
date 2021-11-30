@@ -1,7 +1,7 @@
 import browser, { sessions, Windows } from 'webextension-polyfill'
 
 import { Settings } from 'background/app/settings'
-import { focusWindow } from 'background/browser'
+import { focusWindow, focusWindowTab } from 'background/browser'
 import { reorder } from 'utils/helpers'
 import { AppError } from 'utils/logger'
 import {
@@ -223,7 +223,7 @@ export const startListeners = async (
             !options?.forceOpen &&
             sessionsManager.current.id === session.id
           ) {
-            resolve(await focusWindow(windowId))
+            resolve(await focusWindowTab(windowId, tabId))
           } else {
             const win = session.findWindow(windowId)
             if (win) {
@@ -269,7 +269,7 @@ export const startListeners = async (
         if (session) {
           const win = session.findWindow(windowId)
           if (win) {
-            resolve(win.deleteTab(tabId))
+            resolve(win.removeTab(tabId))
           }
         }
       })

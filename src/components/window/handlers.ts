@@ -1,12 +1,11 @@
 import { useCallback } from 'react'
 import { Runtime } from 'webextension-polyfill'
 
-import { saveWindow } from 'components/session/api'
 import { ToastOptions } from 'components/toast/store'
 import { log } from 'utils/logger'
 import { OpenWindowOptions, PatchWindowOptions } from 'utils/messages'
 
-import { openWindow, patchWindow, removeWindow } from './api'
+import { saveWindow, openWindow, patchWindow, removeWindow } from './api'
 
 const logContext = 'components/window/handlers'
 
