@@ -1,40 +1,26 @@
-// import { useEffect, useState } from 'react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { useErrorHandler } from 'components/error/handlers'
 import { Layout } from 'components/layout'
+import { ModalProvider } from 'components/modal/provider'
+import { useModal } from 'components/modal/store'
 import { SessionLayout } from 'components/session'
+import { useShortcuts } from 'components/shortcuts/store'
 import { ToastContainer } from 'components/toast'
 import { useToasts } from 'components/toast/store'
 
 import { getSettings, startListeners } from './api'
 import { useSettings } from './store'
 
-// import { setupListeners } from './listeners'
-// import { log } from 'utils/logger'
-
-// const logContext = 'components/app/app.svelte'
-
-// const getActiveModal = (modal: string | undefined) => {
-//   switch (modal) {
-//     case 'settings':
-//       return SettingsModal
-//     case 'shortcuts':
-//       return ShortcutsModal
-//     case 'importer':
-//       return ImportModal
-//   }
-// }
-
-// TODO: open settings modal
-const openSettings = () => {}
-
 export const App = () => {
-  const [, setSettings] = useSettings()
+  const {
+    settings: { set: setSettingsModal },
+  } = useModal()
+  const [settings, setSettings] = useSettings()
   const [isLoading, setLoading] = useState(true)
   const { add: addToast } = useToasts()
   const handleError = useErrorHandler(addToast)
-  // const [Modal, setModal] = useState()
+  useShortcuts(settings.shortcuts)
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -59,18 +45,18 @@ export const App = () => {
     void fetchSettings()
 
     startListeners(setSettings)
-  }, [setSettings, addToast])
+  }, [setSettings, addToast, handleError])
 
-  // useEffect(() => {
-  //   getActiveModal(modal)
-  // }, [modal])
+  const enableSettings = useCallback(() => {
+    setSettingsModal(true)
+  }, [setSettingsModal])
 
   if (!isLoading) {
     return (
-      <Layout onClickSettings={openSettings}>
-        {/* <Modal /> */}
+      <Layout onClickSettings={enableSettings}>
         <SessionLayout />
         <ToastContainer />
+        <ModalProvider />
       </Layout>
     )
   }

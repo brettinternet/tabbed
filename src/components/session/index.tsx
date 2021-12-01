@@ -11,6 +11,12 @@ import { startListeners } from './api'
 import { useWindowsDrag } from './store'
 import { WindowContainer } from './window-container'
 
+// Scrolling is handled within certain divs
+// Without this, there's a minor UI bug where scroll bar appears with spacing on the right
+if (isPopup) {
+  document.body.classList.add('overflow-hidden')
+}
+
 export const SessionLayout = () => {
   const [settings] = useSettings()
   const { onDragEnd, sessionsManager, setSessionsManager } = useWindowsDrag()
@@ -26,7 +32,7 @@ export const SessionLayout = () => {
         style={{
           maxHeight: isPopup ? settings.popupDimensions.height - 50 : undefined,
         }}
-        className="overflow-y-auto overflow-x-hidden"
+        className="scroll overflow-y-auto overflow-x-hidden"
       >
         <DragDropContext onDragEnd={onDragEnd}>
           <Droppable droppableId="session" type="SESSION" direction="vertical">

@@ -87,7 +87,7 @@ export type SetSettings = (update: SetStateAction<SettingsData>) => void
 export const useSettings = (): [
   SettingsData,
   SetSettings,
-  (values: Partial<SettingsData>) => void
+  (values: Partial<SettingsData>) => Promise<void>
 ] => {
   const { add: addToast } = useToasts()
   const handleError = useErrorHandler(addToast)
@@ -108,7 +108,7 @@ export const useSettings = (): [
         handleError(err)
       }
     },
-    [setSettings]
+    [setSettings, handleError]
   )
 
   useEffect(() => {

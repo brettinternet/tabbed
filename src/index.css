@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import './utils/scrollbar.css';
+
 html.dark {
   @apply bg-gray-900 text-white;
 }

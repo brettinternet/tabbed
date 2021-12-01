@@ -47,6 +47,7 @@
     "date-fns": "^2.26.0",
     "framer-motion": "^4.1.17",
     "fuse.js": "^6.4.6",
+    "hotkeys-js": "^3.8.7",
     "jotai": "^1.4.5",
     "lodash": "^4.17.21",
     "loglevel": "^1.8.0",
