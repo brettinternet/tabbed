@@ -8,10 +8,11 @@ import { lightFormat } from 'date-fns'
 import { debounce } from 'lodash'
 import browser from 'webextension-polyfill'
 
+import { handleMessageError } from 'background/error'
 import { LocalStorage } from 'background/storage'
 import { appName } from 'utils/env'
 import { downloadJson } from 'utils/helpers'
-import { AppError, handleError } from 'utils/logger'
+import { AppError } from 'utils/logger'
 import {
   MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA,
   PushSessionManagerDataMessage,
@@ -89,7 +90,7 @@ export class SessionsManager {
     try {
       await browser.runtime.sendMessage(message)
     } catch (err) {
-      handleError(err)
+      handleMessageError(err)
     }
   }
 
@@ -201,7 +202,12 @@ export class SessionsManager {
     status?: Extract<SessionStatusType, 'previous' | 'saved'>
   ) {
     const sessions = status ? this[status] : this.allSessions
-    return sessions.find((s) => s.id === sessionId)
+    const session = sessions.find((s) => s.id === sessionId)
+    if (!session) {
+      throw Error('session not found')
+    }
+
+    return session
   }
 
   update(

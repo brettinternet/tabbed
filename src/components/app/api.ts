@@ -22,11 +22,7 @@ export const getSettings = async (): Promise<
     type: MESSAGE_TYPE_GET_SETTINGS,
   }
 
-  try {
-    return await browser.runtime.sendMessage(message)
-  } catch (err) {
-    log.error(err)
-  }
+  return await browser.runtime.sendMessage(message)
 }
 
 export const saveSettings = async (
@@ -37,11 +33,7 @@ export const saveSettings = async (
     value: settings,
   }
 
-  try {
-    return await browser.runtime.sendMessage(message)
-  } catch (err) {
-    log.error(err)
-  }
+  return await browser.runtime.sendMessage(message)
 }
 
 export const startListeners = (setSettings: SetSettings) => {

@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
-import { Runtime } from 'webextension-polyfill'
 
+import { useErrorHandler } from 'components/error/handlers'
 import { ToastOptions } from 'components/toast/store'
 import { log } from 'utils/logger'
 import { OpenWindowOptions, PatchWindowOptions } from 'utils/messages'
@@ -10,16 +10,7 @@ import { saveWindow, openWindow, patchWindow, removeWindow } from './api'
 const logContext = 'components/window/handlers'
 
 export const useHandlers = (addToast: (toastOptions: ToastOptions) => void) => {
-  const handleError = useCallback(
-    (error: unknown) => {
-      log.error(error)
-      const { message } = error as Runtime.PropertyLastErrorType
-      if (message) {
-        addToast({ message, variant: 'error' })
-      }
-    },
-    [addToast]
-  )
+  const handleError = useErrorHandler(addToast)
 
   const handleOpenWindow = useCallback(
     async (

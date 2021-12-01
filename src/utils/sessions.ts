@@ -11,6 +11,7 @@ import { Valueof } from 'utils/helpers'
 export type SessionTabData = {
   id: number
   url: string
+  favIconUrl?: string
   title?: string
   windowId: number
   active: boolean

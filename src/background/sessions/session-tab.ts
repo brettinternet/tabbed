@@ -9,6 +9,7 @@ export class SessionTab {
   constructor({
     id,
     url,
+    favIconUrl,
     title,
     windowId,
     active,
@@ -22,6 +23,7 @@ export class SessionTab {
   }: SessionTabData) {
     this.id = id
     this.url = url
+    this.favIconUrl = favIconUrl
     this.title = title
     this.windowId = windowId
     this.active = active
@@ -49,6 +51,7 @@ export class SessionTab {
       id: maybeId,
       url: maybeUrl,
       pendingUrl,
+      favIconUrl,
       title,
       active,
       pinned,
@@ -63,6 +66,7 @@ export class SessionTab {
       return new SessionTab({
         id: maybeId || generateFallbackId(),
         url,
+        favIconUrl,
         title,
         windowId,
         active,

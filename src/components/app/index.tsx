@@ -1,6 +1,7 @@
 // import { useEffect, useState } from 'react'
 import { useEffect, useState } from 'react'
 
+import { useErrorHandler } from 'components/error/handlers'
 import { Layout } from 'components/layout'
 import { SessionLayout } from 'components/session'
 import { ToastContainer } from 'components/toast'
@@ -32,22 +33,27 @@ export const App = () => {
   const [, setSettings] = useSettings()
   const [isLoading, setLoading] = useState(true)
   const { add: addToast } = useToasts()
+  const handleError = useErrorHandler(addToast)
   // const [Modal, setModal] = useState()
 
   useEffect(() => {
     const fetchSettings = async () => {
-      const settings = await getSettings() // ~29 ms
-      if (settings) {
-        setSettings(settings)
-      } else {
-        addToast({
-          title: 'Error',
-          message: 'Unable to load app',
-          variant: 'error',
-          autoDismiss: false,
-        })
+      try {
+        const settings = await getSettings() // ~29 ms
+        if (settings) {
+          setSettings(settings)
+        } else {
+          addToast({
+            title: 'Error',
+            message: 'Unable to load app. Please reopen the extension.',
+            variant: 'error',
+            autoDismiss: false,
+          })
+        }
+        setLoading(false)
+      } catch (err) {
+        handleError(err)
       }
-      setLoading(false)
     }
 
     void fetchSettings()

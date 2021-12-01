@@ -28,6 +28,7 @@ export const Tab: React.FC<TabProps> = ({
   const {
     id: tabId,
     url,
+    favIconUrl,
     title,
     muted,
     pinned,
@@ -59,59 +60,73 @@ export const Tab: React.FC<TabProps> = ({
     >
       <div
         onDoubleClick={handleOpen}
-        className="space-y-2 p-3 w-full max-w-tab-content"
+        className="flex flex-row p-3 w-full max-w-tab-content"
       >
-        {title && <div>{title}</div>}
-        <div className="truncate max-w-full inline-block text-blue-500">
-          {url}
-        </div>
-        {(pinned ||
-          muted ||
-          discarded ||
-          attention ||
-          (isDefined(groupId) && groupId > -1) ||
-          active) && (
-          <div className="flex items-center flex-wrap">
-            {pinned && (
-              <Icon
-                title="pinned"
-                name="thumbtack"
-                className="mr-2"
-                size="sm"
-              />
-            )}
-            {muted && (
-              <Icon title="muted" name="sound-off" className="mr-2" size="sm" />
-            )}
-            {discarded && (
-              <Icon
-                title="discarded"
-                name="file-no-access"
-                className="mr-2"
-                size="sm"
-              />
-            )}
-            {attention && (
-              <Icon title="alert" name="alarm" className="mr-2" size="sm" />
-            )}
-            {isDefined(groupId) && groupId > -1 && (
-              <span
-                title="group ID"
-                className="inline-block px-1 bg-yellow-200 mr-2"
-              >
-                {groupId}
-              </span>
-            )}
-            {active && (
-              <Icon
-                title="active"
-                name="file-tick"
-                className="mr-2"
-                size="sm"
-              />
-            )}
-          </div>
+        {favIconUrl && (
+          <img
+            src={favIconUrl}
+            className="w-8 h-8 mr-3 rounded-full"
+            alt={title || 'Site image'}
+          />
         )}
+        <div className="space-y-2 w-full pr-11">
+          {title && <div>{title}</div>}
+          <div className="truncate max-w-full inline-block text-blue-500">
+            {url}
+          </div>
+          {(pinned ||
+            muted ||
+            discarded ||
+            attention ||
+            (isDefined(groupId) && groupId > -1) ||
+            active) && (
+            <div className="flex items-center flex-wrap">
+              {pinned && (
+                <Icon
+                  title="pinned"
+                  name="thumbtack"
+                  className="mr-2"
+                  size="sm"
+                />
+              )}
+              {muted && (
+                <Icon
+                  title="muted"
+                  name="sound-off"
+                  className="mr-2"
+                  size="sm"
+                />
+              )}
+              {discarded && (
+                <Icon
+                  title="discarded"
+                  name="file-no-access"
+                  className="mr-2"
+                  size="sm"
+                />
+              )}
+              {attention && (
+                <Icon title="alert" name="alarm" className="mr-2" size="sm" />
+              )}
+              {isDefined(groupId) && groupId > -1 && (
+                <span
+                  title="group ID"
+                  className="inline-block px-1 bg-yellow-200 mr-2"
+                >
+                  {groupId}
+                </span>
+              )}
+              {active && (
+                <Icon
+                  title="active"
+                  name="file-tick"
+                  className="mr-2"
+                  size="sm"
+                />
+              )}
+            </div>
+          )}
+        </div>
       </div>
       <div className="flex items-center space-x-2 p-3">
         <Dropdown

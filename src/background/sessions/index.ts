@@ -277,6 +277,7 @@ export const startListeners = async (
   })
 
   // TODO: consolidate options with class update options - probably separate current into new handler
+  // update session after patch with handleChange()
   browser.runtime.onMessage.addListener((message: PatchWindowMessage) => {
     if (message.type === MESSAGE_TYPE_PATCH_WINDOW) {
       return new Promise(async (resolve) => {

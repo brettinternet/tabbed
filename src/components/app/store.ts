@@ -2,6 +2,8 @@ import { atom, useAtom } from 'jotai'
 import { SetStateAction, useCallback, useEffect } from 'react'
 import browser from 'webextension-polyfill'
 
+import { useErrorHandler } from 'components/error/handlers'
+import { useToasts } from 'components/toast/store'
 import { popupUrl, tabUrl, popoutUrl, sidebarUrl } from 'utils/env'
 import { getKeys } from 'utils/helpers'
 import { updateLogLevel } from 'utils/logger'
@@ -87,17 +89,23 @@ export const useSettings = (): [
   SetSettings,
   (values: Partial<SettingsData>) => void
 ] => {
+  const { add: addToast } = useToasts()
+  const handleError = useErrorHandler(addToast)
   const [settings, setSettings] = useAtom(settingsAtom)
 
   const updateSettings = useCallback(
     async (values: Partial<SettingsData>) => {
-      const settings = await saveSettings(values)
-      if (settings) {
-        const keys = getKeys(values)
-        await Promise.all(
-          keys.map(async (key) => handleSettingsSideEffects(key, settings))
-        )
-        setSettings(settings)
+      try {
+        const settings = await saveSettings(values)
+        if (settings) {
+          const keys = getKeys(values)
+          await Promise.all(
+            keys.map(async (key) => handleSettingsSideEffects(key, settings))
+          )
+          setSettings(settings)
+        }
+      } catch (err) {
+        handleError(err)
       }
     },
     [setSettings]
