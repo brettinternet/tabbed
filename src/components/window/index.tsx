@@ -74,11 +74,8 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
     }
   }
   return (
-    <div
-      onDoubleClick={handleOpen}
-      className="flex justify-between items-center py-3 px-6 transition-colors duration-75 hover:bg-gray-200"
-    >
-      <div className="space-y-2">
+    <div className="flex justify-between items-center transition-colors duration-75 hover:bg-gray-200">
+      <div onDoubleClick={handleOpen} className="space-y-2 py-3 px-6 w-full">
         {title && <div>{title}</div>}
         <div className="flex items-center flex-wrap">
           <div className="text-gray-500 text-xs mr-2">{state}</div>
@@ -87,7 +84,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
           )}
         </div>
       </div>
-      <div>
+      <div className="py-3 px-6">
         <Dropdown
           buttonVariant="none"
           actionGroups={[

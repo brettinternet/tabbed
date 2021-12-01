@@ -304,7 +304,7 @@ export const startListeners = async (
         const session = sessionsManager.find(sessionId)
         if (session) {
           if (session.id === sessionsManager.current.id) {
-            resolve(await browser.tabs.update(tabId, options))
+            await browser.tabs.update(tabId, options)
           } else {
             const win = session.findWindow(windowId)
             if (win) {
@@ -314,6 +314,7 @@ export const startListeners = async (
               }
             }
           }
+          // send update
         }
       })
     }

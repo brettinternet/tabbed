@@ -42,9 +42,7 @@ export const Tab: React.FC<TabProps> = ({
     | undefined = tab.activeSession
     ? (ev) => {
         ev.preventDefault()
-        if (!active) {
-          handleOpenTab({ sessionId, windowId, tabId })
-        }
+        handleOpenTab({ sessionId, windowId, tabId })
         return false
       }
     : undefined
@@ -53,63 +51,19 @@ export const Tab: React.FC<TabProps> = ({
   return (
     <div
       aria-disabled={tab.activeSession && tab.active}
-      onDoubleClick={handleOpen}
       className={cn(
-        'relative appearance-none transition-color transition-opacity duration-100 flex flex-row p-3 rounded border',
+        'relative appearance-none transition-color transition-opacity duration-100 flex flex-row rounded border',
         isDragging ? 'shadow-xl' : 'shadow',
         'bg-white dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
       )}
     >
-      <div className="space-y-2 w-full">
+      <div onDoubleClick={handleOpen} className="space-y-2 p-3 w-full">
         <div className="flex items-center justify-between">
           <div className="max-w-tab-content">
             {title && <div>{title}</div>}
             <div className="truncate max-w-full inline-block text-blue-500">
               {url}
             </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Dropdown
-              buttonVariant="none"
-              actionGroups={[
-                [
-                  {
-                    onClick: handleOpen,
-                    text: 'Open',
-                    iconProps: { name: 'file-plus' },
-                  },
-                  {
-                    onClick: () => {
-                      handleUpdateTab({
-                        sessionId,
-                        windowId,
-                        tabId,
-                        options: { pinned: !pinned },
-                      })
-                    },
-                    text: pinned ? 'Unpin' : 'Pin',
-                    iconProps: { name: 'thumbtack' },
-                  },
-                ],
-                [
-                  {
-                    onClick: () => {
-                      handleDiscardTab({ sessionId, windowId, tabId })
-                    },
-                    text: 'Free memory',
-                    iconProps: { name: 'section-remove' },
-                    disabled: discarded,
-                  },
-                  {
-                    onClick: () => {
-                      handleRemoveTab({ sessionId, windowId, tabId })
-                    },
-                    text: tab.activeSession ? 'Close' : 'Remove',
-                    iconProps: { name: 'bin' },
-                  },
-                ],
-              ]}
-            />
           </div>
         </div>
         {(pinned ||
@@ -159,6 +113,49 @@ export const Tab: React.FC<TabProps> = ({
             )}
           </div>
         )}
+      </div>
+      <div className="flex items-center space-x-2 p-3">
+        <Dropdown
+          buttonVariant="none"
+          actionGroups={[
+            [
+              {
+                onClick: handleOpen,
+                text: 'Open',
+                iconProps: { name: 'file-plus' },
+              },
+              {
+                onClick: () => {
+                  handleUpdateTab({
+                    sessionId,
+                    windowId,
+                    tabId,
+                    options: { pinned: !pinned },
+                  })
+                },
+                text: pinned ? 'Unpin' : 'Pin',
+                iconProps: { name: 'thumbtack' },
+              },
+            ],
+            [
+              {
+                onClick: () => {
+                  handleDiscardTab({ sessionId, windowId, tabId })
+                },
+                text: 'Free memory',
+                iconProps: { name: 'section-remove' },
+                disabled: discarded,
+              },
+              {
+                onClick: () => {
+                  handleRemoveTab({ sessionId, windowId, tabId })
+                },
+                text: tab.activeSession ? 'Close' : 'Remove',
+                iconProps: { name: 'bin' },
+              },
+            ],
+          ]}
+        />
       </div>
     </div>
   )
