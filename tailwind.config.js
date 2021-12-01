@@ -44,7 +44,7 @@ module.exports = {
         32: '8rem' /* 128px */, // dropdown menu item
       },
       maxWidth: {
-        'tab-content': 'calc(100% - 32px)', // 32px dropdown button
+        'tab-content': 'calc(100% - 56px)', // 32px dropdown button
       },
       margin: {
         outline: '2px', // to allow space for focus ring outline

@@ -16,7 +16,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => (
   <header
     className={cn(
-      'h-header flex justify-around items-center sticky top-0 lg:static',
+      'h-header z-header flex justify-around items-center sticky top-0 md:static bg-white dark:bg-gray-900 border-b border-gray-200',
       className
     )}
   >
@@ -25,7 +25,7 @@ export const Header: React.FC<HeaderProps> = ({
         <Search />
       </li>
       {onClickSettings && (
-        <li className="lg:ml-auto">
+        <li className="md:ml-auto">
           <Button
             onClick={onClickSettings}
             aria-label={getMessage('open_settings', 'open settings')}

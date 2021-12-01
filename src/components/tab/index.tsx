@@ -57,14 +57,13 @@ export const Tab: React.FC<TabProps> = ({
         'bg-white dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
       )}
     >
-      <div onDoubleClick={handleOpen} className="space-y-2 p-3 w-full">
-        <div className="flex items-center justify-between">
-          <div className="max-w-tab-content">
-            {title && <div>{title}</div>}
-            <div className="truncate max-w-full inline-block text-blue-500">
-              {url}
-            </div>
-          </div>
+      <div
+        onDoubleClick={handleOpen}
+        className="space-y-2 p-3 w-full max-w-tab-content"
+      >
+        {title && <div>{title}</div>}
+        <div className="truncate max-w-full inline-block text-blue-500">
+          {url}
         </div>
         {(pinned ||
           muted ||

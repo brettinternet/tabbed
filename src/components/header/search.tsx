@@ -4,6 +4,7 @@
 import { debounce } from 'lodash'
 import { useRef } from 'react'
 
+import { Button } from 'components/button'
 import { Icon } from 'components/icon'
 import { Input } from 'components/input'
 import { getMessage } from 'utils/i18n'
@@ -53,9 +54,10 @@ export const Search: React.FC = () => {
       aria-label={getMessage('search__form_label', 'Sessions and tabs')}
       className="relative"
     >
+      <Icon name="search" className="absolute left-2 top-0 h-full" size="sm" />
       <Input
         id="search"
-        className="w-full xxs:pr-8"
+        className="w-full xxs:pr-8 rounded-full px-7 py-1"
         type="text"
         placeholder={getMessage('search__input_placeholder', 'Search')}
         onChange={debouncedChange}
@@ -63,14 +65,14 @@ export const Search: React.FC = () => {
         ref={searchRef}
       />
       {searchValue && (
-        <button
+        <Button
           type="button"
           className="hidden xxs:flex items-center justify-center absolute top-0 right-0 h-full w-8"
           aria-label={getMessage('search__input_clear', 'Clear')}
           onClick={clear}
-        >
-          <Icon name="x" />
-        </button>
+          variant="none"
+          iconProps={{ name: 'x', size: 'sm' }}
+        />
       )}
     </form>
   )

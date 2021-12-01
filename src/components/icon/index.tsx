@@ -23,6 +23,7 @@ export const Name = {
   FILE: 'file', // generic window
   SAVE: 'save', // save
   SECTION_REMOVE: 'section-remove', // discard tab - free memory
+  SEARCH: 'search',
 } as const
 
 type NameType = Valueof<typeof Name>
