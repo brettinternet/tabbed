@@ -293,16 +293,21 @@ export const Settings: React.FC = () => {
           label="Debug mode"
           onChange={handleChangeDebugMode}
           checked={settings.debugMode}
-          // aria-describedby="debug-mode-description"
+          aria-describedby="debug-mode-description"
         />
         <Description id="debug-mode-description">
-          Enables verbose debugging in the console.
+          Enables verbose logging in the console.
         </Description>
       </div>
 
       <div className="space-y-3">
-        <Button onClick={handleClickReset}>Reset settings</Button>
-        <Description id="debug-mode-description">
+        <Button
+          onClick={handleClickReset}
+          aria-describedby="reset-settings-description"
+        >
+          Reset settings
+        </Button>
+        <Description id="reset-settings-description">
           Restores all settings to default values.
         </Description>
       </div>

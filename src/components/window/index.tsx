@@ -57,7 +57,7 @@ const getStateActions = (
 
 export const WindowHeader: React.FC<WindowHeaderProps> = ({
   sessionId,
-  window: { id: windowId, focused, title, state, activeSession },
+  window: { id: windowId, focused, title, state, tabs, activeSession },
 }) => {
   const { add: addToast } = useToasts()
   const {
@@ -77,11 +77,12 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
     <div className="flex justify-between items-center transition-colors duration-75 hover:bg-gray-200">
       <div onDoubleClick={handleOpen} className="space-y-2 py-3 px-6 w-full">
         {title && <div>{title}</div>}
-        <div className="flex items-center flex-wrap">
-          <div className="text-gray-500 text-xs mr-2">{state}</div>
-          {focused && (
-            <Icon title="active" name="file-tick" className="mr-2" size="sm" />
-          )}
+        <div className="flex items-center flex-wrap text-xs text-gray-500 space-x-2">
+          <div>{state}</div>
+          {focused && <Icon title="active" name="file-tick" size="sm" />}
+          <div>
+            {tabs.length} tab{tabs.length > 1 && 's'}
+          </div>
         </div>
       </div>
       <div className="py-3 px-6">

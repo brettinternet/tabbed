@@ -12,11 +12,7 @@ const MenuItem: React.FC<{ buttonProps: ButtonProps }> = ({ buttonProps }) => (
         variant="none"
         shape="item"
         {...buttonProps}
-        className={cn(
-          'disabled:text-gray-600',
-          buttonProps.className,
-          active && 'bg-gray-200'
-        )}
+        className={cn(buttonProps.className, active && 'bg-gray-200')}
       />
     )}
   </M.Item>
@@ -43,7 +39,7 @@ export const Dropdown: React.FC<MenuProps> = (props) => {
     <M as="div" className={cn('relative', className)}>
       <M.Button
         className={cn(
-          getClass({ variant: buttonVariant, shape: buttonShape }),
+          getClass({ variant: buttonVariant, shape: 'icon' }),
           props.buttonClassName
         )}
         aria-label="toggle menu"

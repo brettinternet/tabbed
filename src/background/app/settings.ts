@@ -49,6 +49,7 @@ export class Settings {
   async update(partialSettings: Partial<SettingsData>) {
     this.updateValues(partialSettings)
     await this.save()
+    // TODO: push update to frontend (in case separate windows and one has stale settings)
     return this
   }
 

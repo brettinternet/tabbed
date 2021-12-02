@@ -28,7 +28,7 @@ const getVariantClass = (variant: VariantType) => {
     case Variant.SECONDARY:
       return 'bg-gray-200 text-black dark:bg-gray-700 dark:text-gray-100'
     case Variant.TRANSPARENT:
-      return 'hover:bg-gray-100 dark:hover:bg-gray-700'
+      return 'hover:bg-gray-100 dark:hover:bg-gray-700 disabled:text-gray-600'
   }
 }
 
@@ -76,7 +76,7 @@ export const Button: React.FC<ButtonProps> = ({
 }) => (
   <button
     className={cn(
-      getClass({ variant, shape: shape || iconProps ? Shape.ICON : shape }),
+      getClass({ variant, shape: shape || (iconProps ? Shape.ICON : shape) }),
       className
     )}
     {...props}

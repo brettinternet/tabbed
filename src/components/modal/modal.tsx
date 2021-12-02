@@ -21,7 +21,7 @@ export const Modal: React.FC<ModalProps> = ({
   <Transition appear show={show} as={Fragment}>
     <Dialog
       as="div"
-      className="fixed inset-0 z-modal overflow-y-auto"
+      className="fixed inset-0 z-modal overflow-y-auto scroll"
       onClose={close}
       onAnimationEnd={animationEnd}
     >

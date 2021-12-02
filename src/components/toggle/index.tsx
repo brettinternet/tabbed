@@ -7,10 +7,19 @@ type ToggleProps = {
   checked: boolean
   onChange: (checked: boolean) => void
   label?: string
+  'aria-describedby'?: string
 }
 
-export const Toggle: React.FC<ToggleProps> = ({ checked, onChange, label }) => (
-  <Label className="flex items-center space-x-2">
+export const Toggle: React.FC<ToggleProps> = ({
+  checked,
+  onChange,
+  label,
+  'aria-describedby': ariaDescribedby,
+}) => (
+  <Label
+    className="flex items-center space-x-2"
+    aria-describedby={ariaDescribedby}
+  >
     <Switch
       checked={checked}
       onChange={onChange}
