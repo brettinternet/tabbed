@@ -24,6 +24,7 @@ export const Name = {
   SAVE: 'save', // save
   SECTION_REMOVE: 'section-remove', // discard tab - free memory
   SEARCH: 'search',
+  TICK: 'tick', // checkmark
 } as const
 
 type NameType = Valueof<typeof Name>

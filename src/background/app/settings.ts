@@ -67,20 +67,20 @@ export class Settings {
     saveIncognito,
     excludedUrls,
   }: Partial<SettingsData>) {
-    this.layout = layout || this.layout
+    this.layout = layout ?? this.layout
     this.extensionClickAction =
-      extensionClickAction || this.extensionClickAction
-    this.showTabCountBadge = showTabCountBadge || this.showTabCountBadge
-    this.shortcuts = shortcuts || this.shortcuts
-    this.fontSize = fontSize || this.fontSize
-    this.popupDimensions = popupDimensions || this.popupDimensions
-    this.popoutState = popoutState || this.popoutState
-    this.theme = theme || this.theme
-    this.debugMode = debugMode || this.debugMode
-    this.saveClosedWindows = saveClosedWindows || this.saveClosedWindows
+      extensionClickAction ?? this.extensionClickAction
+    this.showTabCountBadge = showTabCountBadge ?? this.showTabCountBadge
+    this.shortcuts = shortcuts ?? this.shortcuts
+    this.fontSize = fontSize ?? this.fontSize
+    this.popupDimensions = popupDimensions ?? this.popupDimensions
+    this.popoutState = popoutState ?? this.popoutState
+    this.theme = theme ?? this.theme
+    this.debugMode = debugMode ?? this.debugMode
+    this.saveClosedWindows = saveClosedWindows ?? this.saveClosedWindows
     this.sortFocusedWindowFirst =
-      sortFocusedWindowFirst || this.sortFocusedWindowFirst
-    this.saveIncognito = saveIncognito || this.saveIncognito
-    this.excludedUrls = excludedUrls || this.excludedUrls
+      sortFocusedWindowFirst ?? this.sortFocusedWindowFirst
+    this.saveIncognito = saveIncognito ?? this.saveIncognito
+    this.excludedUrls = excludedUrls ?? this.excludedUrls
   }
 }

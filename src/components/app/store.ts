@@ -23,6 +23,7 @@ export const isTab = window.location.href.includes(tabUrl)
 export const isPopout = window.location.href.includes(popoutUrl)
 export const isSidebar = window.location.href.includes(sidebarUrl)
 export const isSidebarSupported = !!browser.sidebarAction
+export const isMac = window.navigator.userAgent.toLowerCase().includes('mac')
 
 const setFontSize = (size: number) => {
   document.documentElement.style.fontSize = `${size}px`

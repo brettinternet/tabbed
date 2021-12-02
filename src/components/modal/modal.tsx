@@ -35,7 +35,7 @@ export const Modal: React.FC<ModalProps> = ({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <Dialog.Overlay className="fixed inset-0 bg-gray-900 bg-opacity-10" />
+          <Dialog.Overlay className="fixed inset-0 bg-gray-900 dark:bg-gray-500 bg-opacity-10 dark:bg-opacity-20" />
         </Transition.Child>
 
         <Transition.Child
@@ -47,17 +47,17 @@ export const Modal: React.FC<ModalProps> = ({
           leaveFrom="opacity-100 scale-100"
           leaveTo="opacity-0 scale-95"
         >
-          <div className="w-full min-h-screen md:min-h-full md:h-auto md:max-w-md md:my-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-xl md:rounded-2xl">
+          <div className="w-full min-h-screen md:min-h-full md:h-auto md:max-w-md md:my-8 overflow-hidden text-left align-middle transition-all transform bg-white dark:bg-gray-800 shadow-xl md:rounded-2xl">
             <div
               className={cn(
-                'flex items-center px-6 pt-4 mb-6',
+                'flex items-center px-6 pt-6 md:pt-4 mb-6',
                 title ? 'justify-between' : 'justify-end'
               )}
             >
               {title && (
                 <Dialog.Title
                   as="h1"
-                  className="text-lg font-medium leading-6 text-gray-900"
+                  className="text-2xl font-medium leading-6 text-gray-900 dark:text-white"
                 >
                   {title}
                 </Dialog.Title>

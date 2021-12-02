@@ -14,6 +14,7 @@ type VariantType = Valueof<typeof Variant>
 
 const Shape = {
   ROUNDED: 'rounded',
+  ICON: 'icon',
   ITEM: 'item',
   NONE: 'none',
 } as const
@@ -27,13 +28,15 @@ const getVariantClass = (variant: VariantType) => {
     case Variant.SECONDARY:
       return 'bg-gray-200 text-black dark:bg-gray-700 dark:text-gray-100'
     case Variant.TRANSPARENT:
-      return 'hover:bg-gray-100'
+      return 'hover:bg-gray-100 dark:hover:bg-gray-700'
   }
 }
 
 const getShapeClass = (shape: ShapeType) => {
   switch (shape) {
     case Shape.ROUNDED:
+      return 'px-4 py-1 rounded-full'
+    case Shape.ICON:
       return 'p-2 rounded-full'
     case Shape.ITEM:
       return 'p-2 w-full rounded'
@@ -71,7 +74,13 @@ export const Button: React.FC<ButtonProps> = ({
   iconProps,
   ...props
 }) => (
-  <button className={cn(getClass({ variant, shape }), className)} {...props}>
+  <button
+    className={cn(
+      getClass({ variant, shape: shape || iconProps ? Shape.ICON : shape }),
+      className
+    )}
+    {...props}
+  >
     {iconProps && <Icon {...iconProps} className={text && 'mr-2'} />}
     {text}
   </button>
