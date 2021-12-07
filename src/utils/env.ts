@@ -3,7 +3,7 @@ export const sidebarUrl = 'index.html?mode=sidebar'
 export const tabUrl = 'index.html?mode=tab' // or no query at all
 export const popoutUrl = 'index.html?mode=popout'
 
-export const repoUrl = 'https://github.com/brettinternet/table-tabs'
+export const repoUrl = 'https://github.com/brettinternet/tabbed'
 export const licenseUrl = `${repoUrl}/blob/main/LICENSE.md`
 export const privacyPolicyUrl = `${repoUrl}/blob/main/PRIVACYPOLICY.md`
 
