@@ -12,6 +12,8 @@ import {
 import { Tab } from 'components/tab'
 import { SessionData, SessionWindowData } from 'utils/sessions'
 
+import { DroppableType } from './store'
+
 type InnerTabListProps = {
   windowId: SessionWindowData['id']
   sessionId: SessionData['id']
@@ -87,7 +89,7 @@ export const TabsList: React.FC<TabsListProps> = ({
 }) => (
   <Droppable
     droppableId={`${windowId}`}
-    type="WINDOW"
+    type={DroppableType.WINDOW}
     ignoreContainerClipping={false}
     isDropDisabled={false}
   >
@@ -97,6 +99,7 @@ export const TabsList: React.FC<TabsListProps> = ({
     ) => (
       <div
         className={cn(
+          'max-h-full',
           className,
           getWrapperBackground(
             dropSnapshot.isDraggingOver,
@@ -105,7 +108,7 @@ export const TabsList: React.FC<TabsListProps> = ({
         )}
         {...dropProvided.droppableProps}
       >
-        <div ref={dropProvided.innerRef} className="p-2">
+        <div ref={dropProvided.innerRef} className="p-2 h-full">
           <MemoizedInnerTabList
             tabs={win.tabs}
             sessionId={sessionId}

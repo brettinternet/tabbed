@@ -80,6 +80,17 @@ const reorderTabs = (
   return windows
 }
 
+/**
+ * Defines type on react-beautiful-dnd droppable component
+ * where dragged elements may be dropped
+ */
+export const DroppableType = {
+  // Tabs are dropped over window droppable
+  WINDOW: 'window',
+  // Windows are dropped over this
+  SESSION: 'session',
+} as const
+
 export const useWindowsDrag = () => {
   const [sessionsManager, setSessionsManager] = useState<SessionsManagerData>()
 
@@ -117,7 +128,7 @@ export const useWindowsDrag = () => {
     }
 
     // reordering window
-    if (result.type === 'SESSION') {
+    if (result.type === DroppableType.SESSION) {
       setSessionsManager((sessionsManager) => {
         if (sessionsManager) {
           const windows = sessionsManager.current.windows

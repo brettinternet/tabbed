@@ -1,9 +1,16 @@
-import { Menu as M, Transition } from '@headlessui/react'
+import { Menu as M } from '@headlessui/react'
 import cn, { Argument as ClassNames } from 'classnames'
-import { Fragment } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import { useState } from 'react'
+import { usePopper } from 'react-popper'
 
-import { Button, ButtonProps, getClass } from 'components/button'
+import {
+  Button,
+  ButtonProps,
+  getClass as getButtonClass,
+} from 'components/button'
 import { Icon } from 'components/icon'
+import { Portal } from 'utils/window'
 
 const MenuItem: React.FC<{ buttonProps: ButtonProps }> = ({ buttonProps }) => (
   <M.Item as="li">
@@ -28,57 +35,87 @@ type GroupedActions = {
 
 type MenuProps = {
   className?: ClassNames
-  buttonClassName?: ClassNames
-  buttonVariant?: ButtonProps['variant']
-  buttonShape?: ButtonProps['shape']
+  buttonProps?: ButtonProps
 } & (Actions | GroupedActions)
 
 export const Dropdown: React.FC<MenuProps> = (props) => {
-  const { className, buttonVariant, buttonShape } = props
+  const { className, buttonProps: triggerButtonProps } = props
+  const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null)
+  const [container, setContainer] = useState<HTMLDivElement | null>(null)
+  const { styles, attributes } = usePopper(trigger, container, {
+    placement: 'bottom-end',
+  })
+
   return (
     <M as="div" className={cn('relative', className)}>
-      <M.Button
-        className={cn(
-          getClass({ variant: buttonVariant, shape: 'icon' }),
-          props.buttonClassName
-        )}
-        aria-label="toggle menu"
-      >
-        <Icon name="more-vertical" className="pointer-events-none" />
-      </M.Button>
-      <Transition
-        as={Fragment}
-        enter="transition ease-out duration-100"
-        enterFrom="transform opacity-0 scale-95"
-        enterTo="transform opacity-100 scale-100"
-        leave="transition ease-in duration-75"
-        leaveFrom="transform opacity-100 scale-100"
-        leaveTo="transform opacity-0 scale-95"
-      >
-        <M.Items
-          as="ul"
-          className={cn(
-            'z-menu absolute right-0 min-w-32 mt-1 origin-top-right rounded shadow-lg bg-white dark:bg-gray-800',
-            'actionGroups' in props && 'divide-y divide-gray-100',
-            'ring-1 ring-black ring-opacity-5 focus:outline-none'
-          )}
-        >
-          {'actionGroups' in props
-            ? props.actionGroups.map((groups, index) => (
-                <div key={index} className="p-1">
-                  {groups.map((buttonProps, innerIndex) => (
-                    <MenuItem
-                      key={`${index}-${innerIndex}`}
-                      buttonProps={buttonProps}
-                    />
-                  ))}
+      {({ open }) => (
+        <>
+          <M.Button
+            ref={setTrigger}
+            aria-label="toggle menu"
+            className={cn(
+              getButtonClass({
+                variant: 'none',
+                shape: 'icon',
+                ...triggerButtonProps,
+              }),
+              triggerButtonProps?.className
+            )}
+            {...triggerButtonProps}
+          >
+            <Icon name="more-vertical" className="pointer-events-none" />
+          </M.Button>
+          <AnimatePresence>
+            {open && (
+              <Portal>
+                <div
+                  ref={setContainer}
+                  style={styles.popper}
+                  {...attributes.popper}
+                >
+                  <M.Items
+                    static
+                    as={motion.ul}
+                    initial={{ opacity: 0, scale: 0.95, y: '-0.5rem' }}
+                    animate={{
+                      opacity: 1,
+                      scale: 1,
+                      y: 0,
+                      transition: { duration: 0.1 },
+                    }}
+                    exit={{
+                      opacity: 0,
+                      scale: 0.95,
+                      y: '-0.5rem',
+                      transition: { duration: 0.15 },
+                    }}
+                    className={cn(
+                      'z-menu min-w-32 rounded shadow-lg bg-white dark:bg-gray-800',
+                      'actionGroups' in props && 'divide-y divide-gray-100',
+                      'ring-1 ring-black ring-opacity-5 focus:outline-none'
+                    )}
+                  >
+                    {'actionGroups' in props
+                      ? props.actionGroups.map((groups, index) => (
+                          <div key={index} className="p-1">
+                            {groups.map((buttonProps, innerIndex) => (
+                              <MenuItem
+                                key={`${index}-${innerIndex}`}
+                                buttonProps={buttonProps}
+                              />
+                            ))}
+                          </div>
+                        ))
+                      : props.actions.map((buttonProps, index) => (
+                          <MenuItem key={index} buttonProps={buttonProps} />
+                        ))}
+                  </M.Items>
                 </div>
-              ))
-            : props.actions.map((buttonProps, index) => (
-                <MenuItem key={index} buttonProps={buttonProps} />
-              ))}
-        </M.Items>
-      </Transition>
+              </Portal>
+            )}
+          </AnimatePresence>
+        </>
+      )}
     </M>
   )
 }

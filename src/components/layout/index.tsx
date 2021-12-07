@@ -14,12 +14,7 @@ export const Layout: React.FC<LayoutProps> = ({
 }) => (
   <Fragment>
     <Head title={appName} />
-    <Header
-      onClickSettings={onClickSettings}
-      className="mx-auto max-w-screen-2xl"
-    />
-    <main id="main" className="mx-auto max-w-screen-2xl">
-      {children}
-    </main>
+    <Header onClickSettings={onClickSettings} />
+    <main id="main">{children}</main>
   </Fragment>
 )

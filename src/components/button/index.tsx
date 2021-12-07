@@ -1,4 +1,5 @@
 import cn, { Argument as ClassNames } from 'classnames'
+import { forwardRef } from 'react'
 
 import { Icon, IconProps } from 'components/icon'
 import { Valueof } from 'utils/helpers'
@@ -65,23 +66,29 @@ export type ButtonProps = {
   shape?: ShapeType
 } & React.ButtonHTMLAttributes<HTMLButtonElement>
 
-export const Button: React.FC<ButtonProps> = ({
-  children,
-  text = children,
-  className,
-  variant,
-  shape,
-  iconProps,
-  ...props
-}) => (
-  <button
-    className={cn(
-      getClass({ variant, shape: shape || (iconProps ? Shape.ICON : shape) }),
-      className
-    )}
-    {...props}
-  >
-    {iconProps && <Icon {...iconProps} className={text && 'mr-2'} />}
-    {text}
-  </button>
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      children,
+      text = children,
+      className,
+      variant,
+      shape,
+      iconProps,
+      ...props
+    },
+    ref
+  ) => (
+    <button
+      ref={ref}
+      className={cn(
+        getClass({ variant, shape: shape || (iconProps ? Shape.ICON : shape) }),
+        className
+      )}
+      {...props}
+    >
+      {iconProps && <Icon {...iconProps} className={text && 'mr-2'} />}
+      {text}
+    </button>
+  )
 )

@@ -1,4 +1,5 @@
 import cn from 'classnames'
+import { useState } from 'react'
 
 import { Dropdown } from 'components/dropdown'
 import { Icon } from 'components/icon'
@@ -7,6 +8,7 @@ import { isDefined } from 'utils/helpers'
 import { SessionData, SessionWindowData, SessionTabData } from 'utils/sessions'
 
 import { useHandlers } from './handlers'
+import { Img } from './img'
 
 export type TabProps = {
   windowId: SessionWindowData['id']
@@ -21,6 +23,7 @@ export const Tab: React.FC<TabProps> = ({
   tab,
   isDragging,
 }) => {
+  const [isImageError, setImageError] = useState()
   const { add: addToast } = useToasts()
   const { handleOpenTab, handleRemoveTab, handleUpdateTab, handleDiscardTab } =
     useHandlers(addToast)
@@ -63,9 +66,9 @@ export const Tab: React.FC<TabProps> = ({
         className="flex flex-row p-3 w-full max-w-tab-content"
       >
         {favIconUrl && (
-          <img
+          <Img
             src={favIconUrl}
-            className="w-8 h-8 mr-3 rounded-full"
+            className="w-8 h-8 overflow-hidden mr-3 rounded-full"
             alt={title || 'Site image'}
           />
         )}
@@ -130,7 +133,6 @@ export const Tab: React.FC<TabProps> = ({
       </div>
       <div className="flex items-center space-x-2 p-3">
         <Dropdown
-          buttonVariant="none"
           actionGroups={[
             [
               {
