@@ -32,7 +32,7 @@ module.exports = {
       height: {
         header: '50px',
         'window-header': '71px',
-        'tab-list': 'calc(100vh - 121px)', // screen - header - window-header
+        'tab-list': 'calc(100vh - 121px - 0.4rem)', // screen - header - window-header - scrollbar width (x-axis)
         'modal-header': '72px',
         'modal-drawer-body': 'calc(100vh - 72px)', // screen - modal-header
       },
