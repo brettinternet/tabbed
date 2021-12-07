@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useErrorHandler } from 'components/error/handlers'
 import { Layout } from 'components/layout'
 import { ModalProvider } from 'components/modal/provider'
-import { useModal } from 'components/modal/store'
 import { SessionLayout } from 'components/session'
 import { useShortcuts } from 'components/shortcuts/store'
 import { ToastContainer } from 'components/toast'
@@ -13,9 +12,6 @@ import { getSettings, startListeners } from './api'
 import { useSettings } from './store'
 
 export const App = () => {
-  const {
-    settings: { set: setSettingsModal },
-  } = useModal()
   const [settings, setSettings] = useSettings()
   const [isLoading, setLoading] = useState(true)
   const { add: addToast } = useToasts()
@@ -47,13 +43,9 @@ export const App = () => {
     startListeners(setSettings)
   }, [setSettings, addToast, handleError])
 
-  const enableSettings = useCallback(() => {
-    setSettingsModal(true)
-  }, [setSettingsModal])
-
   if (!isLoading) {
     return (
-      <Layout onClickSettings={enableSettings}>
+      <Layout>
         <SessionLayout />
         <ToastContainer />
         <ModalProvider />

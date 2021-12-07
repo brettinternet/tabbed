@@ -9,7 +9,7 @@ import {
   ButtonProps,
   getClass as getButtonClass,
 } from 'components/button'
-import { Icon } from 'components/icon'
+import { Icon, IconProps } from 'components/icon'
 import { Portal } from 'utils/window'
 
 const MenuItem: React.FC<{ buttonProps: ButtonProps }> = ({ buttonProps }) => (
@@ -37,10 +37,17 @@ type MenuProps = {
   className?: ClassNames
   buttonProps?: ButtonProps
   dropdownOffset?: boolean
+  iconProps?: IconProps
 } & (Actions | GroupedActions)
 
 export const Dropdown: React.FC<MenuProps> = (props) => {
-  const { className, buttonProps: triggerButtonProps, dropdownOffset } = props
+  const {
+    children,
+    className,
+    buttonProps: triggerButtonProps,
+    dropdownOffset,
+    iconProps,
+  } = props
   const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null)
   const [container, setContainer] = useState<HTMLDivElement | null>(null)
   const { styles, attributes } = usePopper(trigger, container, {
@@ -57,6 +64,7 @@ export const Dropdown: React.FC<MenuProps> = (props) => {
           <M.Button
             ref={setTrigger}
             aria-label="toggle menu"
+            {...triggerButtonProps}
             className={cn(
               getButtonClass({
                 variant: 'none',
@@ -65,9 +73,14 @@ export const Dropdown: React.FC<MenuProps> = (props) => {
               }),
               triggerButtonProps?.className
             )}
-            {...triggerButtonProps}
           >
-            <Icon name="more-vertical" className="pointer-events-none" />
+            {children || (
+              <Icon
+                name="more-vertical"
+                className="pointer-events-none"
+                {...iconProps}
+              />
+            )}
           </M.Button>
           <AnimatePresence>
             {open && (
@@ -76,6 +89,7 @@ export const Dropdown: React.FC<MenuProps> = (props) => {
                   ref={setContainer}
                   style={styles.popper}
                   {...attributes.popper}
+                  className="z-menu"
                 >
                   <M.Items
                     static
@@ -94,7 +108,7 @@ export const Dropdown: React.FC<MenuProps> = (props) => {
                       transition: { duration: 0.15 },
                     }}
                     className={cn(
-                      'z-menu min-w-32 rounded shadow-lg bg-white dark:bg-gray-800',
+                      'min-w-32 rounded shadow-lg bg-white dark:bg-gray-800',
                       'actionGroups' in props && 'divide-y divide-gray-100',
                       'ring-1 ring-black ring-opacity-5 focus:outline-none'
                     )}

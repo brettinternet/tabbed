@@ -54,7 +54,11 @@ export const Search: React.FC = () => {
       aria-label={getMessage('search__form_label', 'Sessions and tabs')}
       className="relative"
     >
-      <Icon name="search" className="absolute left-2 top-0 h-full" size="sm" />
+      <Icon
+        name="search"
+        className="absolute left-2 top-1/2 transform -translate-y-1/2 h-full pointer-events-none"
+        size="sm"
+      />
       <Input
         id="search"
         className="w-full xxs:pr-8 rounded-full px-7 py-1"
@@ -62,6 +66,7 @@ export const Search: React.FC = () => {
         placeholder={getMessage('search__input_placeholder', 'Search')}
         onChange={debouncedChange}
         spellCheck="false"
+        shape="none"
         ref={searchRef}
       />
       {searchValue && (

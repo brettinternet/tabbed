@@ -67,7 +67,7 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
           sessionId={sessionId}
           windowId={win.id}
           window={win}
-          className="md:h-tab-list md:overflow-y-scroll scroll"
+          className="md:h-tab-list md:overflow-y-scroll scroll overflow-x-hidden"
         />
       </div>
     )}

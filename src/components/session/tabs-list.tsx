@@ -107,7 +107,7 @@ export const TabsList: React.FC<TabsListProps> = ({
         )}
         {...dropProvided.droppableProps}
       >
-        <div ref={dropProvided.innerRef} className="p-2 h-full">
+        <div ref={dropProvided.innerRef} className="p-2">
           <MemoizedInnerTabList
             tabs={win.tabs}
             sessionId={sessionId}

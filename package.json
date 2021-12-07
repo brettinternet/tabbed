@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "run-s clean copy-public manifest && run-p start:*",
-    "start:app": "craco start | cat",
+    "start:app": "TAILWIND_MODE=watch craco start | cat",
     "start:background": "esbuild src/background/index.ts --bundle --sourcemap --outdir=build/background --inject:env.js --watch",
     "build": "run-s build:app build:background build:manifest",
     "build:app": "craco build",

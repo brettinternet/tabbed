@@ -82,13 +82,13 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
   return (
     <div
       className={cn(
-        'group flex justify-between items-center transition-colors duration-75 hover:bg-gray-200',
+        'group relative flex justify-between items-center transition-colors duration-75 hover:bg-gray-200',
         className
       )}
     >
       <div
         onDoubleClick={handleOpen}
-        className="space-y-2 py-3 px-6 w-full max-w-tab-content"
+        className="space-y-2 py-3 px-6 w-full max-w-full"
       >
         {title && (
           <div className="truncate max-w-full inline-block">{title}</div>
@@ -101,9 +101,12 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
           </div>
         </div>
       </div>
-      <div className="py-3 px-6 transition-opacity duration-75 opacity-0 group-hover:opacity-100">
+      <div className="absolute h-full right-0 py-3 px-6 transition-opacity duration-75 opacity-0 group-hover:opacity-100">
         <Dropdown
           dropdownOffset
+          buttonProps={{
+            className: 'bg-gray-200 border border-gray-400',
+          }}
           actionGroups={[
             [
               {

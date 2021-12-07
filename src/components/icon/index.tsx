@@ -7,7 +7,7 @@ import { Valueof } from 'utils/helpers'
  * Map friendly name
  */
 export const Name = {
-  COG: 'cog', // settings
+  COG: 'cog', // options
   X: 'x', // close
   MORE_VERTICAL: 'more-vertical', // button dropdown
   SOUND_OFF: 'sound-off', // tab muted
@@ -25,6 +25,8 @@ export const Name = {
   SECTION_REMOVE: 'section-remove', // discard tab - free memory
   SEARCH: 'search',
   TICK: 'tick', // checkmark
+  KEYBOARD: 'keyboard', // shortcuts
+  ADJUST_VERTICAL_ALT: 'adjust-vertical-alt', // settings
 } as const
 
 type NameType = Valueof<typeof Name>

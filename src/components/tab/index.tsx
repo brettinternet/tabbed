@@ -56,14 +56,14 @@ export const Tab: React.FC<TabProps> = ({
     <div
       aria-disabled={tab.activeSession && tab.active}
       className={cn(
-        'group appearance-none transition-color transition-opacity duration-100 flex flex-row rounded border',
+        'group relative appearance-none transition-color transition-opacity duration-100 flex flex-row rounded border',
         isDragging ? 'shadow-xl' : 'shadow',
         'bg-white dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
       )}
     >
       <div
         onDoubleClick={handleOpen}
-        className="flex flex-row p-3 w-full max-w-tab-content"
+        className="flex flex-row p-3 w-full max-w-full"
       >
         {favIconUrl && (
           <Img
@@ -131,9 +131,12 @@ export const Tab: React.FC<TabProps> = ({
           )}
         </div>
       </div>
-      <div className="flex items-center space-x-2 p-3 transition-opacity duration-75 opacity-0 group-hover:opacity-100">
+      <div className="absolute h-full right-0 flex items-start space-x-2 p-3 transition-opacity duration-75 opacity-0 group-hover:opacity-100">
         <Dropdown
           dropdownOffset
+          buttonProps={{
+            className: 'bg-gray-200 border border-gray-400',
+          }}
           actionGroups={[
             [
               {
