@@ -1,5 +1,4 @@
-import cn from 'classnames'
-import { useState } from 'react'
+import cn, { Argument as ClassNames } from 'classnames'
 
 import { Dropdown } from 'components/dropdown'
 import { Icon } from 'components/icon'
@@ -15,6 +14,7 @@ export type TabProps = {
   sessionId: SessionData['id']
   isDragging: boolean
   tab: SessionTabData
+  className?: ClassNames
 }
 
 export const Tab: React.FC<TabProps> = ({
@@ -22,8 +22,8 @@ export const Tab: React.FC<TabProps> = ({
   windowId,
   tab,
   isDragging,
+  className,
 }) => {
-  const [isImageError, setImageError] = useState()
   const { add: addToast } = useToasts()
   const { handleOpenTab, handleRemoveTab, handleUpdateTab, handleDiscardTab } =
     useHandlers(addToast)
@@ -58,7 +58,8 @@ export const Tab: React.FC<TabProps> = ({
       className={cn(
         'group relative appearance-none transition-color transition-opacity duration-100 flex flex-row rounded border',
         isDragging ? 'shadow-xl' : 'shadow',
-        'bg-white dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
+        'bg-white dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600',
+        className
       )}
     >
       <div
@@ -72,7 +73,8 @@ export const Tab: React.FC<TabProps> = ({
             alt={title || 'Site image'}
           />
         )}
-        <div className="space-y-2 w-full pr-11">
+        {/* width is full width - image width (w-8) - padding right (p-3) */}
+        <div className="space-y-2 w-[calc(100%-2.75rem)]">
           {title && <div>{title}</div>}
           <div className="truncate max-w-full inline-block text-blue-500">
             {url}

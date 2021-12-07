@@ -47,7 +47,7 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
       <div
         style={{ height: dragSnapshot.isDragging ? '40px' : undefined }}
         className={cn(
-          'transition-colors duration-150 pb-3 md:pb-0 md:w-80 lg:w-96',
+          'transition-colors duration-150 pb-3 md:pb-0 md:w-80 lg:w-96 md:min-w-[20rem] lg:min-w-[24rem]',
           getContainerBackground({
             isDragging: dragSnapshot.isDragging,
             incognito: win.incognito,
@@ -67,7 +67,8 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
           sessionId={sessionId}
           windowId={win.id}
           window={win}
-          className="md:h-tab-list md:overflow-y-scroll scroll overflow-x-hidden"
+          className="md:h-tab-list md:overflow-y-scroll md:scroll md:overflow-x-hidden"
+          isDragging={dragSnapshot.isDragging}
         />
       </div>
     )}
