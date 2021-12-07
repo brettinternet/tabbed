@@ -45,8 +45,9 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
       dragSnapshot: DraggableStateSnapshot
     ) => (
       <div
+        style={{ height: dragSnapshot.isDragging ? '40px' : undefined }}
         className={cn(
-          'transition-colors duration-150 pb-3',
+          'transition-colors duration-150 pb-3 md:pb-0 md:w-80 lg:w-96',
           getContainerBackground({
             isDragging: dragSnapshot.isDragging,
             incognito: win.incognito,
@@ -57,8 +58,17 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
         {...dragProvided.draggableProps}
         {...dragProvided.dragHandleProps}
       >
-        <WindowHeader sessionId={sessionId} window={win} />
-        <TabsList sessionId={sessionId} windowId={win.id} window={win} />
+        <WindowHeader
+          sessionId={sessionId}
+          window={win}
+          className="md:h-window-header overflow-hidden"
+        />
+        <TabsList
+          sessionId={sessionId}
+          windowId={win.id}
+          window={win}
+          className="md:h-tab-list md:overflow-y-scroll scroll"
+        />
       </div>
     )}
   </Draggable>

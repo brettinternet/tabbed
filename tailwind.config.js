@@ -30,7 +30,10 @@ module.exports = {
       },
       height: {
         header: '50px',
-        main: 'calc(100vh - 60px)',
+        'window-header': '71px',
+        'tab-list': 'calc(100vh - 121px)', // screen - header - window-header
+        'modal-header': '72px',
+        'modal-drawer-body': 'calc(100vh - 72px)', // screen - modal-header
       },
       minHeight: {
         11: '2.75rem', // 44px - textarea in options.svelte

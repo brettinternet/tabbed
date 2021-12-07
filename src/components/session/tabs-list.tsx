@@ -99,7 +99,6 @@ export const TabsList: React.FC<TabsListProps> = ({
     ) => (
       <div
         className={cn(
-          'max-h-full',
           className,
           getWrapperBackground(
             dropSnapshot.isDraggingOver,

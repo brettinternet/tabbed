@@ -3,17 +3,31 @@ import { useEffect, useState } from 'react'
 import { Settings } from 'components/settings'
 import { Shortcuts } from 'components/shortcuts'
 
-import { Modal } from './modal'
+import { Modal, ModalProps } from './modal'
 import { Modal as ModalOption, ModalType, useModal } from './store'
 
 type ActiveModal = ModalType | undefined
 
-const getModalContent = (modal: ActiveModal) => {
+type ModalValues = {
+  Content?: React.ComponentType
+  title?: string
+  modalProps?: Partial<ModalProps>
+}
+
+const getModalValues = (modal: ActiveModal): ModalValues => {
   switch (modal) {
     case ModalOption.SETTINGS:
-      return { Content: Settings, title: 'Settings' }
+      return {
+        Content: Settings,
+        title: 'Settings',
+        modalProps: { variant: 'drawer-right' },
+      }
     case ModalOption.SHORTCUTS:
-      return { Content: Shortcuts, title: 'Shortcuts' }
+      return {
+        Content: Shortcuts,
+        title: 'Shortcuts',
+        modalProps: { variant: 'card' },
+      }
     default:
       return {}
   }
@@ -22,7 +36,7 @@ const getModalContent = (modal: ActiveModal) => {
 export const ModalProvider: React.FC = () => {
   const { modal, off } = useModal()
   const [activeModal, setActiveModal] = useState<ActiveModal>(modal)
-  const { Content, title } = getModalContent(activeModal)
+  const { Content, title, modalProps } = getModalValues(activeModal)
 
   useEffect(() => {
     if (modal) {
@@ -38,6 +52,7 @@ export const ModalProvider: React.FC = () => {
       animationEnd={() => {
         setActiveModal(undefined)
       }}
+      variant={modalProps?.variant || 'card'}
     >
       {Content && <Content />}
     </Modal>

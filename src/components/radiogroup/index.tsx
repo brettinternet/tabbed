@@ -8,6 +8,7 @@ export type RadioOption = {
   name: string
   value: unknown
   description?: React.ReactNode
+  className?: ClassNames
 }
 
 type RadioGroupProps<T extends RadioOption = RadioOption> = {
@@ -32,7 +33,7 @@ export const RadioGroup: React.FC<RadioGroupProps> = ({
       <RG value={value} onChange={onChange} className="space-y-3">
         {label && <Label as="legend">{label}</Label>}
         <div className={cn(optionsListClassName || 'space-y-2')}>
-          {options.map(({ name, value, description }) => (
+          {options.map(({ name, value, description, className }) => (
             <RG.Option
               key={name}
               value={value}
@@ -43,7 +44,8 @@ export const RadioGroup: React.FC<RadioGroupProps> = ({
                   // 'ring-2 ring-offset-2 ring-offset-blue-300 ring-white ring-opacity-60',
                   checked
                     ? 'bg-sky-900 bg-opacity-75 text-white bg-green-500 border-transparent'
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-100 dark:border-gray-500'
+                    : 'hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-100 dark:border-gray-500',
+                  className
                 )
               }
             >

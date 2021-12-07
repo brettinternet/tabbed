@@ -65,18 +65,21 @@ export const Settings: React.FC = () => {
             {
               name: 'Light',
               value: Themes.LIGHT,
+              className: 'mr-3 mb-3',
             },
             {
               name: 'Dark',
               value: Themes.DARK,
+              className: 'mr-3 mb-3',
             },
             {
               name: 'System',
               value: Themes.SYSTEM,
+              className: 'mr-3 mb-3',
             },
           ]}
           value={settings.theme}
-          optionsListClassName="flex flex-row items-center space-x-3"
+          optionsListClassName="flex flex-row flex-wrap items-center"
         />
         <Description>Changes extension color theme.</Description>
       </div>

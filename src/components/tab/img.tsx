@@ -2,7 +2,7 @@ import cn, { Argument as ClassNames } from 'classnames'
 import { useState } from 'react'
 
 type ImgProps = {
-  src?: string
+  src: string
   className?: ClassNames
 } & React.ImgHTMLAttributes<HTMLImageElement>
 
@@ -13,7 +13,7 @@ export const Img: React.FC<ImgProps> = ({ src, className, ...props }) => {
     setImageError(true)
   }
 
-  if (src && !isImageError) {
+  if (!isImageError) {
     return (
       <img
         onError={handleError}

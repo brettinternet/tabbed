@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-@import './utils/scrollbar.css';
+@import './styles/scrollbar.css';
 
 html.dark {
   @apply bg-gray-900 text-white transition-colors duration-100;

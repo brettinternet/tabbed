@@ -36,14 +36,18 @@ type GroupedActions = {
 type MenuProps = {
   className?: ClassNames
   buttonProps?: ButtonProps
+  dropdownOffset?: boolean
 } & (Actions | GroupedActions)
 
 export const Dropdown: React.FC<MenuProps> = (props) => {
-  const { className, buttonProps: triggerButtonProps } = props
+  const { className, buttonProps: triggerButtonProps, dropdownOffset } = props
   const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null)
   const [container, setContainer] = useState<HTMLDivElement | null>(null)
   const { styles, attributes } = usePopper(trigger, container, {
     placement: 'bottom-end',
+    modifiers: dropdownOffset
+      ? [{ name: 'offset', options: { offset: [0, -32] } }]
+      : undefined,
   })
 
   return (
