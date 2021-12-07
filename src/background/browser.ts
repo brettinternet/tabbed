@@ -109,8 +109,8 @@ export const getExtensionId = () => browser.i18n.getMessage('@@extension_id')
 export const getWindowAndTabs = (windowId: number) =>
   browser.windows.get(windowId, { populate: true })
 
-export const getCurrentWindow = (options?: Windows.GetInfo) =>
-  browser.windows.getCurrent(options)
+export const getCurrentWindow = async (options?: Windows.GetInfo) =>
+  await browser.windows.getCurrent(options)
 
 /**
  * Sort windows with current window first, then sort by ID
@@ -196,10 +196,7 @@ const activateTab = async (tabId: number) => {
 }
 
 export const focusWindowTab = async (windowId: number, tabId: number) => {
-  const currentWindow = await getCurrentWindow()
-  if (windowId !== currentWindow.id) {
-    await focusWindow(windowId)
-  }
+  await focusWindow(windowId)
   await activateTab(tabId)
 }
 
