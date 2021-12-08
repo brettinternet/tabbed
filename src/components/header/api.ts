@@ -6,7 +6,7 @@ import type {
 } from 'utils/messages'
 import { MESSAGE_TYPE_SEARCH_SESSIONS } from 'utils/messages'
 
-const logContext = 'components/search/send'
+const logContext = 'components/header/api'
 
 export const searchSessions = async (text: string): Promise<any> => {
   log.debug(logContext, 'searchSessions()', text)

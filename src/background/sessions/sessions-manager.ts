@@ -9,10 +9,10 @@ import { debounce } from 'lodash'
 import browser from 'webextension-polyfill'
 
 import { handleMessageError } from 'background/error'
+import { BackgroundError } from 'background/error'
 import { LocalStorage } from 'background/storage'
 import { appName } from 'utils/env'
 import { downloadJson } from 'utils/helpers'
-import { AppError } from 'utils/logger'
 import {
   MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA,
   PushSessionManagerDataMessage,
@@ -204,7 +204,7 @@ export class SessionsManager {
     const sessions = status ? this[status] : this.allSessions
     const session = sessions.find((s) => s.id === sessionId)
     if (!session) {
-      throw new AppError(
+      throw new BackgroundError(
         logContext,
         `Unable to find session by ID ${sessionId}`
       )
@@ -220,7 +220,7 @@ export class SessionsManager {
     const index = this[status].findIndex((s) => s.id === sessionId)
 
     if (index === -1) {
-      throw new AppError(
+      throw new BackgroundError(
         logContext,
         `Unable to find session by ID ${sessionId}`
       )

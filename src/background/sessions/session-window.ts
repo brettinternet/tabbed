@@ -7,14 +7,14 @@ import {
   focusWindow,
   openWindow,
 } from 'background/browser'
+import { BackgroundError } from 'background/error'
 import { generateFallbackId } from 'utils/helpers'
-import { log, AppError } from 'utils/logger'
 import { SessionWindowClass, SessionWindowData } from 'utils/sessions'
 
 import { generateWindowTitle } from './generate'
 import { SessionTab } from './session-tab'
 
-const logContext = 'utils/browser/session-window'
+const logContext = 'background/sessions/session-window'
 
 export interface SessionWindow extends SessionWindowClass {}
 export class SessionWindow {
@@ -100,7 +100,7 @@ export class SessionWindow {
   findTab(tabId: number) {
     const tab = this.tabs.find((t) => t.id === tabId)
     if (!tab) {
-      throw new AppError(logContext, `Unable to find tab by ID ${tabId}`)
+      throw new BackgroundError(logContext, `Unable to find tab by ID ${tabId}`)
     }
 
     return tab
@@ -109,7 +109,7 @@ export class SessionWindow {
   private findTabIndex(tabId: number) {
     const index = this.tabs.findIndex((t) => t.id === tabId)
     if (index === -1) {
-      throw new AppError(logContext, `Unable to find tab by ID ${tabId}`)
+      throw new BackgroundError(logContext, `Unable to find tab by ID ${tabId}`)
     }
 
     return index
@@ -120,7 +120,7 @@ export class SessionWindow {
   //   if (index > -1) {
   //     this.tabs.splice(index, 1)
   //   } else {
-  //     new AppError(logContext, `Unable to find tab by ID ${tabId}`)
+  //     new BackgroundError(logContext, `Unable to find tab by ID ${tabId}`)
   //   }
   // }
 
@@ -177,7 +177,7 @@ export class SessionWindow {
     if (index > -1) {
       this.tabs.splice(index, 1)
     } else {
-      new AppError(logContext, `Unable to find tab by ID ${tabId}`)
+      new BackgroundError(logContext, `Unable to find tab by ID ${tabId}`)
     }
   }
 
@@ -187,7 +187,7 @@ export class SessionWindow {
   //     const { url, pinned, windowId } = maybeTab
   //     openTab({ url, pinned, windowId, incognito: this.incognito })
   //   } else {
-  // new AppError(logContext, `Unable to find tab by ID ${tabId}`)
+  // new BackgroundError(logContext, `Unable to find tab by ID ${tabId}`)
   //   }
   // }
 }

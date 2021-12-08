@@ -6,7 +6,7 @@ import { isPopup } from 'components/app/store'
 import { useModal } from 'components/modal/store'
 import { log } from 'utils/logger'
 
-const logContext = 'components/settings/hotkeys'
+const logContext = 'components/shortcuts/store'
 
 // import { useToasts } from 'components/toast/store'
 // import { parseNum, isDefined } from 'utils/helpers'

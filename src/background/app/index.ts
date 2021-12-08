@@ -25,7 +25,7 @@ import { Settings } from './settings'
 // void setupSearchListeners()
 // void setupUndoListeners()
 
-const logContext = 'background/listeners'
+const logContext = 'background/app/index'
 
 /**
  * Invokes side effects for settings startup and changes

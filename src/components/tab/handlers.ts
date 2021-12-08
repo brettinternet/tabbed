@@ -2,12 +2,11 @@ import { useCallback } from 'react'
 
 import { useErrorHandler } from 'components/error/handlers'
 import { ToastOptions } from 'components/toast/store'
-import { log } from 'utils/logger'
 import { OpenTabOptions, PatchTabOptions } from 'utils/messages'
 
 import { openTab, removeTab, patchTab, discardTabs } from './api'
 
-const logContext = 'components/window/handlers'
+const logContext = 'components/tab/handlers'
 
 export const useHandlers = (addToast: (toastOptions: ToastOptions) => void) => {
   const handleError = useErrorHandler(addToast)

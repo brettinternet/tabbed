@@ -1,9 +1,9 @@
 import { Type } from 'class-transformer'
 import { v4 as uuidv4 } from 'uuid'
 
-import { closeWindow, getAllWindows, openWindows } from 'background/browser'
+import { closeWindow, getAllWindows } from 'background/browser'
+import { BackgroundError } from 'background/error'
 import { isDefined } from 'utils/helpers'
-import { AppError } from 'utils/logger'
 import {
   SessionClass,
   SessionData,
@@ -14,7 +14,7 @@ import {
 import { generateSessionTitle } from './generate'
 import { SessionWindow } from './session-window'
 
-const logContext = 'utils/browser/session'
+const logContext = 'background/sessions/session'
 
 export interface Session extends SessionClass {}
 export class Session {
@@ -84,7 +84,10 @@ export class Session {
   findWindow(windowId: number) {
     const win = this.windows.find((w) => w.id === windowId)
     if (!win) {
-      throw new AppError(logContext, `Unable to find window by ID ${windowId}`)
+      throw new BackgroundError(
+        logContext,
+        `Unable to find window by ID ${windowId}`
+      )
     }
 
     return win
@@ -93,7 +96,10 @@ export class Session {
   findWindowIndex(windowId: number) {
     const index = this.windows.findIndex((w) => w.id === windowId)
     if (index === -1) {
-      throw new AppError(logContext, `Unable to find window by ID ${windowId}`)
+      throw new BackgroundError(
+        logContext,
+        `Unable to find window by ID ${windowId}`
+      )
     }
 
     return index
@@ -118,7 +124,7 @@ export class Session {
     if (index > -1) {
       this.windows.splice(index, 1)
     } else {
-      new AppError(logContext, `Unable to find window by ID ${windowId}`)
+      new BackgroundError(logContext, `Unable to find window by ID ${windowId}`)
     }
   }
 }
