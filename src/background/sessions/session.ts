@@ -61,7 +61,15 @@ export class Session {
   async updateCurrentWindows() {
     if (this.status === SessionStatus.CURRENT) {
       const windows = await getAllWindows({ populate: true }, true)
-      this.windows = windows.map((win) => SessionWindow.fromWindow(win, true))
+      const updatedWindows = windows.map((win) =>
+        SessionWindow.fromWindow(win, true)
+      )
+      const sortedWindows = updatedWindows.sort(
+        (a, b) =>
+          this.windows.findIndex(({ id }) => id === a.id) -
+          this.windows.findIndex(({ id }) => id === b.id)
+      )
+      this.windows = sortedWindows
       this.title = generateSessionTitle(this.windows)
     }
   }

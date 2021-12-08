@@ -8,6 +8,8 @@ import { lightFormat } from 'date-fns'
 import { debounce } from 'lodash'
 import browser from 'webextension-polyfill'
 
+import { Settings } from 'background/app/settings'
+import { isNewTab, urlsMatch } from 'background/browser'
 import { handleMessageError } from 'background/error'
 import { BackgroundError } from 'background/error'
 import { LocalStorage } from 'background/storage'
@@ -53,18 +55,25 @@ export class SessionsManager {
   @Type(() => Session)
   previous: Session[]
 
-  constructor({ current, saved, previous }: SessionsManagerData<Session>) {
+  @Exclude()
+  settings: Settings
+
+  constructor(
+    { current, saved, previous }: SessionsManagerData<Session>,
+    settings: Settings
+  ) {
     this.current = current
     this.saved = saved
     this.previous = previous
+    this.settings = settings
   }
 
-  static async load(): Promise<SessionsManager> {
+  static async load(settings: Settings): Promise<SessionsManager> {
     const { saved = [], previous = [] } =
       (await LocalStorage.get<SavedSessions>(LocalStorage.key.SESSIONS)) || {}
 
     const current = await this.getCurrent()
-    return new SessionsManager({ current, saved, previous })
+    return new SessionsManager({ current, saved, previous }, settings)
   }
 
   /**
@@ -123,12 +132,12 @@ export class SessionsManager {
     return JSON.stringify(instanceToPlain(this))
   }
 
-  static fromJSON(json: string) {
-    const { current, saved, previous }: { current: Session } & SavedSessions =
-      JSON.parse(json)
-    // return plainToInstance(SessionsManager, parsed)
-    return new SessionsManager({ current, saved, previous })
-  }
+  // static fromJSON(json: string) {
+  //   const { current, saved, previous }: { current: Session } & SavedSessions =
+  //     JSON.parse(json)
+  //   // return plainToInstance(SessionsManager, parsed)
+  //   return new SessionsManager({ current, saved, previous })
+  // }
 
   /**
    * add a session according to its status
@@ -171,6 +180,7 @@ export class SessionsManager {
   async addSaved(session: Session) {
     session.status = SessionStatus.SAVED
     session.userSavedDate = new Date()
+    this.filterWindowTabs(session)
     this.saved.unshift(session)
     this.handleChange()
     return session
@@ -178,8 +188,29 @@ export class SessionsManager {
 
   async addPrevious(session: Session) {
     session.status = SessionStatus.PREVIOUS
+    this.filterWindowTabs(session)
     this.previous.unshift(session)
     this.handleChange()
+    return session
+  }
+
+  async filterWindowTabs(session: Session) {
+    session.windows = session.windows.map((win) => {
+      win.tabs = win.tabs.filter((tab) => {
+        if (!isNewTab(tab)) {
+          return this.settings.excludedUrls.parsed.every((excludedUrl) =>
+            excludedUrl.includes('*')
+              ? !excludedUrl
+                  .split('*')
+                  .filter(Boolean)
+                  .every((segment) => tab.url.includes(segment))
+              : !urlsMatch(excludedUrl, tab.url)
+          )
+        }
+      })
+      return win
+    })
+
     return session
   }
 

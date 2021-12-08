@@ -28,7 +28,7 @@ const main = async () => {
   log.debug(logContext, 'main()')
 
   const settings = await Settings.load()
-  const sessionsManager = await SessionsManager.load()
+  const sessionsManager = await SessionsManager.load(settings)
   void startAppListeners(sessionsManager, settings)
   void startSessionListeners(sessionsManager, settings)
 

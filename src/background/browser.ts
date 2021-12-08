@@ -30,16 +30,16 @@ export const openExtensionPopout = async (
   })
 }
 
-/**
- * `pendingUrl` for Chrome browsers where status === 'loading'
- * See `browser.d.ts`
- */
-export const getTabUrl = (tab: Tabs.Tab) => tab.pendingUrl || tab.url
+export const urlsMatch = (url1: string, url2: string) => {
+  try {
+    return new URL(url1).href === new URL(url2).href
+  } catch (_err) {
+    return url1 === url2
+  }
+}
 
-export const isNewTab = (tab: Tabs.Tab) => {
-  // Chrome
-  const url = getTabUrl(tab)
-  if (url && /^chrome:\/\/newtab\/?$/.test(url)) {
+export const isNewTab = ({ url, title }: { url: string; title?: string }) => {
+  if (/^chrome:\/\/newtab\/?$/.test(url)) {
     return true
   }
 
@@ -47,8 +47,7 @@ export const isNewTab = (tab: Tabs.Tab) => {
   // Firefox tabs have a `about:blank` url when status === 'loading'
   if (
     (url === 'about:blank' || url === 'about:newtab') &&
-    tab?.status === 'complete' &&
-    tab?.title === 'New Tab'
+    title === 'New Tab'
   ) {
     return true
   }

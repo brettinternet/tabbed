@@ -122,7 +122,7 @@ export const startListeners = async (
         if (current) {
           return resolve(sessionsManager.current)
         } else if (sessionId) {
-          return resolve(sessionsManager.find(sessionId))
+          return resolve(sessionsManager.get(sessionId))
         } else {
           // TODO: send toast to frontend
         }
@@ -135,7 +135,7 @@ export const startListeners = async (
       if (message.type === MESSAGE_TYPE_SAVE_EXISTING_SESSION) {
         return new Promise((resolve) => {
           const { sessionId } = message.value
-          const session = sessionsManager.find(sessionId)
+          const session = sessionsManager.get(sessionId)
           return resolve(sessionsManager.addSaved(session))
         })
       }
@@ -146,7 +146,7 @@ export const startListeners = async (
     if (message.type === MESSAGE_TYPE_SAVE_WINDOW) {
       const { sessionId, windowId } = message.value
       return new Promise(async (resolve) => {
-        const session = sessionsManager.find(sessionId)
+        const session = sessionsManager.get(sessionId)
         const win = session.findWindow(windowId)
         const newSession = new Session({
           windows: [win],
@@ -163,7 +163,7 @@ export const startListeners = async (
     if (message.type === MESSAGE_TYPE_UPDATE_SESSION) {
       return new Promise(async (resolve) => {
         const { sessionId, title } = message.value
-        const session = sessionsManager.find(sessionId)
+        const session = sessionsManager.get(sessionId)
         session.update({ title })
         await sessionsManager.handleChange()
         resolve(session)
@@ -175,7 +175,7 @@ export const startListeners = async (
     if (message.type === MESSAGE_TYPE_OPEN_SESSION) {
       return new Promise(async (resolve) => {
         const { sessionId } = message.value
-        const session = sessionsManager.find(sessionId)
+        const session = sessionsManager.get(sessionId)
         resolve(await session.open())
       })
     }
@@ -185,7 +185,7 @@ export const startListeners = async (
     if (message.type === MESSAGE_TYPE_OPEN_SESSION_WINDOW) {
       return new Promise(async (resolve) => {
         const { sessionId, windowId, options } = message.value
-        const session = sessionsManager.find(sessionId)
+        const session = sessionsManager.get(sessionId)
         if (!options?.forceOpen && sessionsManager.current.id === session.id) {
           resolve(await focusWindow(windowId))
         } else {
@@ -200,7 +200,7 @@ export const startListeners = async (
     if (message.type === MESSAGE_TYPE_OPEN_SESSION_TAB) {
       return new Promise(async (resolve) => {
         const { sessionId, windowId, tabId, options } = message.value
-        const session = sessionsManager.find(sessionId)
+        const session = sessionsManager.get(sessionId)
         if (!options?.forceOpen && sessionsManager.current.id === session.id) {
           resolve(await focusWindowTab(windowId, tabId))
         } else {
@@ -226,7 +226,7 @@ export const startListeners = async (
       if (message.type === MESSAGE_TYPE_REMOVE_SESSION_WINDOW) {
         return new Promise((resolve) => {
           const { sessionId, windowId } = message.value
-          const session = sessionsManager.find(sessionId)
+          const session = sessionsManager.get(sessionId)
           if (session) {
             resolve(session.removeWindow(windowId))
           }
@@ -239,7 +239,7 @@ export const startListeners = async (
     if (message.type === MESSAGE_TYPE_REMOVE_SESSION_TAB) {
       return new Promise((resolve) => {
         const { sessionId, windowId, tabId } = message.value
-        const session = sessionsManager.find(sessionId)
+        const session = sessionsManager.get(sessionId)
         const win = session.findWindow(windowId)
         resolve(win.removeTab(tabId))
       })
@@ -252,7 +252,7 @@ export const startListeners = async (
     if (message.type === MESSAGE_TYPE_PATCH_WINDOW) {
       return new Promise(async (resolve) => {
         const { sessionId, windowId, options } = message.value
-        const session = sessionsManager.find(sessionId)
+        const session = sessionsManager.get(sessionId)
         if (session.id === sessionsManager.current.id) {
           resolve(await browser.windows.update(windowId, options))
         } else {
@@ -268,7 +268,7 @@ export const startListeners = async (
     if (message.type === MESSAGE_TYPE_PATCH_TAB) {
       return new Promise(async (resolve) => {
         const { sessionId, windowId, tabId, options } = message.value
-        const session = sessionsManager.find(sessionId)
+        const session = sessionsManager.get(sessionId)
         if (session.id === sessionsManager.current.id) {
           await browser.tabs.update(tabId, options)
         } else {
@@ -285,7 +285,7 @@ export const startListeners = async (
     if (message.type === MESSAGE_TYPE_DISCARD_TABS) {
       return new Promise(async (resolve) => {
         const { sessionId, windowId, tabIds } = message.value
-        const session = sessionsManager.find(sessionId)
+        const session = sessionsManager.get(sessionId)
         if (session.id === sessionsManager.current.id) {
           resolve(await browser.tabs.discard(tabIds))
         } else {
@@ -311,7 +311,7 @@ export const startListeners = async (
     if (message.type === MESSAGE_TYPE_MOVE_TABS) {
       return new Promise((resolve) => {
         const { sessionId, windowId, tabIds, index: toIndex } = message.value
-        const session = sessionsManager.find(sessionId)
+        const session = sessionsManager.get(sessionId)
         const win = session.findWindow(windowId)
         const tabIdsArr = Array.isArray(tabIds) ? tabIds : [tabIds]
         const tabIndices = win.tabs.reduce<number[]>(
