@@ -82,11 +82,21 @@ export class Session {
   // }
 
   findWindow(windowId: number) {
-    return this.windows.find((w) => w.id === windowId)
+    const win = this.windows.find((w) => w.id === windowId)
+    if (!win) {
+      throw new AppError(logContext, `Unable to find window by ID ${windowId}`)
+    }
+
+    return win
   }
 
   findWindowIndex(windowId: number) {
-    return this.windows.findIndex((w) => w.id === windowId)
+    const index = this.windows.findIndex((w) => w.id === windowId)
+    if (index === -1) {
+      throw new AppError(logContext, `Unable to find window by ID ${windowId}`)
+    }
+
+    return index
   }
 
   update({ title, windows }: UpdateSessionData) {
@@ -108,10 +118,7 @@ export class Session {
     if (index > -1) {
       this.windows.splice(index, 1)
     } else {
-      new AppError({
-        message: `Unable to find window by ID ${windowId}`,
-        context: logContext,
-      })
+      new AppError(logContext, `Unable to find window by ID ${windowId}`)
     }
   }
 }

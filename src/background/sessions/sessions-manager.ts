@@ -186,61 +186,66 @@ export class SessionsManager {
   /**
    * Look in current, saved, previous
    */
-  find(sessionId: string, status?: SessionStatusType) {
+  get(sessionId: string, status?: SessionStatusType) {
     if (status === SessionStatus.CURRENT) {
       return this.current
     } else {
-      return this.search(sessionId, status)
+      return this.find(sessionId, status)
     }
   }
 
   /**
    * Look only in saved, previous
    */
-  search(
+  find(
     sessionId: string,
     status?: Extract<SessionStatusType, 'previous' | 'saved'>
   ) {
     const sessions = status ? this[status] : this.allSessions
     const session = sessions.find((s) => s.id === sessionId)
     if (!session) {
-      throw Error('session not found')
+      throw new AppError(
+        logContext,
+        `Unable to find session by ID ${sessionId}`
+      )
     }
 
     return session
   }
 
-  update(
-    sessionId: string,
-    params: UpdateSessionData,
-    status?: SessionStatusType
-  ) {
-    const session = this.find(sessionId, status)
-    if (session) {
-      session.update(params)
-      this.handleChange()
-    } else {
-      new AppError({
-        message: `Unable to find session by ID ${sessionId}`,
-        context: logContext,
-      })
-    }
-  }
-
-  delete(
+  findIndex(
     sessionId: string,
     status: Extract<SessionStatusType, 'previous' | 'saved'>
   ) {
     const index = this[status].findIndex((s) => s.id === sessionId)
-    if (index > -1) {
-      this[status].splice(index, 1)
-      this.handleChange()
-    } else {
-      new AppError({
-        message: `Unable to find session by ID ${sessionId}`,
-        context: logContext,
-      })
+
+    if (index === -1) {
+      throw new AppError(
+        logContext,
+        `Unable to find session by ID ${sessionId}`
+      )
     }
+
+    return index
+  }
+
+  async update(
+    sessionId: string,
+    params: UpdateSessionData,
+    status?: SessionStatusType
+  ) {
+    const session = this.get(sessionId, status)
+    session.update(params)
+    await this.handleChange()
+  }
+
+  async delete(
+    sessionId: string,
+    status: Extract<SessionStatusType, 'previous' | 'saved'>
+  ) {
+    const index = this.findIndex(sessionId, status)
+    this[status].splice(index, 1)
+    await this.handleChange()
   }
 
   async download(sessionIds?: string[]) {

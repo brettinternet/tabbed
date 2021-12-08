@@ -1,9 +1,8 @@
-import browser, { sessions, Windows } from 'webextension-polyfill'
+import browser from 'webextension-polyfill'
 
 import { Settings } from 'background/app/settings'
 import { focusWindow, focusWindowTab } from 'background/browser'
 import { reorder } from 'utils/helpers'
-import { AppError } from 'utils/logger'
 import {
   MESSAGE_TYPE_GET_SESSIONS_MANAGER_DATA,
   GetSessionsManagerDataMessage,
@@ -137,9 +136,7 @@ export const startListeners = async (
         return new Promise((resolve) => {
           const { sessionId } = message.value
           const session = sessionsManager.find(sessionId)
-          if (session) {
-            return resolve(sessionsManager.addSaved(session))
-          }
+          return resolve(sessionsManager.addSaved(session))
         })
       }
     }
@@ -150,17 +147,13 @@ export const startListeners = async (
       const { sessionId, windowId } = message.value
       return new Promise(async (resolve) => {
         const session = sessionsManager.find(sessionId)
-        if (session) {
-          const win = session.findWindow(windowId)
-          if (win) {
-            const newSession = new Session({
-              windows: [win],
-              status: SessionStatus.SAVED,
-            })
-            await sessionsManager.addSaved(newSession)
-            resolve(newSession)
-          }
-        }
+        const win = session.findWindow(windowId)
+        const newSession = new Session({
+          windows: [win],
+          status: SessionStatus.SAVED,
+        })
+        await sessionsManager.addSaved(newSession)
+        resolve(newSession)
       })
     }
   })
@@ -168,13 +161,12 @@ export const startListeners = async (
   // TODO: update session windows here on frontend
   browser.runtime.onMessage.addListener((message: UpdateSessionMessage) => {
     if (message.type === MESSAGE_TYPE_UPDATE_SESSION) {
-      return new Promise((resolve) => {
+      return new Promise(async (resolve) => {
         const { sessionId, title } = message.value
         const session = sessionsManager.find(sessionId)
-        if (session) {
-          session.update({ title })
-          resolve(session)
-        }
+        session.update({ title })
+        await sessionsManager.handleChange()
+        resolve(session)
       })
     }
   })
@@ -184,9 +176,7 @@ export const startListeners = async (
       return new Promise(async (resolve) => {
         const { sessionId } = message.value
         const session = sessionsManager.find(sessionId)
-        if (session) {
-          resolve(await session.open())
-        }
+        resolve(await session.open())
       })
     }
   })
@@ -196,18 +186,11 @@ export const startListeners = async (
       return new Promise(async (resolve) => {
         const { sessionId, windowId, options } = message.value
         const session = sessionsManager.find(sessionId)
-        if (session) {
-          if (
-            !options?.forceOpen &&
-            sessionsManager.current.id === session.id
-          ) {
-            resolve(await focusWindow(windowId))
-          } else {
-            const win = session.findWindow(windowId)
-            if (win) {
-              resolve(win.open())
-            }
-          }
+        if (!options?.forceOpen && sessionsManager.current.id === session.id) {
+          resolve(await focusWindow(windowId))
+        } else {
+          const win = session.findWindow(windowId)
+          resolve(win.open())
         }
       })
     }
@@ -218,21 +201,12 @@ export const startListeners = async (
       return new Promise(async (resolve) => {
         const { sessionId, windowId, tabId, options } = message.value
         const session = sessionsManager.find(sessionId)
-        if (session) {
-          if (
-            !options?.forceOpen &&
-            sessionsManager.current.id === session.id
-          ) {
-            resolve(await focusWindowTab(windowId, tabId))
-          } else {
-            const win = session.findWindow(windowId)
-            if (win) {
-              const tab = win.findTab(tabId)
-              if (tab) {
-                resolve(tab.open())
-              }
-            }
-          }
+        if (!options?.forceOpen && sessionsManager.current.id === session.id) {
+          resolve(await focusWindowTab(windowId, tabId))
+        } else {
+          const win = session.findWindow(windowId)
+          const tab = win.findTab(tabId)
+          resolve(tab.open())
         }
       })
     }
@@ -266,12 +240,8 @@ export const startListeners = async (
       return new Promise((resolve) => {
         const { sessionId, windowId, tabId } = message.value
         const session = sessionsManager.find(sessionId)
-        if (session) {
-          const win = session.findWindow(windowId)
-          if (win) {
-            resolve(win.removeTab(tabId))
-          }
-        }
+        const win = session.findWindow(windowId)
+        resolve(win.removeTab(tabId))
       })
     }
   })
@@ -283,15 +253,11 @@ export const startListeners = async (
       return new Promise(async (resolve) => {
         const { sessionId, windowId, options } = message.value
         const session = sessionsManager.find(sessionId)
-        if (session) {
-          if (session.id === sessionsManager.current.id) {
-            resolve(await browser.windows.update(windowId, options))
-          } else {
-            const win = session.findWindow(windowId)
-            if (win) {
-              resolve(win.update(options))
-            }
-          }
+        if (session.id === sessionsManager.current.id) {
+          resolve(await browser.windows.update(windowId, options))
+        } else {
+          const win = session.findWindow(windowId)
+          resolve(win.update(options))
         }
       })
     }
@@ -303,20 +269,14 @@ export const startListeners = async (
       return new Promise(async (resolve) => {
         const { sessionId, windowId, tabId, options } = message.value
         const session = sessionsManager.find(sessionId)
-        if (session) {
-          if (session.id === sessionsManager.current.id) {
-            await browser.tabs.update(tabId, options)
-          } else {
-            const win = session.findWindow(windowId)
-            if (win) {
-              const tab = win.findTab(tabId)
-              if (tab) {
-                resolve(tab.update(options))
-              }
-            }
-          }
-          // send update
+        if (session.id === sessionsManager.current.id) {
+          await browser.tabs.update(tabId, options)
+        } else {
+          const win = session.findWindow(windowId)
+          const tab = win.findTab(tabId)
+          resolve(tab.update(options))
         }
+        // send update
       })
     }
   })
@@ -326,26 +286,20 @@ export const startListeners = async (
       return new Promise(async (resolve) => {
         const { sessionId, windowId, tabIds } = message.value
         const session = sessionsManager.find(sessionId)
-        if (session) {
-          if (session.id === sessionsManager.current.id) {
-            resolve(await browser.tabs.discard(tabIds))
+        if (session.id === sessionsManager.current.id) {
+          resolve(await browser.tabs.discard(tabIds))
+        } else {
+          const win = session.findWindow(windowId)
+          if (Array.isArray(tabIds)) {
+            const tabs = win.tabs.filter((t) => tabIds.includes(t.id))
+            tabs.forEach((t) => {
+              t.discarded = true
+            })
+            resolve(tabs)
           } else {
-            const win = session.findWindow(windowId)
-            if (win) {
-              if (Array.isArray(tabIds)) {
-                const tabs = win.tabs.filter((t) => tabIds.includes(t.id))
-                tabs.forEach((t) => {
-                  t.discarded = true
-                })
-                resolve(tabs)
-              } else {
-                const tab = win.findTab(tabIds)
-                if (tab) {
-                  tab.discarded = true
-                  resolve(tab)
-                }
-              }
-            }
+            const tab = win.findTab(tabIds)
+            tab.discarded = true
+            resolve(tab)
           }
         }
       })
@@ -358,21 +312,17 @@ export const startListeners = async (
       return new Promise((resolve) => {
         const { sessionId, windowId, tabIds, index: toIndex } = message.value
         const session = sessionsManager.find(sessionId)
-        if (session) {
-          const win = session.findWindow(windowId)
-          if (win) {
-            const tabIdsArr = Array.isArray(tabIds) ? tabIds : [tabIds]
-            const tabIndices = win.tabs.reduce<number[]>(
-              (acc, { id }, index) =>
-                tabIdsArr.includes(id) ? acc.concat(index) : acc,
-              []
-            )
-            tabIndices.forEach((fromIndex, i) => {
-              reorder(win.tabs, fromIndex, toIndex + i)
-            })
-            resolve(win.tabs)
-          }
-        }
+        const win = session.findWindow(windowId)
+        const tabIdsArr = Array.isArray(tabIds) ? tabIds : [tabIds]
+        const tabIndices = win.tabs.reduce<number[]>(
+          (acc, { id }, index) =>
+            tabIdsArr.includes(id) ? acc.concat(index) : acc,
+          []
+        )
+        tabIndices.forEach((fromIndex, i) => {
+          reorder(win.tabs, fromIndex, toIndex + i)
+        })
+        resolve(win.tabs)
       })
     }
   })

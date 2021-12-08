@@ -98,11 +98,21 @@ export class SessionWindow {
   }
 
   findTab(tabId: number) {
-    return this.tabs.find((t) => t.id === tabId)
+    const tab = this.tabs.find((t) => t.id === tabId)
+    if (!tab) {
+      throw new AppError(logContext, `Unable to find tab by ID ${tabId}`)
+    }
+
+    return tab
   }
 
   private findTabIndex(tabId: number) {
-    return this.tabs.findIndex((t) => t.id === tabId)
+    const index = this.tabs.findIndex((t) => t.id === tabId)
+    if (index === -1) {
+      throw new AppError(logContext, `Unable to find tab by ID ${tabId}`)
+    }
+
+    return index
   }
 
   // deleteTab(tabId: number) {
@@ -110,10 +120,7 @@ export class SessionWindow {
   //   if (index > -1) {
   //     this.tabs.splice(index, 1)
   //   } else {
-  //     new AppError({
-  //       message: `Unable to find tab by ID ${tabId}`,
-  //       context: logContext,
-  //     })
+  //     new AppError(logContext, `Unable to find tab by ID ${tabId}`)
   //   }
   // }
 
@@ -170,10 +177,7 @@ export class SessionWindow {
     if (index > -1) {
       this.tabs.splice(index, 1)
     } else {
-      new AppError({
-        message: `Unable to find tab by ID ${tabId}`,
-        context: logContext,
-      })
+      new AppError(logContext, `Unable to find tab by ID ${tabId}`)
     }
   }
 
@@ -183,10 +187,7 @@ export class SessionWindow {
   //     const { url, pinned, windowId } = maybeTab
   //     openTab({ url, pinned, windowId, incognito: this.incognito })
   //   } else {
-  //     new AppError({
-  //       message: `Unable to find tab by ID ${tabId}`,
-  //       context: logContext,
-  //     })
+  // new AppError(logContext, `Unable to find tab by ID ${tabId}`)
   //   }
   // }
 }
