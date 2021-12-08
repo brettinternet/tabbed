@@ -8,7 +8,7 @@ import { Label } from 'components/label'
 import { RadioGroup } from 'components/radiogroup'
 import { Toggle } from 'components/toggle'
 import { browserRuntime, browsers } from 'utils/env'
-import { isDefined, parseNum } from 'utils/helpers'
+import { isDefined } from 'utils/helpers'
 import { ExtensionClickActions, Themes } from 'utils/settings'
 
 import { useHandlers } from './handlers'
@@ -91,10 +91,15 @@ export const Settings: React.FC = () => {
             <input
               type="range"
               className="block mr-2"
+              onMouseUp={() => {
+                handleChangeFontSize(fontSize)
+              }}
               onChange={(ev) => {
                 setFontSize(ev.currentTarget.value)
               }}
-              onBlur={handleChangeFontSize}
+              onBlur={() => {
+                handleChangeFontSize(fontSize)
+              }}
               value={fontSize}
               aria-describedby="font-size-description"
               min="10"
@@ -245,7 +250,7 @@ export const Settings: React.FC = () => {
       <H2>Popup</H2>
 
       <div className="space-y-3">
-        <div className="flex space-x-3">
+        <div className="flex space-x-3 items-end">
           <Input
             label="Popup width"
             className="w-16"
@@ -282,6 +287,8 @@ export const Settings: React.FC = () => {
             max="600"
             step="25"
           />
+          {/* Fake since resize occurs on blur */}
+          <Button>Resize</Button>
         </div>
         <Description id="popup-dimension-description">
           Changes popup dimensions. Browsers limit the permissable dimensions of

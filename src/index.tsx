@@ -12,8 +12,6 @@ import './index.css'
 
 if (!isProd) {
   window.browser = browser
-  // @ts-ignore
-  window.test = 'ok'
 }
 
 ReactDOM.render(

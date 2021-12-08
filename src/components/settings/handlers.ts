@@ -73,14 +73,12 @@ export const useHandlers = () => {
     })
   }
 
-  const handleChangeFontSize: React.ChangeEventHandler<HTMLInputElement> =
-    async (ev) => {
-      const fontSizeValue = parseInt(ev.currentTarget.value)
-      console.log('fontSizeValue: ', fontSizeValue)
-      await updateSettings({
-        fontSize: findClosest([10, 12, 14, 16, 18, 20, 22, 24], fontSizeValue),
-      })
-    }
+  const handleChangeFontSize = async (value: string) => {
+    const fontSizeValue = parseInt(value)
+    await updateSettings({
+      fontSize: findClosest([10, 12, 14, 16, 18, 20, 22, 24], fontSizeValue),
+    })
+  }
 
   const handleChangePopupDimension: React.ChangeEventHandler<HTMLInputElement> =
     async (ev) => {
