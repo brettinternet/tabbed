@@ -18,12 +18,14 @@ type InnerTabListProps = {
   windowId: SessionWindowData['id']
   sessionId: SessionData['id']
   tabs: SessionWindowData['tabs']
+  isWindowDragging: boolean
 }
 
 const InnerTabList: React.FC<InnerTabListProps> = ({
   tabs,
   sessionId,
   windowId,
+  // isWindowDragging,
 }) => (
   <>
     {tabs.map((tab, index) => {
@@ -38,7 +40,12 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
               ref={dragProvided.innerRef}
               {...dragProvided.draggableProps}
               {...dragProvided.dragHandleProps}
-              className="mb-2"
+              className={cn(
+                'mb-2'
+                // index != 0 &&
+                //   isWindowDragging &&
+                //   `absolute transition-all duration-200 top-[${index * 2}px]`
+              )}
             >
               <Tab
                 key={id}
@@ -62,6 +69,7 @@ type TabsListProps = {
   windowId: SessionWindowData['id']
   sessionId: SessionData['id']
   className?: ClassNames
+  isDragging: boolean
 }
 
 /**
@@ -86,6 +94,7 @@ export const TabsList: React.FC<TabsListProps> = ({
   windowId,
   window: win,
   className,
+  isDragging,
 }) => (
   <Droppable
     droppableId={`${windowId}`}
@@ -107,11 +116,12 @@ export const TabsList: React.FC<TabsListProps> = ({
         )}
         {...dropProvided.droppableProps}
       >
-        <div ref={dropProvided.innerRef} className="p-2">
+        <div ref={dropProvided.innerRef} className="p-2 relative min-h-full">
           <MemoizedInnerTabList
             tabs={win.tabs}
             sessionId={sessionId}
             windowId={windowId}
+            isWindowDragging={isDragging}
           />
           {dropProvided.placeholder}
         </div>

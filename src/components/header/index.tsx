@@ -29,6 +29,7 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
               variant: 'transparent',
             }}
             iconProps={{ name: 'cog' }}
+            menuItemsClassName="text-base"
             actions={[
               {
                 onClick: () => {

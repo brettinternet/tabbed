@@ -38,6 +38,7 @@ type MenuProps = {
   buttonProps?: ButtonProps
   dropdownOffset?: boolean
   iconProps?: IconProps
+  menuItemsClassName?: ClassNames
 } & (Actions | GroupedActions)
 
 export const Dropdown: React.FC<MenuProps> = (props) => {
@@ -47,6 +48,7 @@ export const Dropdown: React.FC<MenuProps> = (props) => {
     buttonProps: triggerButtonProps,
     dropdownOffset,
     iconProps,
+    menuItemsClassName,
   } = props
   const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null)
   const [container, setContainer] = useState<HTMLDivElement | null>(null)
@@ -110,7 +112,8 @@ export const Dropdown: React.FC<MenuProps> = (props) => {
                     className={cn(
                       'min-w-32 rounded shadow-lg bg-white dark:bg-gray-800',
                       'actionGroups' in props && 'divide-y divide-gray-100',
-                      'ring-1 ring-black ring-opacity-5 focus:outline-none'
+                      'ring-1 ring-black ring-opacity-5 focus:outline-none',
+                      menuItemsClassName
                     )}
                   >
                     {'actionGroups' in props

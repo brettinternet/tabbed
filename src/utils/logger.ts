@@ -18,13 +18,13 @@ export class AppError extends Error {
    * @param {number} context provides additional context information such as
    *                         filename, function name and arguments
    */
-  constructor({ message, context }: { message: string; context: string }) {
+  constructor(context: string, message: string) {
     super(message)
     this.name = 'AppError'
-    this.log(message, context)
+    this.log(context, message)
   }
 
-  log(message: string, context: string) {
+  log(context: string, message: string) {
     log.error(context, message)
   }
 }
