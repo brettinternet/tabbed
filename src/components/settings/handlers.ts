@@ -6,8 +6,7 @@ import { browserRuntime, browsers } from 'utils/env'
 import {
   SettingsData,
   ExtensionClickActions,
-  defaultSettings,
-  ExtensionClickActionType,
+  defaultSettings, // ExtensionClickActionType,
   ThemeType,
 } from 'utils/settings'
 

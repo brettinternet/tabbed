@@ -18,6 +18,7 @@ const logContext = 'components/window/handlers'
 export const useHandlers = () => {
   const tryToastError = useTryToastError(logContext)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleOpenWindow = useCallback(
     tryToastError(
       createMessageAction<OpenSessionWindowsMessage>(
@@ -27,6 +28,7 @@ export const useHandlers = () => {
     [tryToastError]
   )
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleSaveWindow = useCallback(
     tryToastError(
       createMessageAction<SaveWindowsMessage>(MESSAGE_TYPE_SAVE_WINDOWS)
@@ -34,6 +36,7 @@ export const useHandlers = () => {
     [tryToastError]
   )
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleRemoveWindow = useCallback(
     tryToastError(
       createMessageAction<RemoveSessionWindowsMessage>(
@@ -43,6 +46,7 @@ export const useHandlers = () => {
     [tryToastError]
   )
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleUpdateWindow = useCallback(
     tryToastError(
       createMessageAction<PatchWindowMessage>(MESSAGE_TYPE_PATCH_WINDOW)

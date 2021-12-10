@@ -21,6 +21,7 @@ const logContext = 'components/app/handlers'
 export const useHandlers = (setSettings: SetSettings) => {
   const tryToastError = useTryToastError(logContext)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const getSettings = useCallback(
     tryToastError(
       createMessageAction<GetSettingsMessage, GetSettingsResponse>(

@@ -3,7 +3,6 @@ import cn, { Argument as ClassNames } from 'classnames'
 import { ButtonProps } from 'components/button'
 import { Dropdown } from 'components/dropdown'
 import { Icon } from 'components/icon'
-import { useToasts } from 'components/toast/store'
 import { SessionWindowData } from 'utils/sessions'
 
 import { useHandlers } from './handlers'
@@ -65,7 +64,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
 }) => {
   const {
     handleOpenWindow,
-    handleSaveWindow,
+    // handleSaveWindow,
     handleRemoveWindow,
     handleUpdateWindow,
   } = useHandlers()

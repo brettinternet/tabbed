@@ -92,6 +92,7 @@ export const useSettings = (): [
   const tryToastError = useTryToastError()
   const [settings, setSettings] = useAtom(settingsAtom)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const updateSettings = useCallback(
     tryToastError(async (values: Partial<SettingsData>) => {
       const settings = await saveSettings(values)

@@ -17,10 +17,9 @@ import {
   MESSAGE_TYPE_DOWNLOAD_SESSIONS,
   MESSAGE_TYPE_QUERY_SESSION,
   MoveTabsMessage,
-  DownloadSessionsMessage,
-  MESSAGE_TYPE_FIND_DUPLICATE_SESSION_TABS,
-  FindDuplicateSessionTabsMessage,
-  FindDuplicateSessionTabsResponse,
+  DownloadSessionsMessage, // MESSAGE_TYPE_FIND_DUPLICATE_SESSION_TABS,
+  // FindDuplicateSessionTabsMessage,
+  // FindDuplicateSessionTabsResponse,
   QuerySessionMessage,
   QuerySessionResponse,
   PushSessionManagerDataMessage,
@@ -49,6 +48,7 @@ export const useListeners = (
 export const useHandlers = () => {
   const tryToastError = useTryToastError(logContext)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const getSessionsManagerData = useCallback(
     tryToastError(
       createMessageAction<
@@ -59,6 +59,7 @@ export const useHandlers = () => {
     [tryToastError]
   )
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const querySession = useCallback(
     tryToastError(
       createMessageAction<QuerySessionMessage, QuerySessionResponse>(
@@ -68,6 +69,7 @@ export const useHandlers = () => {
     [tryToastError]
   )
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const saveExistingSession = useCallback(
     tryToastError(
       createMessageAction<SaveExistingSessionMessage>(
@@ -77,6 +79,7 @@ export const useHandlers = () => {
     [tryToastError]
   )
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const openSession = useCallback(
     tryToastError(
       createMessageAction<OpenSessionsMessage>(MESSAGE_TYPE_OPEN_SESSIONS)
@@ -84,6 +87,7 @@ export const useHandlers = () => {
     [tryToastError]
   )
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const deleteSession = useCallback(
     tryToastError(
       createMessageAction<DeleteSessionsMessage>(MESSAGE_TYPE_DELETE_SESSIONS)
@@ -91,6 +95,7 @@ export const useHandlers = () => {
     [tryToastError]
   )
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const renameSession = useCallback(
     tryToastError(
       createMessageAction<UpdateSessionMessage>(MESSAGE_TYPE_UPDATE_SESSION)
@@ -98,11 +103,13 @@ export const useHandlers = () => {
     [tryToastError]
   )
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const moveTabs = useCallback(
     tryToastError(createMessageAction<MoveTabsMessage>(MESSAGE_TYPE_MOVE_TABS)),
     [tryToastError]
   )
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const downloadSessions = useCallback(
     tryToastError(
       createMessageAction<DownloadSessionsMessage>(

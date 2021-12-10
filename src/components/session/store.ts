@@ -110,7 +110,7 @@ export const useSessions = () => {
     }
 
     void fetch()
-  }, [])
+  }, [getSessionsManagerData])
 
   const onDragEnd = useCallback((result: DropResult) => {
     const { source, destination } = result

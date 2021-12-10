@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 const mediaQueries = [
@@ -20,13 +20,13 @@ const mediaQueryLists = mediaQueries.map((q) => window.matchMedia(q)).reverse()
  * Define each value in mobile-first fashion to match `mediaQueries` array
  */
 export const useMedia = <T>(values: T[]) => {
-  const getValue = (): T => {
+  const getValue = useCallback((): T => {
     const index = mediaQueryLists.findIndex((mql) => mql.matches)
     // index of reversed must be inverted
     return (
       values[mediaQueryLists.length - index - 1] || values[values.length - 1]
     )
-  }
+  }, [values])
 
   const [value, setValue] = useState<T>(getValue)
 
@@ -41,7 +41,7 @@ export const useMedia = <T>(values: T[]) => {
       mediaQueryLists.forEach((mql) =>
         mql.removeEventListener('change', handler)
       )
-  }, [])
+  }, [getValue])
 
   return value
 }

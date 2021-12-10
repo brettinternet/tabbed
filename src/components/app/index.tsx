@@ -34,7 +34,7 @@ export const App = () => {
     }
 
     void fetchSettings()
-  }, [setSettings, addToast])
+  }, [setSettings, addToast, getSettings])
 
   if (!isLoading) {
     return (

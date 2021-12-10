@@ -42,8 +42,9 @@ export const useModal = () => {
         [key]: value,
       }))
     },
-    []
+    [setModals]
   )
+
   const toggler = useCallback(
     (key: ModalType) => () => {
       setModals((current) => ({
@@ -51,7 +52,7 @@ export const useModal = () => {
         [key]: !current[key],
       }))
     },
-    []
+    [setModals]
   )
 
   return {

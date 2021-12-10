@@ -18,6 +18,7 @@ const logContext = 'components/tab/handlers'
 export const useHandlers = () => {
   const tryToastError = useTryToastError(logContext)
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleOpenTab = useCallback(
     tryToastError(
       createMessageAction<OpenSessionTabsMessage>(
@@ -26,6 +27,8 @@ export const useHandlers = () => {
     ),
     [tryToastError]
   )
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleRemoveTab = useCallback(
     tryToastError(
       createMessageAction<RemoveSessionTabsMessage>(
@@ -34,10 +37,14 @@ export const useHandlers = () => {
     ),
     [tryToastError]
   )
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleUpdateTab = useCallback(
     tryToastError(createMessageAction<PatchTabMessage>(MESSAGE_TYPE_PATCH_TAB)),
     [tryToastError]
   )
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleDiscardTab = useCallback(
     tryToastError(
       createMessageAction<DiscardTabsMessage>(MESSAGE_TYPE_DISCARD_TABS)

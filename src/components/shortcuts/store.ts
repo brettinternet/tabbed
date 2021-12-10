@@ -168,5 +168,5 @@ export const useShortcuts = (enabled: boolean) => {
     hotkeys.deleteScope(ShortcutScopes[enabled ? 'DISABLED' : 'ENABLED'])
 
     log.debug(logContext, `hotkeys scope: '${hotkeys.getScope()}'`)
-  }, [enabled])
+  }, [enabled, modal, updateModal])
 }

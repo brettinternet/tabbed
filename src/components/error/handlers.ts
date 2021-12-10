@@ -15,7 +15,7 @@ const useToastError = (logContext?: string) => {
         }
       }
     },
-    [addToast]
+    [addToast, logContext]
   )
 }
 
@@ -42,5 +42,6 @@ const useTryCatch = <E = Error>(onError: (err: E) => void = log.error) => {
 
 export const useTryToastError = (logContext?: string) => {
   const toastError = useToastError(logContext)
-  return useTryCatch(toastError)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useCallback(useTryCatch(toastError), [toastError])
 }
