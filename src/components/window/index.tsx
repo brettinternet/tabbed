@@ -63,19 +63,18 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
   window: { id: windowId, focused, title, state, tabs, activeSession },
   className,
 }) => {
-  const { add: addToast } = useToasts()
   const {
     handleOpenWindow,
     handleSaveWindow,
     handleRemoveWindow,
     handleUpdateWindow,
-  } = useHandlers(addToast)
+  } = useHandlers()
 
   const handleOpen: React.MouseEventHandler<
     HTMLDivElement | HTMLButtonElement
   > = () => {
     if (!focused) {
-      handleOpenWindow(sessionId, windowId)
+      handleOpenWindow({ sessionId, windowIds: [windowId] })
     }
   }
 
@@ -126,7 +125,11 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
                 ? getStateActions(
                     state,
                     (state: SessionWindowData['state']) => {
-                      handleUpdateWindow(sessionId, windowId, { state })
+                      handleUpdateWindow({
+                        sessionId,
+                        windowId,
+                        options: { state },
+                      })
                     }
                   )
                 : []),
@@ -134,7 +137,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
             [
               {
                 onClick: () => {
-                  handleRemoveWindow(sessionId, windowId)
+                  handleRemoveWindow({ sessionId, windowIds: [windowId] })
                 },
                 text: activeSession ? 'Close' : 'Delete',
                 iconProps: { name: activeSession ? 'x' : 'bin' },

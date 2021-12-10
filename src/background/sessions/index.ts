@@ -7,41 +7,41 @@ import {
   MESSAGE_TYPE_GET_SESSIONS_MANAGER_DATA,
   GetSessionsManagerDataMessage,
   MESSAGE_TYPE_SAVE_EXISTING_SESSION,
-  MESSAGE_TYPE_SAVE_WINDOW,
-  MESSAGE_TYPE_OPEN_SESSION,
-  MESSAGE_TYPE_OPEN_SESSION_WINDOW,
-  MESSAGE_TYPE_OPEN_SESSION_TAB,
-  MESSAGE_TYPE_DELETE_SESSION,
-  MESSAGE_TYPE_REMOVE_SESSION_WINDOW,
-  MESSAGE_TYPE_REMOVE_SESSION_TAB,
-  MESSAGE_TYPE_UPDATE_SESSION,
-  MESSAGE_TYPE_PATCH_TAB,
-  MESSAGE_TYPE_PATCH_WINDOW,
-  MESSAGE_TYPE_DISCARD_TABS,
-  MESSAGE_TYPE_MOVE_TABS,
-  MESSAGE_TYPE_DOWNLOAD_SESSIONS,
-  MESSAGE_TYPE_FIND_DUPLICATE_SESSION_TABS,
-  MESSAGE_TYPE_IMPORT_SESSIONS_FROM_TEXT,
-  MESSAGE_TYPE_QUERY_SESSION,
-} from 'utils/messages'
-import type {
-  QuerySessionMessage,
   SaveExistingSessionMessage,
-  SaveWindowMessage,
-  OpenSessionMessage,
-  OpenSessionWindowMessage,
-  OpenSessionTabMessage,
-  DeleteSessionMessage,
-  RemoveSessionWindowMessage,
-  RemoveSessionTabMessage,
+  MESSAGE_TYPE_SAVE_WINDOWS,
+  SaveWindowsMessage,
+  MESSAGE_TYPE_OPEN_SESSIONS,
+  OpenSessionsMessage,
+  MESSAGE_TYPE_OPEN_SESSION_WINDOWS,
+  OpenSessionWindowsMessage,
+  MESSAGE_TYPE_OPEN_SESSION_TABS,
+  OpenSessionTabsMessage,
+  MESSAGE_TYPE_DELETE_SESSIONS,
+  DeleteSessionsMessage,
+  MESSAGE_TYPE_REMOVE_SESSION_WINDOWS,
+  RemoveSessionWindowsMessage,
+  MESSAGE_TYPE_REMOVE_SESSION_TABS,
+  RemoveSessionTabsMessage,
+  MESSAGE_TYPE_UPDATE_SESSION,
   UpdateSessionMessage,
+  MESSAGE_TYPE_PATCH_WINDOW,
   PatchWindowMessage,
+  MESSAGE_TYPE_PATCH_TAB,
   PatchTabMessage,
+  MESSAGE_TYPE_DISCARD_TABS,
   DiscardTabsMessage,
-  MoveTabsMessage,
+  MESSAGE_TYPE_MOVE_TABS,
+  MoveTabsMessage, //
+  // MESSAGE_TYPE_MOVE_WINDOWS,
+  // MoveWindowsMessage,
+  MESSAGE_TYPE_DOWNLOAD_SESSIONS,
   DownloadSessionsMessage,
+  MESSAGE_TYPE_FIND_DUPLICATE_SESSION_TABS,
   FindDuplicateSessionTabsMessage,
+  MESSAGE_TYPE_IMPORT_SESSIONS_FROM_TEXT,
   ImportSessionsFromTextMessage,
+  MESSAGE_TYPE_QUERY_SESSION,
+  QuerySessionMessage,
 } from 'utils/messages'
 import { SessionDataExport, SessionStatus } from 'utils/sessions'
 import { SettingsData } from 'utils/settings'
@@ -49,6 +49,9 @@ import { SettingsData } from 'utils/settings'
 import { Session } from './session'
 import { SessionsManager } from './sessions-manager'
 
+/**
+ * setup listener to handle closed windows
+ */
 export const configureClosedWindowListener = (
   { saveIncognito, saveClosedWindows }: SettingsData,
   sessionsManager: SessionsManager
@@ -142,14 +145,16 @@ export const startListeners = async (
     }
   )
 
-  browser.runtime.onMessage.addListener((message: SaveWindowMessage) => {
-    if (message.type === MESSAGE_TYPE_SAVE_WINDOW) {
-      const { sessionId, windowId } = message.value
+  browser.runtime.onMessage.addListener((message: SaveWindowsMessage) => {
+    if (message.type === MESSAGE_TYPE_SAVE_WINDOWS) {
+      const { sessionId, windowIds } = message.value
       return new Promise(async (resolve) => {
         const session = sessionsManager.get(sessionId)
-        const win = session.findWindow(windowId)
+        const windows = session.windows.filter(({ id }) =>
+          windowIds.includes(id)
+        )
         const newSession = new Session({
-          windows: [win],
+          windows,
           status: SessionStatus.SAVED,
         })
         await sessionsManager.addSaved(newSession)
@@ -171,77 +176,108 @@ export const startListeners = async (
     }
   })
 
-  browser.runtime.onMessage.addListener((message: OpenSessionMessage) => {
-    if (message.type === MESSAGE_TYPE_OPEN_SESSION) {
+  browser.runtime.onMessage.addListener((message: OpenSessionsMessage) => {
+    if (message.type === MESSAGE_TYPE_OPEN_SESSIONS) {
       return new Promise(async (resolve) => {
-        const { sessionId } = message.value
-        const session = sessionsManager.get(sessionId)
-        resolve(await session.open())
-      })
-    }
-  })
-
-  browser.runtime.onMessage.addListener((message: OpenSessionWindowMessage) => {
-    if (message.type === MESSAGE_TYPE_OPEN_SESSION_WINDOW) {
-      return new Promise(async (resolve) => {
-        const { sessionId, windowId, options } = message.value
-        const session = sessionsManager.get(sessionId)
-        if (!options?.forceOpen && sessionsManager.current.id === session.id) {
-          resolve(await focusWindow(windowId))
-        } else {
-          const win = session.findWindow(windowId)
-          resolve(win.open())
-        }
-      })
-    }
-  })
-
-  browser.runtime.onMessage.addListener((message: OpenSessionTabMessage) => {
-    if (message.type === MESSAGE_TYPE_OPEN_SESSION_TAB) {
-      return new Promise(async (resolve) => {
-        const { sessionId, windowId, tabId, options } = message.value
-        const session = sessionsManager.get(sessionId)
-        if (!options?.forceOpen && sessionsManager.current.id === session.id) {
-          resolve(await focusWindowTab(windowId, tabId))
-        } else {
-          const win = session.findWindow(windowId)
-          const tab = win.findTab(tabId)
-          resolve(tab.open())
-        }
-      })
-    }
-  })
-
-  browser.runtime.onMessage.addListener((message: DeleteSessionMessage) => {
-    if (message.type === MESSAGE_TYPE_DELETE_SESSION) {
-      return new Promise((resolve) => {
-        const { sessionId, status } = message.value
-        resolve(sessionsManager.delete(sessionId, status))
+        const tasks = message.value.sessionIds.map(async (sessionId) => {
+          const session = sessionsManager.get(sessionId)
+          return await session.open()
+        })
+        resolve(await Promise.all(tasks))
       })
     }
   })
 
   browser.runtime.onMessage.addListener(
-    (message: RemoveSessionWindowMessage) => {
-      if (message.type === MESSAGE_TYPE_REMOVE_SESSION_WINDOW) {
-        return new Promise((resolve) => {
-          const { sessionId, windowId } = message.value
+    (message: OpenSessionWindowsMessage) => {
+      if (message.type === MESSAGE_TYPE_OPEN_SESSION_WINDOWS) {
+        return new Promise(async (resolve) => {
+          const { sessionId, windowIds, options } = message.value
           const session = sessionsManager.get(sessionId)
-          if (session) {
-            resolve(session.removeWindow(windowId))
-          }
+          const tasks = windowIds.map(async (windowId) => {
+            if (
+              !options?.forceOpen &&
+              sessionsManager.current.id === session.id
+            ) {
+              return await focusWindow(windowId)
+            } else {
+              const win = session.findWindow(windowId)
+              return await win.open()
+            }
+          })
+          resolve(await Promise.all(tasks))
         })
       }
     }
   )
 
-  browser.runtime.onMessage.addListener((message: RemoveSessionTabMessage) => {
-    if (message.type === MESSAGE_TYPE_REMOVE_SESSION_TAB) {
-      return new Promise((resolve) => {
-        const { sessionId, windowId, tabId } = message.value
+  browser.runtime.onMessage.addListener((message: OpenSessionTabsMessage) => {
+    if (message.type === MESSAGE_TYPE_OPEN_SESSION_TABS) {
+      return new Promise(async (resolve) => {
+        const { sessionId, tabs, options } = message.value
         const session = sessionsManager.get(sessionId)
-        const win = session.findWindow(windowId)
-        resolve(win.removeTab(tabId))
+        const tasks: Promise<void>[] = []
+        tabs.forEach(({ windowId, tabIds }) => {
+          if (
+            !options?.forceOpen &&
+            sessionsManager.current.id === session.id
+          ) {
+            tabIds.forEach((tabId) => {
+              tasks.push(focusWindowTab(windowId, tabId))
+            })
+          } else {
+            const win = session.findWindow(windowId)
+            tabIds.forEach((tabId) => {
+              const tab = win.findTab(tabId)
+              tasks.push(tab.open())
+            })
+          }
+        })
+        resolve(await Promise.all(tasks))
+      })
+    }
+  })
+
+  browser.runtime.onMessage.addListener((message: DeleteSessionsMessage) => {
+    if (message.type === MESSAGE_TYPE_DELETE_SESSIONS) {
+      return new Promise(async (resolve) => {
+        const tasks = message.value.map(async ({ sessionId, status }) =>
+          sessionsManager.delete(sessionId, status)
+        )
+        resolve(await Promise.all(tasks))
+      })
+    }
+  })
+
+  browser.runtime.onMessage.addListener(
+    (message: RemoveSessionWindowsMessage) => {
+      if (message.type === MESSAGE_TYPE_REMOVE_SESSION_WINDOWS) {
+        return new Promise(async (resolve) => {
+          const { sessionId, windowIds } = message.value
+          const session = sessionsManager.get(sessionId)
+          // todo save after
+          const tasks = windowIds.map(async (windowId) =>
+            session.removeWindow(windowId)
+          )
+          resolve(await Promise.all(tasks))
+        })
+      }
+    }
+  )
+
+  browser.runtime.onMessage.addListener((message: RemoveSessionTabsMessage) => {
+    if (message.type === MESSAGE_TYPE_REMOVE_SESSION_TABS) {
+      return new Promise(async (resolve) => {
+        const { sessionId, tabs } = message.value
+        const session = sessionsManager.get(sessionId)
+        const tasks: Promise<void>[] = []
+        tabs.forEach(({ windowId, tabIds }) => {
+          const win = session.findWindow(windowId)
+          tabIds.forEach((tabId) => {
+            tasks.push(win.removeTab(tabId))
+          })
+        })
+        resolve(await Promise.all(tasks))
       })
     }
   })

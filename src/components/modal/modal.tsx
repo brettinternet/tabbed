@@ -94,7 +94,7 @@ export const Modal: React.FC<ModalProps> = ({
             </div>
             <div
               className={cn(
-                'px-6 pb-6 pt-3 overflow-y-auto scroll',
+                'p-6 overflow-y-auto scroll',
                 variant === Variant.CARD ? 'min-h-11' : 'h-modal-drawer-body'
               )}
             >

@@ -1,76 +1,48 @@
 import { useCallback } from 'react'
 
-import { useErrorHandler } from 'components/error/handlers'
-import { ToastOptions } from 'components/toast/store'
-import { OpenTabOptions, PatchTabOptions } from 'utils/messages'
-
-import { openTab, removeTab, patchTab, discardTabs } from './api'
+import { useTryToastError } from 'components/error/handlers'
+import {
+  createMessageAction,
+  MESSAGE_TYPE_OPEN_SESSION_TABS,
+  OpenSessionTabsMessage,
+  MESSAGE_TYPE_REMOVE_SESSION_TABS,
+  RemoveSessionTabsMessage,
+  PatchTabMessage,
+  MESSAGE_TYPE_PATCH_TAB,
+  DiscardTabsMessage,
+  MESSAGE_TYPE_DISCARD_TABS,
+} from 'utils/messages'
 
 const logContext = 'components/tab/handlers'
 
-export const useHandlers = (addToast: (toastOptions: ToastOptions) => void) => {
-  const handleError = useErrorHandler(addToast)
+export const useHandlers = () => {
+  const tryToastError = useTryToastError(logContext)
 
   const handleOpenTab = useCallback(
-    async (options: {
-      sessionId: string
-      windowId: number
-      tabId: number
-      options?: OpenTabOptions
-    }) => {
-      try {
-        await openTab(options)
-      } catch (err) {
-        handleError(err)
-      }
-    },
-    [handleError]
+    tryToastError(
+      createMessageAction<OpenSessionTabsMessage>(
+        MESSAGE_TYPE_OPEN_SESSION_TABS
+      )
+    ),
+    [tryToastError]
   )
-
   const handleRemoveTab = useCallback(
-    async (options: { sessionId: string; windowId: number; tabId: number }) => {
-      try {
-        await removeTab(options)
-      } catch (err) {
-        handleError(err)
-      }
-    },
-    [handleError]
+    tryToastError(
+      createMessageAction<RemoveSessionTabsMessage>(
+        MESSAGE_TYPE_REMOVE_SESSION_TABS
+      )
+    ),
+    [tryToastError]
   )
-
   const handleUpdateTab = useCallback(
-    async (options: {
-      sessionId: string
-      windowId: number
-      tabId: number
-      options: PatchTabOptions
-    }) => {
-      try {
-        await patchTab(options)
-      } catch (err) {
-        handleError(err)
-      }
-    },
-    [handleError]
+    tryToastError(createMessageAction<PatchTabMessage>(MESSAGE_TYPE_PATCH_TAB)),
+    [tryToastError]
   )
-
   const handleDiscardTab = useCallback(
-    async ({
-      sessionId,
-      windowId,
-      tabId,
-    }: {
-      sessionId: string
-      windowId: number
-      tabId: number
-    }) => {
-      try {
-        await discardTabs({ sessionId, windowId, tabIds: tabId })
-      } catch (err) {
-        handleError(err)
-      }
-    },
-    [handleError]
+    tryToastError(
+      createMessageAction<DiscardTabsMessage>(MESSAGE_TYPE_DISCARD_TABS)
+    ),
+    [tryToastError]
   )
 
   return {

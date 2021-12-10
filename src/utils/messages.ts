@@ -1,3 +1,4 @@
+import browser from 'webextension-polyfill'
 import { Tabs, Windows } from 'webextension-polyfill'
 
 import type { ToastOptions } from 'components/toast/store'
@@ -8,6 +9,46 @@ import {
   SessionStatusType,
 } from 'utils/sessions'
 import type { SettingsData } from 'utils/settings'
+
+type MaybeValue<T> = T extends { value: unknown } ? [T['value']] : [undefined?]
+
+/**
+ * @note because value is not always required, but we want it to be when contained in T
+ * something like this doesn't seem to work, so I had to use `...args`
+ * T extends { value: unknown } ? T['value'] : undefined?
+ */
+export const createMessageAction =
+  <T extends { type: string; value?: unknown }, R = void>(
+    type: T['type'],
+    parse?: boolean
+  ) =>
+  async (...[value]: MaybeValue<T>): Promise<R> => {
+    const maybeResponse = await browser.runtime.sendMessage({
+      type,
+      value,
+    })
+    return parse && maybeResponse
+      ? JSON.parse(maybeResponse as unknown as string)
+      : maybeResponse
+  }
+
+export const createMessageListener = <
+  T extends { value: unknown | undefined; type: string },
+  C extends (value: T['value']) => void = (
+    value: T['value']
+  ) => void | Promise<void>
+>(
+  type: T['type'],
+  handler: C,
+  parse?: boolean
+) => {
+  browser.runtime.onMessage.addListener((message: T) => {
+    if (message.type === type) {
+      const { value } = message
+      handler(parse && value ? JSON.parse(value as string) : value)
+    }
+  })
+}
 
 type MessageWithValue<T, U = undefined> = {
   type: T
@@ -55,9 +96,9 @@ export type GetSessionListsResponse = SessionsManagerData
 
 export const MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA =
   'push_sessions_manager_data'
-export type PushSessionManagerDataMessage = MessageWithValue<
+export type PushSessionManagerDataMessage<T = string> = MessageWithValue<
   typeof MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA,
-  string // stringified `SessionsManagerData`
+  T // stringified `SessionsManagerData`
 >
 
 export const MESSAGE_TYPE_GET_ALL_SESSIONS = 'get_all_sessions'
@@ -85,7 +126,10 @@ export const MESSAGE_TYPE_UPDATE_SELECTED_SESSION_ID =
   'update_selected_session_id'
 export type UpdateSelectedSessionIdMessage = MessageWithValue<
   typeof MESSAGE_TYPE_UPDATE_SELECTED_SESSION_ID,
-  string
+  {
+    sessionId: string
+    status: Exclude<SessionStatusType, 'current'>
+  }
 >
 
 // save
@@ -95,62 +139,61 @@ export type SaveExistingSessionMessage = MessageWithValue<
   { sessionId: string }
 >
 
-export const MESSAGE_TYPE_SAVE_WINDOW = 'save_window'
-export type SaveWindowMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_SAVE_WINDOW,
-  { sessionId: string; windowId: number }
+export const MESSAGE_TYPE_SAVE_WINDOWS = 'save_windows'
+export type SaveWindowsMessage = MessageWithValue<
+  typeof MESSAGE_TYPE_SAVE_WINDOWS,
+  { sessionId: string; windowIds: number[] }
 >
 
 // open
-export const MESSAGE_TYPE_OPEN_SESSION = 'open_session'
-export type OpenSessionMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_OPEN_SESSION,
-  { sessionId: string }
+export const MESSAGE_TYPE_OPEN_SESSIONS = 'open_sessions'
+export type OpenSessionsMessage = MessageWithValue<
+  typeof MESSAGE_TYPE_OPEN_SESSIONS,
+  { sessionIds: string[] }
 >
 
 export type OpenWindowOptions = {
   forceOpen?: boolean
 }
-export const MESSAGE_TYPE_OPEN_SESSION_WINDOW = 'open_session_window'
-export type OpenSessionWindowMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_OPEN_SESSION_WINDOW,
-  { sessionId: string; windowId: number; options?: OpenWindowOptions }
+export const MESSAGE_TYPE_OPEN_SESSION_WINDOWS = 'open_session_windows'
+export type OpenSessionWindowsMessage = MessageWithValue<
+  typeof MESSAGE_TYPE_OPEN_SESSION_WINDOWS,
+  { sessionId: string; windowIds: number[]; options?: OpenWindowOptions }
 >
 
 export type OpenTabOptions = {
   forceOpen?: boolean
 }
-export const MESSAGE_TYPE_OPEN_SESSION_TAB = 'open_session_tab'
-export type OpenSessionTabMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_OPEN_SESSION_TAB,
+export const MESSAGE_TYPE_OPEN_SESSION_TABS = 'open_session_tabs'
+export type OpenSessionTabsMessage = MessageWithValue<
+  typeof MESSAGE_TYPE_OPEN_SESSION_TABS,
   {
     sessionId: string
-    windowId: number
-    tabId: number
+    tabs: { windowId: number; tabIds: number[] }[]
     options?: OpenTabOptions
   }
 >
 
 // remove
-export const MESSAGE_TYPE_DELETE_SESSION = 'delete_session'
-export type DeleteSessionMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_DELETE_SESSION,
+export const MESSAGE_TYPE_DELETE_SESSIONS = 'delete_sessions'
+export type DeleteSessionsMessage = MessageWithValue<
+  typeof MESSAGE_TYPE_DELETE_SESSIONS,
   {
     sessionId: string
     status: Exclude<SessionStatusType, 'current'>
-  }
+  }[]
 >
 
-export const MESSAGE_TYPE_REMOVE_SESSION_WINDOW = 'remove_session_window'
-export type RemoveSessionWindowMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_REMOVE_SESSION_WINDOW,
-  { sessionId: string; windowId: number }
+export const MESSAGE_TYPE_REMOVE_SESSION_WINDOWS = 'remove_session_windows'
+export type RemoveSessionWindowsMessage = MessageWithValue<
+  typeof MESSAGE_TYPE_REMOVE_SESSION_WINDOWS,
+  { sessionId: string; windowIds: number[] }
 >
 
-export const MESSAGE_TYPE_REMOVE_SESSION_TAB = 'remove_session_tab'
-export type RemoveSessionTabMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_REMOVE_SESSION_TAB,
-  { sessionId: string; windowId: number; tabId: number }
+export const MESSAGE_TYPE_REMOVE_SESSION_TABS = 'remove_session_tabs'
+export type RemoveSessionTabsMessage = MessageWithValue<
+  typeof MESSAGE_TYPE_REMOVE_SESSION_TABS,
+  { sessionId: string; tabs: { windowId: number; tabIds: number[] }[] }
 >
 
 // update

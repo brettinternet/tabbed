@@ -4,7 +4,7 @@ import { DraggableLocation, DropResult } from 'react-beautiful-dnd'
 import { parseNum, reorder, spliceSeparate } from 'utils/helpers'
 import { SessionsManagerData, SessionWindowData } from 'utils/sessions'
 
-import { getSessionsManagerData } from './api'
+import { useHandlers } from './handlers'
 
 const shouldPin = (
   target: SessionWindowData['tabs'][number],
@@ -91,8 +91,9 @@ export const DroppableType = {
   SESSION: 'session',
 } as const
 
-export const useWindowsDrag = () => {
+export const useSessions = () => {
   const [sessionsManager, setSessionsManager] = useState<SessionsManagerData>()
+  const { getSessionsManagerData } = useHandlers()
 
   useEffect(() => {
     const fetch = async () => {

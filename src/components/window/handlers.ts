@@ -1,67 +1,53 @@
 import { useCallback } from 'react'
 
-import { useErrorHandler } from 'components/error/handlers'
-import { ToastOptions } from 'components/toast/store'
-import { log } from 'utils/logger'
-import { OpenWindowOptions, PatchWindowOptions } from 'utils/messages'
-
-import { saveWindow, openWindow, patchWindow, removeWindow } from './api'
+import { useTryToastError } from 'components/error/handlers'
+import {
+  createMessageAction,
+  MESSAGE_TYPE_OPEN_SESSION_WINDOWS,
+  OpenSessionWindowsMessage,
+  MESSAGE_TYPE_REMOVE_SESSION_WINDOWS,
+  RemoveSessionWindowsMessage,
+  MESSAGE_TYPE_PATCH_WINDOW,
+  PatchWindowMessage,
+  MESSAGE_TYPE_SAVE_WINDOWS,
+  SaveWindowsMessage,
+} from 'utils/messages'
 
 const logContext = 'components/window/handlers'
 
-export const useHandlers = (addToast: (toastOptions: ToastOptions) => void) => {
-  const handleError = useErrorHandler(addToast)
+export const useHandlers = () => {
+  const tryToastError = useTryToastError(logContext)
 
   const handleOpenWindow = useCallback(
-    async (
-      sessionId: string,
-      windowId: number,
-      options?: OpenWindowOptions
-    ) => {
-      try {
-        await openWindow(sessionId, windowId, options)
-      } catch (err) {
-        handleError(err)
-      }
-    },
-    [handleError]
+    tryToastError(
+      createMessageAction<OpenSessionWindowsMessage>(
+        MESSAGE_TYPE_OPEN_SESSION_WINDOWS
+      )
+    ),
+    [tryToastError]
   )
 
   const handleSaveWindow = useCallback(
-    async (sessionId: string, windowId: number) => {
-      try {
-        await saveWindow(sessionId, windowId)
-      } catch (err) {
-        handleError(err)
-      }
-    },
-    [handleError]
+    tryToastError(
+      createMessageAction<SaveWindowsMessage>(MESSAGE_TYPE_SAVE_WINDOWS)
+    ),
+    [tryToastError]
   )
 
   const handleRemoveWindow = useCallback(
-    async (sessionId: string, windowId: number) => {
-      try {
-        await removeWindow(sessionId, windowId)
-      } catch (err) {
-        handleError(err)
-      }
-    },
-    [handleError]
+    tryToastError(
+      createMessageAction<RemoveSessionWindowsMessage>(
+        MESSAGE_TYPE_REMOVE_SESSION_WINDOWS
+      )
+    ),
+    [tryToastError]
   )
 
   const handleUpdateWindow = useCallback(
-    async (
-      sessionId: string,
-      windowId: number,
-      options: PatchWindowOptions
-    ) => {
-      try {
-        await patchWindow(sessionId, windowId, options)
-      } catch (err) {
-        handleError(err)
-      }
-    },
-    [handleError]
+    tryToastError(
+      createMessageAction<PatchWindowMessage>(MESSAGE_TYPE_PATCH_WINDOW)
+    ),
+    [tryToastError]
   )
 
   return {

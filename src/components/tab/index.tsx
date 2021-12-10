@@ -2,7 +2,6 @@ import cn, { Argument as ClassNames } from 'classnames'
 
 import { Dropdown } from 'components/dropdown'
 import { Icon } from 'components/icon'
-import { useToasts } from 'components/toast/store'
 import { isDefined } from 'utils/helpers'
 import { SessionData, SessionWindowData, SessionTabData } from 'utils/sessions'
 
@@ -24,9 +23,8 @@ export const Tab: React.FC<TabProps> = ({
   isDragging,
   className,
 }) => {
-  const { add: addToast } = useToasts()
   const { handleOpenTab, handleRemoveTab, handleUpdateTab, handleDiscardTab } =
-    useHandlers(addToast)
+    useHandlers()
 
   const {
     id: tabId,
@@ -46,7 +44,7 @@ export const Tab: React.FC<TabProps> = ({
     | undefined = tab.activeSession
     ? (ev) => {
         ev.preventDefault()
-        handleOpenTab({ sessionId, windowId, tabId })
+        handleOpenTab({ sessionId, tabs: [{ windowId, tabIds: [tabId] }] })
         return false
       }
     : undefined
@@ -162,7 +160,7 @@ export const Tab: React.FC<TabProps> = ({
             [
               {
                 onClick: () => {
-                  handleDiscardTab({ sessionId, windowId, tabId })
+                  handleDiscardTab({ sessionId, windowId, tabIds: [tabId] })
                 },
                 text: 'Free memory',
                 iconProps: { name: 'section-remove' },
@@ -170,7 +168,10 @@ export const Tab: React.FC<TabProps> = ({
               },
               {
                 onClick: () => {
-                  handleRemoveTab({ sessionId, windowId, tabId })
+                  handleRemoveTab({
+                    sessionId,
+                    tabs: [{ windowId, tabIds: [tabId] }],
+                  })
                 },
                 text: tab.activeSession ? 'Close' : 'Remove',
                 iconProps: { name: 'bin' },

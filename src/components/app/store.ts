@@ -2,8 +2,7 @@ import { atom, useAtom } from 'jotai'
 import { SetStateAction, useCallback, useEffect } from 'react'
 import browser from 'webextension-polyfill'
 
-import { useErrorHandler } from 'components/error/handlers'
-import { useToasts } from 'components/toast/store'
+import { useTryToastError } from 'components/error/handlers'
 import { popupUrl, tabUrl, popoutUrl, sidebarUrl } from 'utils/env'
 import { getKeys } from 'utils/helpers'
 import { updateLogLevel } from 'utils/logger'
@@ -14,7 +13,7 @@ import {
   ThemeType,
 } from 'utils/settings'
 
-import { saveSettings } from './api'
+import { saveSettings } from './handlers'
 
 // Feature flags
 export const isPopup =
@@ -90,26 +89,21 @@ export const useSettings = (): [
   SetSettings,
   (values: Partial<SettingsData>) => Promise<void>
 ] => {
-  const { add: addToast } = useToasts()
-  const handleError = useErrorHandler(addToast)
+  const tryToastError = useTryToastError()
   const [settings, setSettings] = useAtom(settingsAtom)
 
   const updateSettings = useCallback(
-    async (values: Partial<SettingsData>) => {
-      try {
-        const settings = await saveSettings(values)
-        if (settings) {
-          const keys = getKeys(values)
-          await Promise.all(
-            keys.map(async (key) => handleSettingsSideEffects(key, settings))
-          )
-          setSettings(settings)
-        }
-      } catch (err) {
-        handleError(err)
+    tryToastError(async (values: Partial<SettingsData>) => {
+      const settings = await saveSettings(values)
+      if (settings) {
+        const keys = getKeys(values)
+        await Promise.all(
+          keys.map(async (key) => handleSettingsSideEffects(key, settings))
+        )
+        setSettings(settings)
       }
-    },
-    [setSettings, handleError]
+    }),
+    [setSettings, tryToastError]
   )
 
   useEffect(() => {

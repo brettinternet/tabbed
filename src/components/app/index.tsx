@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 
-import { useErrorHandler } from 'components/error/handlers'
 import { Layout } from 'components/layout'
 import { ModalProvider } from 'components/modal/provider'
 import { SessionLayout } from 'components/session'
@@ -8,40 +7,34 @@ import { useShortcuts } from 'components/shortcuts/store'
 import { ToastContainer } from 'components/toast'
 import { useToasts } from 'components/toast/store'
 
-import { getSettings, startListeners } from './api'
+import { useHandlers } from './handlers'
 import { useSettings } from './store'
 
 export const App = () => {
   const [settings, setSettings] = useSettings()
   const [isLoading, setLoading] = useState(true)
   const { add: addToast } = useToasts()
-  const handleError = useErrorHandler(addToast)
+  const { getSettings } = useHandlers(setSettings)
   useShortcuts(settings.shortcuts)
 
   useEffect(() => {
     const fetchSettings = async () => {
-      try {
-        const settings = await getSettings() // ~29 ms
-        if (settings) {
-          setSettings(settings)
-        } else {
-          addToast({
-            title: 'Error',
-            message: 'Unable to load app. Please reopen the extension.',
-            variant: 'error',
-            autoDismiss: false,
-          })
-        }
-        setLoading(false)
-      } catch (err) {
-        handleError(err)
+      const settings = await getSettings() // ~29 ms
+      if (settings) {
+        setSettings(settings)
+      } else {
+        addToast({
+          title: 'Error',
+          message: 'Unable to load app. Please reopen the extension.',
+          variant: 'error',
+          autoDismiss: false,
+        })
       }
+      setLoading(false)
     }
 
     void fetchSettings()
-
-    startListeners(setSettings)
-  }, [setSettings, addToast, handleError])
+  }, [setSettings, addToast])
 
   if (!isLoading) {
     return (

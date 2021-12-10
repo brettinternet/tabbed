@@ -1,12 +1,11 @@
 import cn from 'classnames'
-import { useEffect } from 'react'
 import { DragDropContext } from 'react-beautiful-dnd'
 
 import { useSettings, isPopup } from 'components/app/store'
 
-import { startListeners } from './api'
+import { useListeners } from './handlers'
 import { SessionContainer } from './session-container'
-import { useWindowsDrag } from './store'
+import { useSessions } from './store'
 
 // Scrolling is handled within certain divs
 // Without this, there's a minor UI bug where scroll bar appears with spacing on the right
@@ -16,11 +15,8 @@ if (isPopup) {
 
 export const SessionLayout = () => {
   const [settings] = useSettings()
-  const { onDragEnd, sessionsManager, setSessionsManager } = useWindowsDrag()
-
-  useEffect(() => {
-    startListeners(setSessionsManager)
-  }, [setSessionsManager])
+  const { onDragEnd, sessionsManager, setSessionsManager } = useSessions()
+  useListeners(setSessionsManager)
 
   if (sessionsManager) {
     const session = sessionsManager.current
