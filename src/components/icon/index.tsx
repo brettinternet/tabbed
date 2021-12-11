@@ -27,6 +27,7 @@ export const Name = {
   TICK: 'tick', // checkmark
   KEYBOARD: 'keyboard', // shortcuts
   ADJUST_VERTICAL_ALT: 'adjust-vertical-alt', // settings
+  MINUS_CIRCLE: 'minus-circle', // incognito/private browsing
 } as const
 
 type NameType = Valueof<typeof Name>

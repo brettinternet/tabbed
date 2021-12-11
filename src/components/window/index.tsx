@@ -59,7 +59,15 @@ const getStateActions = (
 
 export const WindowHeader: React.FC<WindowHeaderProps> = ({
   sessionId,
-  window: { id: windowId, focused, title, state, tabs, activeSession },
+  window: {
+    id: windowId,
+    focused,
+    title,
+    state,
+    tabs,
+    activeSession,
+    incognito,
+  },
   className,
 }) => {
   const {
@@ -94,6 +102,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
         <div className="flex items-center flex-wrap text-xs text-gray-500 space-x-2">
           <div>{state}</div>
           {focused && <Icon title="active" name="file-tick" size="sm" />}
+          {incognito && <Icon title="active" name="minus-circle" size="sm" />}
           <div>
             {tabs.length} tab{tabs.length > 1 && 's'}
           </div>

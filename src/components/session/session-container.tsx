@@ -3,6 +3,7 @@ import { Droppable, DroppableProvided } from 'react-beautiful-dnd'
 import { SessionData } from 'utils/sessions'
 import { useMedia } from 'utils/window'
 
+import { EmptyActions } from './empty-actions'
 import { DroppableType } from './store'
 import { WindowContainer } from './window-container'
 
@@ -30,7 +31,7 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className="md:flex md:flex-row md:align-center"
+          className="scroll overflow-auto md:flex md:flex-row md:align-center md:snap-x"
         >
           {session.windows.map((win, index) => (
             <WindowContainer
@@ -41,6 +42,7 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
             />
           ))}
           {provided.placeholder}
+          {session.windows.length < 3 && <EmptyActions />}
         </div>
       )}
     </Droppable>

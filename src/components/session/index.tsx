@@ -1,4 +1,3 @@
-import cn from 'classnames'
 import { DragDropContext } from 'react-beautiful-dnd'
 
 import { useSettings, isPopup } from 'components/app/store'
@@ -28,7 +27,6 @@ export const SessionLayout = () => {
             ? (settings || defaultSettings).popupDimensions.height - 50
             : undefined,
         }}
-        className={cn('scroll overflow-auto')}
       >
         <DragDropContext onDragEnd={onDragEnd}>
           <SessionContainer session={session} />

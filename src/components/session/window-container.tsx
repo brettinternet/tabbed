@@ -47,6 +47,7 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
       <div
         style={{ height: dragSnapshot.isDragging ? '40px' : undefined }}
         className={cn(
+          index === 0 ? 'snap-start' : 'snap-end',
           'transition-colors duration-150 pb-3 md:pb-0 md:w-80 lg:w-96 md:min-w-[20rem] lg:min-w-[24rem]',
           getContainerBackground({
             isDragging: dragSnapshot.isDragging,
