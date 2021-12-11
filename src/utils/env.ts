@@ -30,14 +30,6 @@ export const attributions = [
     authors: 'Kirollos Risk',
   },
   {
-    projectUrl: 'https://teenyicons.com/',
-    projectName: 'Teenyicons',
-    licenseType: 'MIT License',
-    licenseUrl:
-      'https://github.com/teenyicons/teenyicons/blob/6734a3c1af3f27c8ca76debcd6c6fd2f5d63ef4e/LICENSE',
-    authors: 'Anja van Staden',
-  },
-  {
     projectUrl: 'https://twemoji.twitter.com/',
     projectName: 'Twemoji',
     licenseType: 'CC-BY 4.0',

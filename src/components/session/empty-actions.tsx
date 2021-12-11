@@ -1,9 +1,10 @@
 import browser from 'webextension-polyfill'
 
 import { Button } from 'components/button'
+import { IconName } from 'components/icon'
 
 export const EmptyActions: React.FC = () => (
-  <div className="hidden md:flex md:flex-col md:items-center md:justify-center pb-3 md:pb-0 md:w-80 md:min-w-[20rem] bg-gray-100 dark:bg-gray-900 snap-end">
+  <div className="hidden md:flex md:flex-col md:items-center md:justify-center md:h-window-header pb-3 md:pb-0 md:w-80 md:min-w-[20rem] bg-gray-100 dark:bg-gray-900 snap-end">
     <div className="flex">
       <Button
         className="pl-4 pr-3 py-1 rounded-tl-full rounded-bl-full"
@@ -24,7 +25,7 @@ export const EmptyActions: React.FC = () => (
             incognito: true,
           })
         }}
-        iconProps={{ name: 'minus-circle', size: 'sm' }}
+        iconProps={{ name: IconName.INCOGNITO, size: 'sm' }}
         aria-label="New incognito window"
       />
     </div>

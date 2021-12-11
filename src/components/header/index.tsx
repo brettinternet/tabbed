@@ -1,6 +1,7 @@
 import cn, { Argument as ClassNames } from 'classnames'
 
 import { Dropdown } from 'components/dropdown'
+import { IconName } from 'components/icon'
 import { useModal } from 'components/modal/store'
 
 import { Search } from './search'
@@ -28,8 +29,8 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
             buttonProps={{
               variant: 'transparent',
             }}
-            iconProps={{ name: 'cog' }}
-            menuItemsClassName="text-base"
+            iconProps={{ name: IconName.MORE }}
+            menuItemsClassName="text-base text-gray-800"
             actions={[
               {
                 onClick: () => {
@@ -37,7 +38,8 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
                 },
                 text: 'Shortcuts',
                 iconProps: {
-                  name: 'keyboard',
+                  name: IconName.KEYBOARD,
+                  size: 'sm',
                 },
               },
               {
@@ -46,7 +48,8 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
                 },
                 text: 'Settings',
                 iconProps: {
-                  name: 'adjust-vertical-alt',
+                  name: IconName.SETTINGS,
+                  size: 'sm',
                 },
               },
             ]}

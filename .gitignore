@@ -1,6 +1,8 @@
+# Generated
 node_modules
 /coverage
-build
+/build
+/icons
 
 .DS_Store
 .env.local

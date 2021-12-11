@@ -9,7 +9,7 @@ import {
   ButtonProps,
   getClass as getButtonClass,
 } from 'components/button'
-import { Icon, IconProps } from 'components/icon'
+import { Icon, IconName, IconProps } from 'components/icon'
 import { Portal } from 'utils/window'
 
 const MenuItem: React.FC<{ buttonProps: ButtonProps }> = ({ buttonProps }) => (
@@ -81,7 +81,7 @@ export const Dropdown: React.FC<MenuProps> = (props) => {
           >
             {children || (
               <Icon
-                name="more-vertical"
+                name={IconName.MORE}
                 className="pointer-events-none"
                 {...iconProps}
               />

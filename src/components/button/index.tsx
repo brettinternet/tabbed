@@ -87,7 +87,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       )}
       {...props}
     >
-      {iconProps && <Icon {...iconProps} className={text && 'mr-2'} />}
+      {iconProps && (
+        <Icon
+          {...iconProps}
+          className={cn(text && 'mr-2', iconProps.className)}
+        />
+      )}
       {text}
     </button>
   )

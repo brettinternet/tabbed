@@ -2,7 +2,7 @@ import cn, { Argument as ClassNames } from 'classnames'
 
 import { ButtonProps } from 'components/button'
 import { Dropdown } from 'components/dropdown'
-import { Icon } from 'components/icon'
+import { Icon, IconName } from 'components/icon'
 import { SessionWindowData } from 'utils/sessions'
 
 import { useHandlers } from './handlers'
@@ -26,7 +26,7 @@ const getStateActions = (
       updateWindowState('normal')
     },
     text: 'Normal',
-    iconProps: { name: 'file' },
+    iconProps: { name: IconName.WINDOW },
   }
 
   const minimize: ButtonProps = {
@@ -34,7 +34,7 @@ const getStateActions = (
       updateWindowState('minimized')
     },
     text: 'Minimize',
-    iconProps: { name: 'file-minus' },
+    iconProps: { name: IconName.MINIMIZE },
   }
 
   const fullscreen: ButtonProps = {
@@ -42,7 +42,7 @@ const getStateActions = (
       updateWindowState('fullscreen')
     },
     text: 'Fullscreen',
-    iconProps: { name: 'file-plus' },
+    iconProps: { name: IconName.FULLSCREEN },
   }
 
   switch (currentState) {
@@ -101,8 +101,12 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
         )}
         <div className="flex items-center flex-wrap text-xs text-gray-500 space-x-2">
           <div>{state}</div>
-          {focused && <Icon title="active" name="file-tick" size="sm" />}
-          {incognito && <Icon title="active" name="minus-circle" size="sm" />}
+          {focused && (
+            <Icon title="active" name={IconName.WINDOW_OPEN} size="sm" />
+          )}
+          {incognito && (
+            <Icon title="active" name={IconName.INCOGNITO} size="sm" />
+          )}
           <div>
             {tabs.length} tab{tabs.length > 1 && 's'}
           </div>
@@ -120,7 +124,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
               {
                 onClick: handleOpen,
                 text: activeSession ? 'Focus' : 'Open',
-                iconProps: { name: 'file-tick' },
+                iconProps: { name: IconName.WINDOW_OPEN },
                 disabled: focused,
               },
               // {
@@ -128,7 +132,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
               //     handleSaveWindow(sessionId, windowId)
               //   },
               //   text: 'Save',
-              //   iconProps: { name: 'save' },
+              //   iconProps: { name: IconName.SAVE },
               // },
               ...(activeSession
                 ? getStateActions(
@@ -149,7 +153,11 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
                   handleRemoveWindow({ sessionId, windowIds: [windowId] })
                 },
                 text: activeSession ? 'Close' : 'Delete',
-                iconProps: { name: activeSession ? 'x' : 'bin' },
+                iconProps: {
+                  name: activeSession
+                    ? IconName.WINDOW_REMOVE
+                    : IconName.DELETE,
+                },
               },
             ],
           ]}

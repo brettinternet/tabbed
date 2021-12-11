@@ -1,7 +1,7 @@
 import { RadioGroup as RG } from '@headlessui/react'
 import cn, { Argument as ClassNames } from 'classnames'
 
-import { Icon } from 'components/icon'
+import { Icon, IconName } from 'components/icon'
 import { Label } from 'components/label'
 
 export type RadioOption = {
@@ -79,7 +79,7 @@ export const RadioGroup: React.FC<RadioGroupProps> = ({
                   </div>
                   {checked ? (
                     <div className="flex-shrink-0 text-white bg-green-300 rounded-full p-1">
-                      <Icon name="tick" size="sm" />
+                      <Icon name={IconName.CHECK} size="sm" />
                     </div>
                   ) : (
                     <div className="h-5 w-5 rounded-full border border-gray-300 dark:border-gray-500" />

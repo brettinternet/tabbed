@@ -3,6 +3,7 @@ import cn from 'classnames'
 import { Fragment } from 'react'
 
 import { Button } from 'components/button'
+import { IconName } from 'components/icon'
 import { Valueof } from 'utils/helpers'
 
 const Variant = {
@@ -89,7 +90,7 @@ export const Modal: React.FC<ModalProps> = ({
                 onClick={close}
                 aria-label="Close"
                 variant="transparent"
-                iconProps={{ name: 'x' }}
+                iconProps={{ name: IconName.CLOSE }}
               />
             </div>
             <div

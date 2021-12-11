@@ -1,6 +1,7 @@
 import cn from 'classnames'
 
-import { Icon } from 'components/icon'
+import { Button } from 'components/button'
+import { IconName } from 'components/icon'
 import { Valueof } from 'utils/helpers'
 
 export const MessageVariant = {
@@ -61,9 +62,11 @@ export const Message: React.FC<MessageProps> = ({
       {body}
     </p>
     {onDismiss && (
-      <button onClick={onDismiss}>
-        <Icon name="x" />
-      </button>
+      <Button
+        variant="none"
+        onClick={onDismiss}
+        iconProps={{ name: IconName.CLOSE }}
+      />
     )}
   </Tag>
 )

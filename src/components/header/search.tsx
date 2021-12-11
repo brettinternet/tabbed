@@ -5,7 +5,7 @@ import { debounce } from 'lodash'
 import { useRef } from 'react'
 
 import { Button } from 'components/button'
-import { Icon } from 'components/icon'
+import { Icon, IconName } from 'components/icon'
 import { Input } from 'components/input'
 import { getMessage } from 'utils/i18n'
 
@@ -55,7 +55,7 @@ export const Search: React.FC = () => {
       className="relative"
     >
       <Icon
-        name="search"
+        name={IconName.SEARCH}
         className="absolute left-2 top-1/2 transform -translate-y-1/2 h-full pointer-events-none"
         size="sm"
       />
@@ -76,7 +76,7 @@ export const Search: React.FC = () => {
           aria-label={getMessage('search__input_clear', 'Clear')}
           onClick={clear}
           variant="none"
-          iconProps={{ name: 'x', size: 'sm' }}
+          iconProps={{ name: IconName.CLOSE, size: 'sm' }}
         />
       )}
     </form>
