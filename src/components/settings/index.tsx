@@ -5,6 +5,7 @@ import { Button } from 'components/button'
 import { Input, getClass as getInputClass } from 'components/input'
 import { Kbd } from 'components/kbd'
 import { Label } from 'components/label'
+import { Message } from 'components/message'
 import { RadioGroup } from 'components/radiogroup'
 import { Toggle } from 'components/toggle'
 import { browserRuntime, browsers } from 'utils/env'
@@ -45,14 +46,22 @@ export const Settings: React.FC = () => {
     handleChangeDebugMode,
     handleClickReset,
   } = useHandlers()
-  const [fontSize, setFontSize] = useState(settings.fontSize.toString())
+  const [fontSize, setFontSize] = useState(settings?.fontSize.toString())
   const [popupDimensions, setPopupDimensions] = useState(
-    settings.popupDimensions
+    settings?.popupDimensions
   )
   const [excludedUrlsValue, setExcludedUrlsValue] = useState(
-    settings.excludedUrls.raw
+    settings?.excludedUrls.raw
   )
   const excludedUrlsTextArea = useRef<HTMLTextAreaElement>(null)
+
+  if (!settings) {
+    return (
+      <div className="space-y-9 max-w-md mx-auto">
+        <Message body="There was a problem loading user settings, please refresh the extension." />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-9 max-w-md mx-auto">

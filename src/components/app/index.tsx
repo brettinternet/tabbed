@@ -15,7 +15,7 @@ export const App = () => {
   const [isLoading, setLoading] = useState(true)
   const { add: addToast } = useToasts()
   const { getSettings } = useHandlers(setSettings)
-  useShortcuts(settings.shortcuts)
+  useShortcuts(settings?.shortcuts || false)
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -25,7 +25,7 @@ export const App = () => {
       } else {
         addToast({
           title: 'Error',
-          message: 'Unable to load app. Please reopen the extension.',
+          message: 'Unable to load app. Please refresh the extension.',
           variant: 'error',
           autoDismiss: false,
         })

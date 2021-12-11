@@ -81,11 +81,13 @@ const handleSettingsSideEffects = async <K extends keyof SettingsData>(
   }
 }
 
-const settingsAtom = atom<SettingsData>(defaultSettings)
+const settingsAtom = atom<SettingsData | undefined>(undefined)
 
-export type SetSettings = (update: SetStateAction<SettingsData>) => void
+export type SetSettings = (
+  update: SetStateAction<SettingsData | undefined>
+) => void
 export const useSettings = (): [
-  SettingsData,
+  SettingsData | undefined,
   SetSettings,
   (values: Partial<SettingsData>) => Promise<void>
 ] => {
@@ -108,14 +110,16 @@ export const useSettings = (): [
   )
 
   useEffect(() => {
-    const act = async () => {
-      const keys = getKeys(settings)
-      await Promise.all(
-        keys.map(async (key) => handleSettingsSideEffects(key, settings))
-      )
-    }
+    if (settings) {
+      const act = async () => {
+        const keys = getKeys(settings)
+        await Promise.all(
+          keys.map(async (key) => handleSettingsSideEffects(key, settings))
+        )
+      }
 
-    void act()
+      void act()
+    }
   }, [settings])
 
   return [settings, setSettings, updateSettings]

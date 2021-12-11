@@ -2,6 +2,7 @@ import cn from 'classnames'
 import { DragDropContext } from 'react-beautiful-dnd'
 
 import { useSettings, isPopup } from 'components/app/store'
+import { defaultSettings } from 'utils/settings'
 
 import { useListeners } from './handlers'
 import { SessionContainer } from './session-container'
@@ -23,7 +24,9 @@ export const SessionLayout = () => {
     return (
       <div
         style={{
-          maxHeight: isPopup ? settings.popupDimensions.height - 50 : undefined,
+          maxHeight: isPopup
+            ? (settings || defaultSettings).popupDimensions.height - 50
+            : undefined,
         }}
         className={cn('scroll overflow-auto')}
       >

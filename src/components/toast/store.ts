@@ -2,24 +2,14 @@ import { atom, useAtom } from 'jotai'
 import { useCallback } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
-import { Valueof } from 'utils/helpers'
+import { MessageVariant, MessageVariantType } from 'components/message'
 import { log } from 'utils/logger'
 
 const logContext = 'components/toast/store'
 
-export const ToastVariant = {
-  INFO: 'info',
-  SUCCESS: 'success',
-  WARN: 'warn',
-  ERROR: 'error',
-  NONE: 'none',
-} as const
-
-export type ToastVariantType = Valueof<typeof ToastVariant>
-
 export type ToastOptions = {
   message: string
-  variant?: ToastVariantType
+  variant?: MessageVariantType
   autoDismiss?: boolean
   duration?: number
   title?: string
@@ -44,7 +34,7 @@ export const useToasts = () => {
     const toast = {
       autoDismiss: true,
       duration: 4000,
-      variant: ToastVariant.NONE,
+      variant: MessageVariant.NONE,
       ...toastOptions,
       id: uuidv4(),
     }
