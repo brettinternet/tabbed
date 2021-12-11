@@ -6,12 +6,7 @@ import { useTryToastError } from 'components/error/handlers'
 import { popupUrl, tabUrl, popoutUrl, sidebarUrl } from 'utils/env'
 import { getKeys } from 'utils/helpers'
 import { updateLogLevel } from 'utils/logger'
-import {
-  SettingsData,
-  defaultSettings,
-  Themes,
-  ThemeType,
-} from 'utils/settings'
+import { SettingsData, Themes, ThemeType } from 'utils/settings'
 
 import { saveSettings } from './handlers'
 

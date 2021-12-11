@@ -50,7 +50,7 @@ export const Modal: React.FC<ModalProps> = ({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <Dialog.Overlay className="z-overlay fixed inset-0 bg-gray-900 dark:bg-gray-500 bg-opacity-10 dark:bg-opacity-20" />
+          <Dialog.Overlay className="z-overlay fixed inset-0 bg-gray-900 bg-opacity-30 dark:bg-opacity-60" />
         </Transition.Child>
 
         <Transition.Child
@@ -64,7 +64,7 @@ export const Modal: React.FC<ModalProps> = ({
         >
           <div
             className={cn(
-              'z-modal w-full min-h-screen md:min-h-full md:h-auto md:max-w-md overflow-hidden bg-white dark:bg-gray-800 shadow-xl',
+              'z-modal w-full min-h-screen md:min-h-full md:h-auto md:max-w-md overflow-hidden bg-white dark:bg-gray-800 shadow-xl border border-transparent dark:border-gray-700',
               variant === Variant.CARD
                 ? 'md:my-8 md:rounded-2xl'
                 : 'pl-3 md:rounded-tl-2xl md:rounded-bl-2xl'

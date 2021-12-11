@@ -80,13 +80,11 @@ const getWrapperBackground = (
   isDraggingFrom: boolean
 ) => {
   if (isDraggingOver) {
-    return 'bg-blue-200'
+    return 'bg-blue-200 dark:bg-green-900'
   }
   if (isDraggingFrom) {
-    return 'bg-gray-200'
+    return 'bg-gray-200 dark:bg-gray-800'
   }
-
-  return
 }
 
 export const TabsList: React.FC<TabsListProps> = ({

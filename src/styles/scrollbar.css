@@ -26,10 +26,6 @@
     @apply bg-gray-500;
   }
 
-  html.dark .scroll::-webkit-scrollbar {
-    @apply bg-gray-800;
-  }
-
   html.dark .scroll::-webkit-scrollbar-thumb {
     @apply bg-gray-700;
   }

@@ -208,12 +208,7 @@ export const Settings: React.FC = () => {
             ref={excludedUrlsTextArea}
           />
         </Label>
-        <div className="flex mt-2 justify-between">
-          {settings.excludedUrls.error ? (
-            <Error>{settings.excludedUrls.error}</Error>
-          ) : (
-            <p className="text-gray-600 dark:text-gray-500">&#x2713; URLs</p>
-          )}
+        <div className="flex items-center space-x-3">
           <Button
             onClick={() => {
               const value = excludedUrlsTextArea.current?.value
@@ -224,7 +219,13 @@ export const Settings: React.FC = () => {
           >
             Check
           </Button>
+          {!settings.excludedUrls.error && (
+            <p className="text-gray-600 dark:text-gray-500">&#x2713; URLs</p>
+          )}
         </div>
+        {settings.excludedUrls.error && (
+          <Error>{settings.excludedUrls.error}</Error>
+        )}
         <Description id="excluded-urls-description">
           Excludes tabs with matching URLs from saved sessions and windows. Use
           "*" to match wildcard patterns. Separate by new lines, spaces or

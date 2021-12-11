@@ -80,7 +80,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
   return (
     <div
       className={cn(
-        'group relative flex justify-between items-center transition-colors duration-75 hover:bg-gray-200',
+        'group relative flex justify-between items-center transition-colors duration-75 hover:bg-gray-200 dark:hover:bg-gray-800',
         className
       )}
     >
@@ -103,7 +103,8 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
         <Dropdown
           dropdownOffset
           buttonProps={{
-            className: 'bg-gray-200 border border-gray-400',
+            className:
+              'bg-gray-200 border border-gray-400 dark:bg-gray-800 dark:border-gray-600',
           }}
           actionGroups={[
             [

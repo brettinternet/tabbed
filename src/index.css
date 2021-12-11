@@ -4,6 +4,10 @@
 
 @import './styles/scrollbar.css';
 
+html {
+  @apply transition-colors duration-100 bg-gray-100;
+}
+
 html.dark {
   @apply bg-gray-900 text-white transition-colors duration-100;
 }

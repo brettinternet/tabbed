@@ -54,9 +54,9 @@ export const Tab: React.FC<TabProps> = ({
     <div
       aria-disabled={tab.activeSession && tab.active}
       className={cn(
-        'group relative appearance-none transition-color transition-opacity duration-100 flex flex-row rounded border',
+        'group relative appearance-none transition-color transition-opacity duration-100 flex flex-row rounded',
         isDragging ? 'shadow-xl' : 'shadow',
-        'bg-white dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600',
+        'bg-white dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700',
         className
       )}
     >
@@ -114,7 +114,7 @@ export const Tab: React.FC<TabProps> = ({
               {isDefined(groupId) && groupId > -1 && (
                 <span
                   title="group ID"
-                  className="inline-block px-1 bg-yellow-200 mr-2"
+                  className="inline-block px-1 bg-yellow-900 mr-2"
                 >
                   {groupId}
                 </span>
@@ -135,7 +135,8 @@ export const Tab: React.FC<TabProps> = ({
         <Dropdown
           dropdownOffset
           buttonProps={{
-            className: 'bg-gray-200 border border-gray-400',
+            className:
+              'bg-gray-200 border border-gray-400 dark:bg-gray-800 dark:border-gray-600',
           }}
           actionGroups={[
             [

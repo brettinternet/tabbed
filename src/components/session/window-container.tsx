@@ -24,14 +24,14 @@ const getContainerBackground = ({
   incognito: boolean
 }) => {
   if (isDragging) {
-    return 'bg-blue-200'
+    return 'bg-blue-200 dark:bg-blue-900'
   }
 
   if (incognito) {
-    return 'bg-indigo-100'
+    return 'bg-indigo-100 dark:bg-indigo-900'
   }
 
-  return 'bg-gray-100'
+  return 'bg-gray-100 dark:bg-gray-900'
 }
 
 export const WindowContainer: React.FC<SessionWindowProps> = ({

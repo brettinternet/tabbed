@@ -19,7 +19,10 @@ const MenuItem: React.FC<{ buttonProps: ButtonProps }> = ({ buttonProps }) => (
         variant="none"
         shape="item"
         {...buttonProps}
-        className={cn(buttonProps.className, active && 'bg-gray-200')}
+        className={cn(
+          buttonProps.className,
+          active && 'bg-gray-200 dark:bg-gray-700'
+        )}
       />
     )}
   </M.Item>
@@ -111,7 +114,8 @@ export const Dropdown: React.FC<MenuProps> = (props) => {
                     }}
                     className={cn(
                       'min-w-32 rounded shadow-lg bg-white dark:bg-gray-800',
-                      'actionGroups' in props && 'divide-y divide-gray-100',
+                      'actionGroups' in props &&
+                        'divide-y divide-gray-100 dark:divide-gray-600',
                       'ring-1 ring-black ring-opacity-5 focus:outline-none',
                       menuItemsClassName
                     )}
