@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "start": "run-s clean copy-public manifest build:tailwind && run-p start:*",
-    "start:app": "craco start | cat",
+    "start:app": "ts-node -P scripts/tsconfig.json scripts/start-cra",
     "start:tailwind": "npx tailwindcss --postcss -i ./src/styles/index.css -o ./src/index.css --watch",
     "start:background": "esbuild src/background/index.ts --bundle --sourcemap --outdir=build/background --inject:env.js --watch",
-    "build": "run-s build:app build:background build:manifest",
+    "build": "run-s clean build:tailwind build:app build:background build:manifest",
     "build:app": "craco build",
     "build:tailwind": "npx tailwindcss -m --postcss -i ./src/styles/index.css -o ./src/index.css",
     "build:background": "esbuild src/background/index.ts --bundle --minify --sourcemap --outdir=build/background --inject:env.js",
