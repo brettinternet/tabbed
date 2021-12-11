@@ -5,7 +5,7 @@ export var process = {
   env: new Proxy(
     {},
     {
-      APP_NAME: 'Table Tabs', // process.env.APP_NAME,
+      APP_NAME: 'Tabbed', // process.env.APP_NAME,
     }
   ),
 }

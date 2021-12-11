@@ -1,10 +1,9 @@
-# Table Tabs
+# Tabbed
 
 Manage your tabs
 
 <!--
 TODO:
-actions, listeners background
 combine windows
 combine tabs - turn into group?
 animate slide to previous history sessions https://www.framer.com/docs/examples/
