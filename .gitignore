@@ -14,3 +14,6 @@ yarn-error.log*
 
 # https://github.com/facebook/create-react-app/issues/6560
 /src/react-app-env.d.ts
+
+# tailwind CLI output
+/src/index.css

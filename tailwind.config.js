@@ -6,8 +6,7 @@ const defaultTheme = require('tailwindcss/defaultTheme')
  * @type {import("@types/tailwindcss/tailwind-config").TailwindConfig }
  */
 module.exports = {
-  mode: 'jit',
-  purge: ['./src/**/*.{js,jsx,ts,tsx}', './public/index.html'],
+  content: ['./src/**/*.{js,jsx,ts,tsx}', './public/index.html'],
   darkMode: 'class',
   theme: {
     screens: {
@@ -67,5 +66,5 @@ module.exports = {
       display: ['group-hover'],
     },
   },
-  plugins: [],
+  plugins: [require('@tailwindcss/line-clamp')],
 }

@@ -35,12 +35,6 @@ module.exports = {
       }),
     ],
   },
-  // https://tailwindcss.com/docs/guides/create-react-app
-  style: {
-    postcss: {
-      plugins: [require('tailwindcss'), require('autoprefixer')],
-    },
-  },
   plugins: [
     {
       // https://github.com/pradel/create-react-app-esbuild/blob/main/packages/craco-esbuild/README.md
