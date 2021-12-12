@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
 
 const mediaQueries = [
   '', // base
@@ -44,21 +43,4 @@ export const useMedia = <T>(values: T[]) => {
   }, [getValue])
 
   return value
-}
-
-/**
- * Portal component
- */
-export const Portal = (props: { children: React.ReactNode }) => {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return null
-  }
-
-  return createPortal(props.children, document.body)
 }

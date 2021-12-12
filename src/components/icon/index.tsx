@@ -47,25 +47,22 @@ export const Icon: React.FC<IconProps> = ({
   title,
   ariaLabel,
 }) => {
-  const { SvgIcon, error, loading } = useSvg(name)
+  const { Svg, error, isLoading } = useSvg(name)
 
-  if (!SvgIcon || loading) {
-    return null
-  }
-
-  if (error) {
+  if (isLoading || error || !Svg) {
     return (
       <div
         className={cn(
           getSizeClass(size),
-          'rounded-full border border-gray-100'
+          'rounded-full bg-gray-200 dark:bg-gray-700',
+          className
         )}
       />
     )
   }
 
   return (
-    <SvgIcon
+    <Svg
       className={cn(className, getSizeClass(size))}
       aria-label={ariaLabel || title}
     />

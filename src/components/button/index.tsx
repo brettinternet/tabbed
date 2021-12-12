@@ -8,6 +8,7 @@ const Variant = {
   PRIMARY: 'primary',
   SECONDARY: 'secondary',
   TRANSPARENT: 'transparent',
+  LINK: 'link',
   NONE: 'none',
 } as const
 
@@ -30,6 +31,8 @@ const getVariantClass = (variant: VariantType) => {
       return 'bg-gray-200 text-black dark:bg-gray-700 dark:text-gray-100'
     case Variant.TRANSPARENT:
       return 'hover:bg-gray-100 dark:hover:bg-gray-700 disabled:text-gray-600'
+    case Variant.LINK:
+      return 'text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-500'
   }
 }
 
@@ -50,13 +53,13 @@ export const getClass = ({
 }: {
   variant?: VariantType
   shape?: ShapeType
-} = {}) => {
-  return cn(
-    'flex flex-row items-center transition-colors duration-100',
+} = {}) =>
+  cn(
+    'appearance-none flex-row items-center transition-colors duration-100',
+    variant === Variant.LINK ? 'inline-flex' : 'flex',
     getShapeClass(shape),
     getVariantClass(variant)
   )
-}
 
 export type ButtonProps = {
   className?: ClassNames

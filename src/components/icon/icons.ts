@@ -26,4 +26,6 @@ export const IconName = {
   TAB_DISCARD: 'auto_delete', // discard tab - free memory
   KEYBOARD: 'keyboard', // shortcuts
   INCOGNITO: 'vpn_lock', // incognito/private browsing
+  HELP: 'help', // FAQ and resources
+  EXPAND: 'expand_more', // dropdown down caret
 } as const

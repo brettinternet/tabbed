@@ -2,9 +2,12 @@ import cn from 'classnames'
 import { useRef, useState } from 'react'
 
 import { Button } from 'components/button'
+import { openOptions } from 'components/help/handlers'
 import { Input, getClass as getInputClass } from 'components/input'
 import { Kbd } from 'components/kbd'
 import { Label } from 'components/label'
+import { Description } from 'components/markup/description'
+import { H2 } from 'components/markup/h2'
 import { Message } from 'components/message'
 import { RadioGroup } from 'components/radiogroup'
 import { Toggle } from 'components/toggle'
@@ -13,16 +16,6 @@ import { isDefined } from 'utils/helpers'
 import { ExtensionClickActions, Themes } from 'utils/settings'
 
 import { useHandlers } from './handlers'
-
-const H2: React.FC = ({ children }) => (
-  <h2 className="text-lg pb-1 border-b border-gray-100">{children}</h2>
-)
-
-const Description: React.FC<{ id?: string }> = ({ children, id }) => (
-  <p id={id} className="text-gray-600 dark:text-gray-300">
-    {children}
-  </p>
-)
 
 const Error: React.FC = ({ children }) => (
   <p className="text-red-600 dark:text-red-500">{children}</p>
@@ -37,7 +30,6 @@ export const Settings: React.FC = () => {
     handleOpenShortcuts,
     handleChangeSaveClosedWindow,
     handleChangeSaveIncognito,
-    handleOpenOptions,
     handleChangeSortFocusedWindowFirst,
     handleChangeExcludedUrls,
     handleChangeToggleExtensionClickAction,
@@ -165,13 +157,10 @@ export const Settings: React.FC = () => {
           Allows autosave to save incognito windows.{' '}
           {browserRuntime === browsers.CHROMIUM && (
             <>
-              <button
-                onClick={handleOpenOptions}
-                className="appearance-none text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-500"
-              >
-                Enable incognito access
-              </button>{' '}
-              for this option to work.
+              <Button onClick={openOptions} variant="link" shape="none">
+                Open extension options
+              </Button>{' '}
+              to enable incognito access and for this option to work.
             </>
           )}
         </Description>

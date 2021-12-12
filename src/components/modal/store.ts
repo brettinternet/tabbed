@@ -8,6 +8,8 @@ export const Modal = {
   SHORTCUTS: 'shortcuts',
   SESSION_EDIT: 'sessionEdit',
   IMPORTER: 'importer',
+  ABOUT: 'about',
+  HELP: 'help',
 } as const
 
 export type ModalType = Valueof<typeof Modal>
@@ -17,22 +19,23 @@ const initialModals = {
   shortcuts: false,
   sessionEdit: false,
   importer: false,
+  about: false,
+  help: false,
 }
 
-const modalAtom = atom(initialModals)
-const whichModalAtom = atom((get) => {
-  const modals = get(modalAtom)
+const whichModal = (modals: typeof initialModals) => {
   let key: ModalType
   for (key in modals) {
     if (modals[key]) {
       return key
     }
   }
-})
+}
+
+const modalAtom = atom(initialModals)
 
 export const useModal = () => {
-  const [, setModals] = useAtom(modalAtom)
-  const [modal] = useAtom(whichModalAtom)
+  const [modals, setModals] = useAtom(modalAtom)
 
   const setter = useCallback(
     (key: ModalType) => (value: boolean) => {
@@ -56,7 +59,11 @@ export const useModal = () => {
   )
 
   return {
-    modal,
+    modal: whichModal(modals),
+    off: () => {
+      console.log('OFF...........')
+      setModals(initialModals)
+    },
     settings: {
       set: setter('settings'),
       toggle: toggler('settings'),
@@ -73,8 +80,13 @@ export const useModal = () => {
       set: setter('importer'),
       toggle: toggler('importer'),
     },
-    off: () => {
-      setModals(initialModals)
+    about: {
+      set: setter('about'),
+      toggle: toggler('about'),
+    },
+    help: {
+      set: setter('help'),
+      toggle: toggler('help'),
     },
   }
 }

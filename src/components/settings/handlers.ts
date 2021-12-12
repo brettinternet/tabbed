@@ -1,8 +1,5 @@
-import browser from 'webextension-polyfill'
-
 import { useSettings } from 'components/app/store'
 import { useModal } from 'components/modal/store'
-import { browserRuntime, browsers } from 'utils/env'
 import {
   SettingsData,
   ExtensionClickActions,
@@ -124,15 +121,6 @@ export const useHandlers = () => {
       modal.shortcuts.set(true)
     }
 
-  const handleOpenOptions: React.MouseEventHandler<HTMLButtonElement> =
-    async () => {
-      if (browserRuntime === browsers.CHROMIUM) {
-        await browser.tabs.create({
-          url: `chrome://extensions/?id=${browser.runtime.id}`,
-        })
-      }
-    }
-
   const handleChangeExcludedUrls = async (value: string) => {
     const excludedUrls: SettingsData['excludedUrls'] = {
       raw: value.trim(),
@@ -183,7 +171,6 @@ export const useHandlers = () => {
     handleOpenShortcuts,
     handleChangeSaveClosedWindow,
     handleChangeSaveIncognito,
-    handleOpenOptions,
     handleChangeSortFocusedWindowFirst,
     handleChangeExcludedUrls,
     handleChangeToggleExtensionClickAction,

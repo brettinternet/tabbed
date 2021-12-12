@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 
+import { About } from 'components/about'
+import { Help } from 'components/help'
 import { Settings } from 'components/settings'
 import { Shortcuts } from 'components/shortcuts'
 
@@ -26,6 +28,18 @@ const getModalValues = (modal: ActiveModal): ModalValues => {
       return {
         Content: Shortcuts,
         title: 'Shortcuts',
+        modalProps: { variant: 'card' },
+      }
+    case ModalOption.HELP:
+      return {
+        Content: Help,
+        title: 'Help',
+        modalProps: { variant: 'drawer-right' },
+      }
+    case ModalOption.ABOUT:
+      return {
+        Content: About,
+        title: 'About',
         modalProps: { variant: 'card' },
       }
     default:

@@ -3,6 +3,7 @@ import cn from 'classnames'
 import { Fragment } from 'react'
 
 import { Button } from 'components/button'
+import { ModalDropdown } from 'components/header/modal-dropdown'
 import { IconName } from 'components/icon'
 import { Valueof } from 'utils/helpers'
 
@@ -65,7 +66,7 @@ export const Modal: React.FC<ModalProps> = ({
         >
           <div
             className={cn(
-              'z-modal w-full min-h-screen md:min-h-full md:h-auto md:max-w-md overflow-hidden bg-white dark:bg-gray-800 shadow-xl border border-transparent dark:border-gray-700',
+              'z-modal w-full min-h-screen md:min-h-full md:h-auto md:max-w-md bg-white dark:bg-gray-800 shadow-xl border border-transparent dark:border-gray-700',
               variant === Variant.CARD
                 ? 'md:my-8 md:rounded-2xl'
                 : 'pl-3 md:rounded-tl-2xl md:rounded-bl-2xl'
@@ -86,12 +87,15 @@ export const Modal: React.FC<ModalProps> = ({
                   {title}
                 </Dialog.Title>
               )}
-              <Button
-                onClick={close}
-                aria-label="Close"
-                variant="transparent"
-                iconProps={{ name: IconName.CLOSE }}
-              />
+              <div className="flex space-x-2">
+                <ModalDropdown inModal />
+                <Button
+                  onClick={close}
+                  aria-label="Close"
+                  variant="transparent"
+                  iconProps={{ name: IconName.CLOSE }}
+                />
+              </div>
             </div>
             <div
               className={cn(

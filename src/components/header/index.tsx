@@ -1,9 +1,6 @@
 import cn, { Argument as ClassNames } from 'classnames'
 
-import { Dropdown } from 'components/dropdown'
-import { IconName } from 'components/icon'
-import { useModal } from 'components/modal/store'
-
+import { ModalDropdown } from './modal-dropdown'
 import { Search } from './search'
 
 type HeaderProps = {
@@ -11,8 +8,6 @@ type HeaderProps = {
 }
 
 export const Header: React.FC<HeaderProps> = ({ className }) => {
-  const { settings, shortcuts } = useModal()
-
   return (
     <header
       className={cn(
@@ -25,35 +20,7 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
           <Search />
         </li>
         <li className="md:ml-auto">
-          <Dropdown
-            buttonProps={{
-              variant: 'transparent',
-            }}
-            iconProps={{ name: IconName.MORE }}
-            menuItemsClassName="text-base text-gray-800"
-            actions={[
-              {
-                onClick: () => {
-                  shortcuts.set(true)
-                },
-                text: 'Shortcuts',
-                iconProps: {
-                  name: IconName.KEYBOARD,
-                  size: 'sm',
-                },
-              },
-              {
-                onClick: () => {
-                  settings.set(true)
-                },
-                text: 'Settings',
-                iconProps: {
-                  name: IconName.SETTINGS,
-                  size: 'sm',
-                },
-              },
-            ]}
-          />
+          <ModalDropdown />
         </li>
       </ul>
     </header>

@@ -10,7 +10,7 @@ import {
   getClass as getButtonClass,
 } from 'components/button'
 import { Icon, IconName, IconProps } from 'components/icon'
-import { Portal } from 'utils/window'
+import { Portal } from 'utils/portal'
 
 const MenuItem: React.FC<{ buttonProps: ButtonProps }> = ({ buttonProps }) => (
   <M.Item as="li">
@@ -42,6 +42,8 @@ type MenuProps = {
   dropdownOffset?: boolean
   iconProps?: IconProps
   menuItemsClassName?: ClassNames
+  portalEnabled?: boolean
+  animatedExit?: boolean
 } & (Actions | GroupedActions)
 
 export const Dropdown: React.FC<MenuProps> = (props) => {
@@ -52,13 +54,15 @@ export const Dropdown: React.FC<MenuProps> = (props) => {
     dropdownOffset,
     iconProps,
     menuItemsClassName,
+    portalEnabled = true,
+    animatedExit = true,
   } = props
   const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null)
   const [container, setContainer] = useState<HTMLDivElement | null>(null)
   const { styles, attributes } = usePopper(trigger, container, {
     placement: 'bottom-end',
     modifiers: dropdownOffset
-      ? [{ name: 'offset', options: { offset: [0, -32] } }]
+      ? [{ name: 'offset', options: { offset: [0, -40] } }]
       : undefined,
   })
 
@@ -89,7 +93,7 @@ export const Dropdown: React.FC<MenuProps> = (props) => {
           </M.Button>
           <AnimatePresence>
             {open && (
-              <Portal>
+              <Portal enabled={portalEnabled}>
                 <div
                   ref={setContainer}
                   style={styles.popper}
@@ -106,16 +110,21 @@ export const Dropdown: React.FC<MenuProps> = (props) => {
                       y: 0,
                       transition: { duration: 0.1 },
                     }}
-                    exit={{
-                      opacity: 0,
-                      scale: 0.95,
-                      y: '-0.5rem',
-                      transition: { duration: 0.15 },
-                    }}
+                    exit={
+                      animatedExit
+                        ? {
+                            opacity: 0,
+                            scale: 0.95,
+                            y: '-0.5rem',
+                            transition: { duration: 0.15 },
+                          }
+                        : undefined
+                    }
                     className={cn(
-                      'min-w-32 rounded shadow-lg bg-white dark:bg-gray-800',
-                      'actionGroups' in props &&
-                        'divide-y divide-gray-100 dark:divide-gray-600',
+                      'min-w-32 rounded shadow-lg bg-white dark:bg-gray-800 border border-transparent dark:border-gray-600',
+                      'actionGroups' in props
+                        ? 'divide-y divide-gray-100 dark:divide-gray-600'
+                        : 'p-1',
                       'ring-1 ring-black ring-opacity-5 focus:outline-none',
                       menuItemsClassName
                     )}
