@@ -34,18 +34,6 @@ export const ModalDropdown: React.FC<ModalDropdownProps> = ({
           },
           {
             onClick: () => {
-              settings.set(true)
-            },
-            text: 'Settings',
-            iconProps: {
-              name: IconName.SETTINGS,
-              size: 'sm',
-            },
-          },
-        ],
-        [
-          {
-            onClick: () => {
               help.set(true)
             },
             text: 'Help',
@@ -61,6 +49,18 @@ export const ModalDropdown: React.FC<ModalDropdownProps> = ({
             text: 'About',
             iconProps: {
               name: IconName.INFO,
+              size: 'sm',
+            },
+          },
+        ],
+        [
+          {
+            onClick: () => {
+              settings.set(true)
+            },
+            text: 'Settings',
+            iconProps: {
+              name: IconName.SETTINGS,
               size: 'sm',
             },
           },

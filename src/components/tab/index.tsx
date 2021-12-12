@@ -86,11 +86,11 @@ export const Tab: React.FC<TabProps> = ({
     <div
       aria-disabled={tab.activeSession && tab.active}
       className={cn(
-        'group relative overflow-hidden transition-color transition-opacity duration-100 flex flex-row rounded h-[90px] border-2',
+        'group relative overflow-hidden transition-color transition-opacity duration-100 flex flex-row rounded h-[90px]',
         isDragging ? 'shadow-xl' : 'shadow',
         active
-          ? 'bg-green-50 border-green-100 dark:bg-green-900 dark:border-green-800'
-          : 'bg-white dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 dark:border-gray-800',
+          ? 'bg-green-50 dark:bg-green-900'
+          : 'bg-white hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700',
         className
       )}
     >
