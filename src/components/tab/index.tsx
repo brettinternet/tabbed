@@ -117,12 +117,7 @@ export const Tab: React.FC<TabProps> = ({
           />
         )}
         {/* width is full width - image width (w-8) - padding right (p-3) */}
-        <div
-          className={cn(
-            'space-y-2',
-            `w-[calc(100%-${hasImage ? '2.75rem' : '1rem'})]`
-          )}
-        >
+        <div className="space-y-2 w-[calc(100%-2.75rem)]">
           {title && <div className="line-clamp-2">{title}</div>}
           <div className="truncate max-w-full inline-block text-blue-500">
             {url}
