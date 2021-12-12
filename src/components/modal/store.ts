@@ -61,7 +61,6 @@ export const useModal = () => {
   return {
     modal: whichModal(modals),
     off: () => {
-      console.log('OFF...........')
       setModals(initialModals)
     },
     settings: {

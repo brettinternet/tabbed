@@ -20,7 +20,7 @@ const Kbd: React.FC = ({ children }) => (
 )
 
 export const Shortcuts: React.FC = () => (
-  <div className="overflow-y-auto scroll space-y-6">
+  <div className="space-y-6">
     {/* <p className="text-gray-600 dark:text-gray-300">
       This extension supports context menus. Try right clicking the extension
       icon, or right clicking over different elements on the page.

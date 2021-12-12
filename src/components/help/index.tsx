@@ -29,7 +29,6 @@ const faqs: Faq[] = [
             <Button variant="link" shape="none" onClick={openOptions}>
               Configure extension options
             </Button>
-            .
           </>
         )}
       </span>
@@ -39,7 +38,7 @@ const faqs: Faq[] = [
 
 export const Help: React.FC = () => {
   return (
-    <div className="overflow-y-auto scroll space-y-9">
+    <div className="space-y-9">
       <div className="space-y-4">
         <H2>FAQ</H2>
         <div className="w-full max-w-md p-2 mx-auto space-y-1">
