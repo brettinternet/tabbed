@@ -29,25 +29,19 @@ module.exports = {
         xxs: '.6rem',
       },
       height: {
-        header: '50px',
-        'window-header': '71px',
-        'tab-list': 'calc(100vh - 121px - 0.4rem)', // screen - header - window-header - scrollbar width (x-axis)
-        'modal-header': '72px',
-        'modal-drawer-body': 'calc(100vh - 72px)', // screen - modal-header
-      },
-      minHeight: {
-        11: '2.75rem', // 44px - textarea in options.svelte
+        header: '3.2rem',
+        'window-header': '5.5rem',
+        tab: '5.5rem',
+        'tab-list': 'calc(100vh - 9.1rem)', // screen - header - window-header - scrollbar width (x-axis)
+        'modal-header': '5.2rem',
+        'modal-drawer-body': 'calc(100vh - 5.2rem)', // screen - modal-header
       },
       maxHeight: {
         modal: 'calc(100vh - 10rem)',
         'import-textarea': 'calc(100vh - 30rem)',
       },
       minWidth: {
-        5: '1.25rem', // `window-list.svelte` image container
         32: '8rem' /* 128px */, // dropdown menu item
-      },
-      maxWidth: {
-        'tab-content': 'calc(100% - 56px)', // 56 dropdown button parent
       },
       margin: {
         outline: '2px', // to allow space for focus ring outline
