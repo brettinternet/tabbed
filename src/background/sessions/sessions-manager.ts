@@ -32,7 +32,11 @@ import { Session } from './session'
 
 const logContext = 'background/sessions/sessions-manager'
 
-type SavedSessions = { previous: Session[]; saved: Session[] }
+type SavedSessions = {
+  currentWindowOrder: number[]
+  previous: Session[]
+  saved: Session[]
+}
 
 /**
  * Since subclasses are reasonably coupled anyway, we do use circular references
@@ -69,10 +73,14 @@ export class SessionsManager {
   }
 
   static async load(settings: Settings): Promise<SessionsManager> {
-    const { saved = [], previous = [] } =
-      (await LocalStorage.get<SavedSessions>(LocalStorage.key.SESSIONS)) || {}
+    const {
+      currentWindowOrder = [],
+      saved = [],
+      previous = [],
+    } = (await LocalStorage.get<SavedSessions>(LocalStorage.key.SESSIONS)) || {}
 
     const current = await this.getCurrent()
+    current.windows = current.sortWindows(current.windows, currentWindowOrder)
     return new SessionsManager({ current, saved, previous }, settings)
   }
 
@@ -82,6 +90,7 @@ export class SessionsManager {
   private async save() {
     this.validate()
     await LocalStorage.set(LocalStorage.key.SESSIONS, {
+      currentWindowOrder: this.current.windows.map(({ id }) => id),
       saved: this.saved,
       previous: this.previous,
     })

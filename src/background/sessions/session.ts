@@ -64,14 +64,19 @@ export class Session {
       const updatedWindows = windows.map((win) =>
         SessionWindow.fromWindow(win, true)
       )
-      const sortedWindows = updatedWindows.sort(
-        (a, b) =>
-          this.windows.findIndex(({ id }) => id === a.id) -
-          this.windows.findIndex(({ id }) => id === b.id)
+      this.windows = this.sortWindows(
+        updatedWindows,
+        this.windows.map(({ id }) => id)
       )
-      this.windows = sortedWindows
       this.title = generateSessionTitle(this.windows)
     }
+  }
+
+  sortWindows(windows: SessionWindow[], ids: number[]) {
+    return windows.sort(
+      (a, b) =>
+        ids.findIndex((id) => id === a.id) - ids.findIndex((id) => id === b.id)
+    )
   }
 
   newId() {
