@@ -1,6 +1,48 @@
 # Tabbed
 
-Manage your tabs
+Organize your browser sessions and tabs.
+
+## Privacy
+
+See this extension's [Privacy Policy](./PRIVACYPOLICY.md).
+
+## Develop
+
+### Setup
+
+```
+npm install
+```
+
+### Run
+
+```
+npm start
+```
+
+#### Chrome
+
+Navigate to `chrome://extensions`, enable "Developer mode", select "Load unpacked" and open the `dist/` folder. See [Chrome's developer instructions](https://developer.chrome.com/docs/extensions/mv3/getstarted/).
+
+#### Firefox
+
+Navigate to `about:debugging`, select "This Firefox", "Load Temporary Addon-on..." and open the `dist/` folder. See [Firefox's Extension Workshop](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/).
+
+### Test
+
+```
+npm test
+```
+
+### Notes
+
+- [Differences between API implementations](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Differences_between_API_implementations)
+- [Browser support for JavaScript APIs](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Browser_support_for_JavaScript_APIs)
+- [rollup-plugin-chrome-extension supports Firefox >=v89](https://github.com/extend-chrome/rollup-plugin-chrome-extension#%EF%B8%8F-what-about-firefox-support)
+
+### Related issues
+
+- [Safari support](https://github.com/mozilla/webextension-polyfill/issues/234)
 
 <!--
 TODO:
