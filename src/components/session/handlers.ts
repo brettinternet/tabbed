@@ -13,6 +13,8 @@ import {
   DeleteSessionsMessage,
   MESSAGE_TYPE_UPDATE_SESSION,
   UpdateSessionMessage,
+  MESSAGE_TYPE_MOVE_WINDOWS,
+  MoveWindowsMessage,
   MESSAGE_TYPE_MOVE_TABS,
   MESSAGE_TYPE_DOWNLOAD_SESSIONS,
   MESSAGE_TYPE_QUERY_SESSION,
@@ -104,6 +106,14 @@ export const useHandlers = () => {
   )
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  const moveWindows = useCallback(
+    tryToastError(
+      createMessageAction<MoveWindowsMessage>(MESSAGE_TYPE_MOVE_WINDOWS)
+    ),
+    [tryToastError]
+  )
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const moveTabs = useCallback(
     tryToastError(createMessageAction<MoveTabsMessage>(MESSAGE_TYPE_MOVE_TABS)),
     [tryToastError]
@@ -126,6 +136,7 @@ export const useHandlers = () => {
     openSession,
     deleteSession,
     renameSession,
+    moveWindows,
     moveTabs,
     downloadSessions,
   }

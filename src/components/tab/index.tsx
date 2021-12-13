@@ -69,15 +69,9 @@ export const Tab: React.FC<TabProps> = ({
     // groupId,
   } = tab
 
-  const handleOpen:
-    | React.MouseEventHandler<HTMLButtonElement | HTMLDivElement>
-    | undefined = tab.activeSession
-    ? (ev) => {
-        ev.preventDefault()
-        handleOpenTab({ sessionId, tabs: [{ windowId, tabIds: [tabId] }] })
-        return false
-      }
-    : undefined
+  const handleOpen = () => {
+    handleOpenTab({ sessionId, tabs: [{ windowId, tabIds: [tabId] }] })
+  }
 
   const hasImage = !!favIconUrl
 

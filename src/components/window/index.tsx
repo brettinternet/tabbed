@@ -1,7 +1,6 @@
 import cn, { Argument as ClassNames } from 'classnames'
 
-import { ButtonProps } from 'components/button'
-import { Dropdown } from 'components/dropdown'
+import { Dropdown, DropdownButtonProps } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
 import { SessionWindowData } from 'utils/sessions'
 
@@ -20,8 +19,8 @@ type WindowHeaderProps = {
 const getStateActions = (
   currentState: SessionWindowData['state'],
   updateWindowState: (state: SessionWindowData['state']) => void
-): ButtonProps[] => {
-  const normal: ButtonProps = {
+): DropdownButtonProps[] => {
+  const normal: DropdownButtonProps = {
     onClick: () => {
       updateWindowState('normal')
     },
@@ -29,7 +28,7 @@ const getStateActions = (
     iconProps: { name: IconName.WINDOW },
   }
 
-  const minimize: ButtonProps = {
+  const minimize: DropdownButtonProps = {
     onClick: () => {
       updateWindowState('minimized')
     },
@@ -37,7 +36,7 @@ const getStateActions = (
     iconProps: { name: IconName.MINIMIZE },
   }
 
-  const fullscreen: ButtonProps = {
+  const fullscreen: DropdownButtonProps = {
     onClick: () => {
       updateWindowState('fullscreen')
     },
@@ -77,9 +76,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
     handleUpdateWindow,
   } = useHandlers()
 
-  const handleOpen: React.MouseEventHandler<
-    HTMLDivElement | HTMLButtonElement
-  > = () => {
+  const handleOpen = () => {
     if (!focused) {
       handleOpenWindow({ sessionId, windowIds: [windowId] })
     }

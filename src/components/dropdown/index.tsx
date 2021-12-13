@@ -12,28 +12,30 @@ import {
 import { Icon, IconName, IconProps } from 'components/icon'
 import { Portal } from 'utils/portal'
 
-const MenuItem: React.FC<{ buttonProps: ButtonProps }> = ({ buttonProps }) => (
-  <M.Item as="li">
-    {({ active }) => (
-      <Button
-        variant="none"
-        shape="item"
-        {...buttonProps}
-        className={cn(
-          buttonProps.className,
-          active && 'bg-gray-200 dark:bg-gray-700'
-        )}
-      />
-    )}
-  </M.Item>
+export type DropdownButtonProps = {
+  onClick: () => void
+} & Omit<ButtonProps, 'onClick'>
+
+const MenuItem: React.FC<{ buttonProps: DropdownButtonProps }> = ({
+  buttonProps,
+}) => (
+  <M.Item
+    as={Button}
+    variant="none"
+    shape="item"
+    {...buttonProps}
+    className={({ active }) =>
+      cn(buttonProps.className, active && 'bg-gray-200 dark:bg-gray-700')
+    }
+  />
 )
 
 type Actions = {
-  actions: ButtonProps[]
+  actions: DropdownButtonProps[]
 }
 
 type GroupedActions = {
-  actionGroups: ButtonProps[][]
+  actionGroups: DropdownButtonProps[][]
 }
 
 type MenuProps = {
@@ -102,7 +104,7 @@ export const Dropdown: React.FC<MenuProps> = (props) => {
                 >
                   <M.Items
                     static
-                    as={motion.ul}
+                    as={motion.div}
                     initial={{ opacity: 0, scale: 0.95, y: '-0.5rem' }}
                     animate={{
                       opacity: 1,
