@@ -31,14 +31,16 @@ export const useToasts = () => {
   const [_toasts, setToasts] = useAtom(toastsAtom)
 
   const add = (toastOptions: ToastOptions) => {
+    const id = uuidv4()
     const toast = {
       autoDismiss: true,
       duration: 4000,
       variant: MessageVariant.NONE,
       ...toastOptions,
-      id: uuidv4(),
+      id,
     }
     setToasts((toasts) => [...toasts, toast])
+    return id
   }
 
   const update = (id: Toast['id'], toastOptions: ToastOptions) => {
