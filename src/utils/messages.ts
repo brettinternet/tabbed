@@ -10,6 +10,19 @@ import {
 } from 'utils/sessions'
 import type { SettingsData } from 'utils/settings'
 
+export const sendMessage = <
+  T extends { type: string; value?: unknown },
+  R = void
+>(
+  type: T['type'],
+  value?: T['value']
+): Promise<R> => {
+  return browser.runtime.sendMessage({
+    type,
+    value,
+  })
+}
+
 type MaybeValue<T> = T extends { value: unknown } ? [T['value']] : [undefined?]
 
 /**
@@ -33,10 +46,8 @@ export const createMessageAction =
   }
 
 export const createMessageListener = <
-  T extends { value: unknown | undefined; type: string },
-  C extends (value: T['value']) => void = (
-    value: T['value']
-  ) => void | Promise<void>
+  T extends { value?: unknown; type: string },
+  C extends (value: T['value']) => void = (value: T['value']) => void
 >(
   type: T['type'],
   handler: C,
@@ -45,7 +56,9 @@ export const createMessageListener = <
   browser.runtime.onMessage.addListener((message: T) => {
     if (message.type === type) {
       const { value } = message
-      handler(parse && value ? JSON.parse(value as string) : value)
+      return Promise.resolve(
+        handler(parse && value ? JSON.parse(value as string) : value)
+      )
     }
   })
 }
@@ -79,12 +92,6 @@ export type UpdateSettingsMessage = MessageWithValue<
   Partial<SettingsData>
 >
 export type UpdateSettingsResponse = SettingsData
-
-export const MESSAGE_TYPE_UPDATE_LOG_LEVEL = 'update_log_level'
-export type UpdateLogLevelMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_UPDATE_LOG_LEVEL,
-  boolean
->
 
 // session list
 export const MESSAGE_TYPE_GET_SESSIONS_MANAGER_DATA =
@@ -213,6 +220,21 @@ export type PatchWindowMessage = MessageWithValue<
   { sessionId: string; windowId: number; options: PatchWindowOptions }
 >
 
+export const MESSAGE_TYPE_MOVE_WINDOWS = 'move_windows'
+export type MoveWindowsMessage = MessageWithValue<
+  typeof MESSAGE_TYPE_MOVE_WINDOWS,
+  {
+    from: {
+      sessionId: string
+      windowIds: number[]
+    }
+    to: {
+      sessionId: string
+      index: number
+    }
+  }
+>
+
 export type PatchTabOptions = Pick<
   Tabs.UpdateUpdatePropertiesType,
   'url' | 'active' | 'highlighted' | 'pinned' | 'muted'
@@ -233,10 +255,16 @@ export const MESSAGE_TYPE_MOVE_TABS = 'move_tabs'
 export type MoveTabsMessage = MessageWithValue<
   typeof MESSAGE_TYPE_MOVE_TABS,
   {
-    sessionId: string
-    windowId: number
-    tabIds: number | number[]
-    index: Tabs.MoveMovePropertiesType['index']
+    from: {
+      sessionId: string
+      windowId: number
+      tabIds: number[]
+    }
+    to: {
+      sessionId: string
+      windowId: number
+      index: Tabs.MoveMovePropertiesType['index']
+    }
   }
 >
 

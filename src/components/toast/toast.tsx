@@ -44,7 +44,7 @@ export const Toast: React.FC<ToastProps> = ({
       }}
       variant={variant}
       title={title}
-      message={message}
+      body={message}
       onDismiss={() => {
         remove(id)
       }}

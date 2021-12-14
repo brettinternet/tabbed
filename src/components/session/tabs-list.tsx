@@ -105,7 +105,9 @@ export const TabsList: React.FC<TabsListProps> = ({
       dropSnapshot: DroppableStateSnapshot
     ) => (
       <div
+        ref={dropProvided.innerRef}
         className={cn(
+          'relative p-2',
           className,
           getWrapperBackground(
             dropSnapshot.isDraggingOver,
@@ -114,15 +116,13 @@ export const TabsList: React.FC<TabsListProps> = ({
         )}
         {...dropProvided.droppableProps}
       >
-        <div ref={dropProvided.innerRef} className="p-2 relative min-h-full">
-          <MemoizedInnerTabList
-            tabs={win.tabs}
-            sessionId={sessionId}
-            windowId={windowId}
-            isWindowDragging={isDragging}
-          />
-          {dropProvided.placeholder}
-        </div>
+        <MemoizedInnerTabList
+          tabs={win.tabs}
+          sessionId={sessionId}
+          windowId={windowId}
+          isWindowDragging={isDragging}
+        />
+        {dropProvided.placeholder}
       </div>
     )}
   </Droppable>

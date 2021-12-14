@@ -7,7 +7,7 @@ export const repoUrl = 'https://github.com/brettinternet/tabbed'
 export const licenseUrl = `${repoUrl}/blob/main/LICENSE.md`
 export const privacyPolicyUrl = `${repoUrl}/blob/main/PRIVACYPOLICY.md`
 
-export const buildTime = process.env.BUILD_TIME
+export const buildTime = process.env.BUILD_TIME || new Date().toISOString()
 export const buildVersion = process.env.BUILD_VERSION
 export const appName = process.env.APP_NAME || 'Tabbed'
 export const isProd = process.env.NODE_ENV === 'production'

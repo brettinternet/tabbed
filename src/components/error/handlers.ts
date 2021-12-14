@@ -1,4 +1,5 @@
-import { useCallback, useState } from 'react'
+import { atom, useAtom } from 'jotai'
+import { useCallback } from 'react'
 
 import { useToasts } from 'components/toast/store'
 import { isConnectionFailed } from 'utils/error'
@@ -14,15 +15,17 @@ const useToastBackgroundError = <E extends { message: string }>(
   const { add: addToast } = useToasts()
   return useCallback(
     (error: E) => {
-      log.error(logContext, error)
       const { message } = error
       if (isConnectionFailed(error) && !disconnectedToastId) {
+        log.warn(logContext, error)
         const id = addToast({
           message: 'Pending browser connection',
           variant: 'warn',
+          autoDismiss: false,
         })
         setDisconnectedToastId(id)
       } else {
+        log.error(logContext, error)
         addToast({ message, variant: 'error' })
       }
     },
@@ -56,12 +59,15 @@ const useTryCatch = <E = Error>(
   }
 }
 
+const disconnectedAtom = atom<string | undefined>(undefined)
+
 /**
  * Returns function that tries callback, and toasts error on failure
  * If error is failed connection then toast warning that clears on the next success
  */
 export const useTryToastError = (logContext?: string) => {
-  const [disconnectedToastId, setDisconnectedToastId] = useState<string>()
+  const [disconnectedToastId, setDisconnectedToastId] =
+    useAtom(disconnectedAtom)
   const toastError = useToastBackgroundError(
     disconnectedToastId,
     setDisconnectedToastId,

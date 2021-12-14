@@ -25,7 +25,7 @@ export const App = () => {
       } else {
         addToast({
           title: 'Error',
-          message: 'Unable to load app. Please refresh the extension.',
+          message: 'Unable to load app settings. Please refresh the extension.',
           variant: 'error',
           autoDismiss: false,
         })
