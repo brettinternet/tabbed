@@ -5,7 +5,7 @@ import {
   OnBeforeCaptureResponder,
 } from 'react-beautiful-dnd'
 
-import { reorder, spliceSeparate, Valueof } from 'utils/helpers'
+import { isDefined, reorder, spliceSeparate, Valueof } from 'utils/helpers'
 import {
   SessionsManagerData,
   SessionTabData,
@@ -95,18 +95,27 @@ const reorderTabs = ({
       target = windows[currentWindowIndex].tabs[source.index]
     }
 
+    const windowId: string | undefined = windows[nextWindowIndex]?.id
+
     void moveTabs({
       from: {
         sessionId,
         windowId: windows[currentWindowIndex].id,
         tabIds: [target.id],
       },
-      to: {
-        sessionId,
-        windowId: windows[nextWindowIndex]?.id,
-        index: destination.index,
-        pinned: target.pinned,
-      },
+      to: isDefined(windowId)
+        ? {
+            sessionId,
+            index: destination.index,
+            pinned: target.pinned,
+            windowId,
+          }
+        : {
+            sessionId,
+            pinned: target.pinned,
+            incognito:
+              destination.droppableId === DroppableId.NEW_INCOGNITO_WINDOW,
+          },
     })
   }
 

@@ -46,7 +46,7 @@ npm test
 
 <!--
 TODO:
-fix move
+improve round trip with move - send back only active sessions
 fix scroll x axis with tab
 clean up backend, make more functional?
   windows/tabs with id are active? otherwise remove when saved?

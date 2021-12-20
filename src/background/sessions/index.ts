@@ -192,13 +192,11 @@ export const startListeners = async (
         const toWindow = toSession.findWindow(to.windowId)
         await toWindow.addTabs(tabs, to.index, to.pinned)
       } else {
-        const { incognito, focused, state, height, width, top, left } =
-          fromWindow
-
+        const { incognito, state, height, width, top, left } = fromWindow
         await CurrentSessionWindow.from({
           tabs,
           incognito: isDefined(to.incognito) ? to.incognito : incognito,
-          focused,
+          focused: false,
           state,
           height,
           width,

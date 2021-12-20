@@ -95,7 +95,7 @@ export class CurrentSessionWindow {
         tabs: win.tabs.map((tab) => new CurrentSessionTab(tab)),
       })
     } else {
-      const { window, tabs } = await openWindow({ ...win })
+      const { window, tabs } = await openWindow(win)
       const assignedWindowId = window?.id
       if (window && tabs && isDefined(assignedWindowId)) {
         return new CurrentSessionWindow({

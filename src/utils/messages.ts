@@ -285,7 +285,7 @@ export type MoveTabsMessage = MessageWithValue<
         index: Tabs.MoveMovePropertiesType['index']
       },
       {
-        windowId: undefined
+        windowId?: undefined
         incognito?: boolean // when no windowId is defined, otherwise incognito state depends on existing window
       }
     >

@@ -324,6 +324,7 @@ type WindowOptions = {
  * @returns newly opened window ID
  */
 export const openWindow = async (w: WindowOptions) => {
+  console.log('w: ', w)
   const options: Windows.CreateCreateDataType = {
     state: w.state,
     focused: w.focused,
