@@ -78,8 +78,6 @@ export const Tab: React.FC<TabProps> = ({
     handleOpenTab({ sessionId, tabs: [{ windowId, tabIds: [tabId] }] })
   }
 
-  const hasImage = !!favIconUrl
-
   // TODO: animate presence (delete) https://www.framer.com/docs/animate-presence/
   return (
     <div
@@ -107,13 +105,12 @@ export const Tab: React.FC<TabProps> = ({
         onDoubleClick={handleOpen}
         className="flex flex-row p-3 w-full max-w-full"
       >
-        {hasImage && (
-          <Img
-            src={favIconUrl}
-            className="w-8 h-8 min-w-min overflow-hidden mr-3"
-            alt={title || 'Site image'}
-          />
-        )}
+        <Img
+          src={favIconUrl}
+          className="mr-3"
+          alt={title || 'Site image'}
+          url={url}
+        />
         {/* width is full width - image width (w-8) - padding right (p-3) */}
         <div className="space-y-2 w-[calc(100%-2.75rem)]">
           {title && <div className="line-clamp-2">{title}</div>}
