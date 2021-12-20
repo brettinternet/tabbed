@@ -1,87 +1,153 @@
 import { Type } from 'class-transformer'
-import { v4 as uuidv4 } from 'uuid'
 
 import { closeWindow, getAllWindows } from 'background/browser'
 import { BackgroundError } from 'background/error'
-import { isDefined } from 'utils/helpers'
+import { isDefined, reorder } from 'utils/helpers'
 import {
-  SessionClass,
+  CurrentSessionClass,
+  CurrentSessionWindowData,
+  SavedSessionClass,
+  SavedSessionData,
   SessionData,
-  SessionStatus,
-  UpdateSessionData,
+  SessionWindowData,
+  StoredCurrentSessionData,
+  UpdateCurrentSessionData,
+  UpdateSavedSessionData,
 } from 'utils/sessions'
 
+import { createId } from './generate'
 import { generateSessionTitle } from './generate'
-import { SessionWindow } from './session-window'
+import { SavedSessionTab } from './session-tab'
+import { CurrentSessionWindow, SavedSessionWindow } from './session-window'
 
 const logContext = 'background/sessions/session'
 
-export interface Session extends SessionClass {}
-export class Session {
-  @Type(() => SessionWindow)
-  windows: SessionWindow[]
+const findWindow = <T extends SessionWindowData>(
+  windows: T[],
+  id: T['id']
+): T => {
+  const win = windows.find((w) => w.id === id)
+  if (!win) {
+    throw new BackgroundError(logContext, `Unable to find window by ID ${id}`)
+  }
+
+  return win
+}
+
+const findWindowIndex = <T extends SessionWindowData>(
+  windows: T[],
+  id: T['id']
+): number => {
+  const index = windows.findIndex((w) => w.id === id)
+  if (index === -1) {
+    throw new BackgroundError(logContext, `Unable to find window by ID ${id}`)
+  }
+
+  return index
+}
+
+/**
+ * Session with active windows/tabs
+ */
+export interface CurrentSession extends CurrentSessionClass {}
+export class CurrentSession {
+  @Type(() => CurrentSessionWindow)
+  windows: CurrentSessionWindow[]
 
   constructor({
-    id,
     title,
     windows,
     createdDate,
-    status,
-    active = false,
-  }: Omit<SessionData<SessionWindow>, 'id'> & { id?: string }) {
+  }: Omit<SessionData<CurrentSessionWindow>, 'id' | 'lastModifiedDate'>) {
     const now = new Date()
 
-    this.active = active
-    this.id = id || this.newId()
+    this.id = createId('session')
     this.title = title
     this.windows = windows
     this.createdDate = createdDate || now
     this.lastModifiedDate = now
-    this.status = status
   }
 
-  static async createFromCurrentWindows(
-    options?: Partial<
-      Omit<SessionData<SessionWindow>, 'windows' | 'active' | 'status'>
-    >
-  ): Promise<Session> {
+  static async fromBrowser({
+    title,
+    windowOrder,
+    ...options
+  }: Partial<
+    Omit<
+      SessionData<CurrentSessionWindow>,
+      'id' | 'windows' | 'active' | 'status'
+    > & {
+      windowOrder: StoredCurrentSessionData['windows']
+    }
+  > = {}): Promise<CurrentSession> {
     const browserWindows = await getAllWindows({ populate: true }, true)
-    const windows: SessionWindow[] = browserWindows.map<SessionWindow>((win) =>
-      SessionWindow.fromWindow(win, true)
-    )
-    return new Session({
-      windows,
-      status: SessionStatus.CURRENT,
-      active: true,
-      title: generateSessionTitle(windows),
+    const windows: CurrentSessionWindow[] =
+      browserWindows.map<CurrentSessionWindow>((win) =>
+        CurrentSessionWindow.fromWindow(win)
+      )
+    return new CurrentSession({
+      windows: windowOrder
+        ? CurrentSession.sortWindows(
+            windows,
+            windowOrder.map(({ id }) => id)
+          )
+        : windows,
+      title: title || generateSessionTitle(windows),
       ...options,
     })
   }
 
-  async updateCurrentWindows() {
-    if (this.status === SessionStatus.CURRENT) {
-      const windows = await getAllWindows({ populate: true }, true)
-      const updatedWindows = windows.map((win) =>
-        SessionWindow.fromWindow(win, true)
+  async updateFromBrowser() {
+    const windows = await getAllWindows({ populate: true }, true)
+    const updatedWindows = windows.map((win) => {
+      return CurrentSessionWindow.fromWindow(
+        win,
+        isDefined(win.id)
+          ? this.searchWindowByAssignedId(win.id)?.id
+          : undefined
       )
-      this.windows = this.sortWindows(
-        updatedWindows,
-        this.windows.map(({ id }) => id)
-      )
-      this.title = generateSessionTitle(this.windows)
-    }
-  }
-
-  sortWindows(windows: SessionWindow[], ids: number[]) {
-    return windows.sort(
-      (a, b) =>
-        ids.findIndex((id) => id === a.id) - ids.findIndex((id) => id === b.id)
+    })
+    this.windows = CurrentSession.sortWindows(
+      updatedWindows,
+      this.windows.map(({ id }) => id)
     )
+    this.title = generateSessionTitle(this.windows)
   }
 
-  newId() {
-    this.id = uuidv4()
-    return this.id
+  static sortWindows(
+    windows: CurrentSessionWindow[],
+    ids: CurrentSessionWindow['id'][]
+  ) {
+    return windows.sort((a, b) => {
+      const aIndex = ids.findIndex((id) => id === a.id)
+      const bIndex = ids.findIndex((id) => id === b.id)
+
+      // sort missing (new) values to end
+      if (aIndex === -1) {
+        return 1
+      }
+
+      if (bIndex === -1) {
+        return -1
+      }
+
+      // otherwise match sort to `ids`
+      return aIndex - bIndex
+    })
+  }
+
+  searchWindowByAssignedId(
+    assignedWindowId: CurrentSessionWindowData['assignedWindowId']
+  ) {
+    return this.windows.find((w) => w.assignedWindowId === assignedWindowId)
+  }
+
+  findWindow(id: SessionWindowData['id']) {
+    return findWindow(this.windows, id)
+  }
+
+  findWindowIndex(id: SessionWindowData['id']) {
+    return findWindowIndex(this.windows, id)
   }
 
   async open() {
@@ -90,54 +156,115 @@ export class Session {
     return results.filter(isDefined)
   }
 
-  // addWindow(win: CreateWindowOptions) {
-  //   new SessionWindow()
-  // }
-
-  findWindow(windowId: number) {
-    const win = this.windows.find((w) => w.id === windowId)
-    if (!win) {
-      throw new BackgroundError(
-        logContext,
-        `Unable to find window by ID ${windowId}`
-      )
-    }
-
-    return win
+  async addWindow({
+    window: win,
+    focused,
+  }: {
+    window: CurrentSessionWindow | SavedSessionWindow
+    focused?: boolean
+  }) {
+    await win.open(focused)
   }
 
-  findWindowIndex(windowId: number) {
-    const index = this.windows.findIndex((w) => w.id === windowId)
-    if (index === -1) {
-      throw new BackgroundError(
-        logContext,
-        `Unable to find window by ID ${windowId}`
-      )
-    }
-
-    return index
-  }
-
-  update({ title, windows }: UpdateSessionData) {
+  update({ title }: UpdateCurrentSessionData) {
     this.title = title || this.title
-    this.windows = windows || this.windows
     this.lastModifiedDate = new Date()
   }
 
-  removeWindow(windowId: number) {
-    if (this.active) {
-      closeWindow(windowId)
-    } else {
-      this.deleteWindow(windowId)
-    }
+  async removeWindow(id: SessionWindowData['id']) {
+    const win = this.findWindow(id)
+    await closeWindow(win.assignedWindowId)
   }
 
-  private deleteWindow(windowId: number) {
-    const index = this.findWindowIndex(windowId)
-    if (index > -1) {
-      this.windows.splice(index, 1)
+  reorderWindows(fromIndex: number, toIndex: number) {
+    this.windows = reorder(this.windows, fromIndex, toIndex)
+  }
+}
+
+/**
+ * Saved session
+ */
+export interface SavedSession extends SavedSessionClass {}
+export class SavedSession {
+  @Type(() => SavedSessionWindow)
+  windows: SavedSessionWindow[]
+
+  constructor({
+    title,
+    windows,
+    createdDate,
+  }: Omit<
+    SavedSessionData<SavedSessionWindow>,
+    'id' | 'lastModifiedDate' | 'userSavedDate'
+  >) {
+    const now = new Date()
+
+    this.id = createId('session')
+    this.title = title
+    this.windows = windows
+    this.createdDate = createdDate || now
+    this.lastModifiedDate = now
+    this.userSavedDate = now
+  }
+
+  static from<T extends Omit<SessionData, 'id'>>(session: T): SavedSession {
+    return new SavedSession({
+      ...session,
+      windows: session.windows.map(
+        (win) =>
+          new SavedSessionWindow({
+            ...win,
+            tabs: win.tabs.map((tab) => new SavedSessionTab(tab)),
+          })
+      ),
+    })
+  }
+
+  async open() {
+    const tasks = this.windows.map((win) => win.open())
+    const results = await Promise.all(tasks)
+    return results.filter(isDefined)
+  }
+
+  findWindow(id: SessionWindowData['id']) {
+    return findWindow(this.windows, id)
+  }
+
+  findWindowIndex(id: SessionWindowData['id']) {
+    return findWindowIndex(this.windows, id)
+  }
+
+  async addWindow({
+    window: win,
+    index,
+  }: {
+    window: SavedSessionWindow | CurrentSessionWindow
+    index?: number
+  }) {
+    const savedWindow = SavedSessionWindow.from(win)
+    if (isDefined(index)) {
+      this.windows.splice(index, 0, savedWindow)
     } else {
-      new BackgroundError(logContext, `Unable to find window by ID ${windowId}`)
+      this.windows.push(savedWindow)
     }
+    return savedWindow
+  }
+
+  update({ title }: UpdateSavedSessionData) {
+    this.title = title || this.title
+    this.lastModifiedDate = new Date()
+  }
+
+  removeWindow(id: SavedSessionWindow['id']) {
+    const index = this.findWindowIndex(id)
+    if (index === -1) {
+      throw new BackgroundError(logContext, `Unable to find window by ID ${id}`)
+    }
+    const [removed] = this.windows.splice(index, 1)
+    return removed
+  }
+
+  reorderWindows(fromIndex: number, toIndex: number) {
+    this.windows = reorder(this.windows, fromIndex, toIndex)
   }
 }

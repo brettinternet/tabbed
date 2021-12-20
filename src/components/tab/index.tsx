@@ -2,7 +2,12 @@ import cn, { Argument as ClassNames } from 'classnames'
 
 import { Dropdown } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
-import { SessionData, SessionWindowData, SessionTabData } from 'utils/sessions'
+import {
+  isCurrentSessionTab,
+  SessionData,
+  SessionWindowData,
+  SomeSessionTabData,
+} from 'utils/sessions'
 
 import { useHandlers } from './handlers'
 import { Img } from './img'
@@ -42,7 +47,7 @@ export type TabProps = {
   windowId: SessionWindowData['id']
   sessionId: SessionData['id']
   isDragging: boolean
-  tab: SessionTabData
+  tab: SomeSessionTabData
   className?: ClassNames
 }
 
@@ -78,7 +83,6 @@ export const Tab: React.FC<TabProps> = ({
   // TODO: animate presence (delete) https://www.framer.com/docs/animate-presence/
   return (
     <div
-      aria-disabled={tab.activeSession && tab.active}
       className={cn(
         'group relative overflow-hidden transition-color transition-opacity duration-100 flex flex-row rounded h-tab',
         isDragging ? 'shadow-xl' : 'shadow',
@@ -106,7 +110,7 @@ export const Tab: React.FC<TabProps> = ({
         {hasImage && (
           <Img
             src={favIconUrl}
-            className="w-8 h-8 min-w-min overflow-hidden mr-3 rounded-full"
+            className="w-8 h-8 min-w-min overflow-hidden mr-3"
             alt={title || 'Site image'}
           />
         )}
@@ -118,12 +122,12 @@ export const Tab: React.FC<TabProps> = ({
           </div>
         </div>
       </div>
-      <div className="absolute h-full right-0 flex items-start space-x-2 p-3 transition-opacity duration-75 opacity-0 group-hover:opacity-100">
+      <div className="absolute h-full right-0 flex items-start space-x-2 p-3">
         <Dropdown
           dropdownOffset
           buttonProps={{
             className:
-              'bg-gray-200 border border-gray-400 dark:bg-gray-800 dark:border-gray-600',
+              'transition-opacity duration-75 opacity-0 group-hover:opacity-100 focus:opacity-100 bg-gray-200 border border-gray-400 dark:bg-gray-800 dark:border-gray-600',
           }}
           actionGroups={[
             [
@@ -161,9 +165,9 @@ export const Tab: React.FC<TabProps> = ({
                     tabs: [{ windowId, tabIds: [tabId] }],
                   })
                 },
-                text: tab.activeSession ? 'Close' : 'Remove',
+                text: isCurrentSessionTab(tab) ? 'Close' : 'Remove',
                 iconProps: {
-                  name: tab.activeSession
+                  name: isCurrentSessionTab(tab)
                     ? IconName.WINDOW_REMOVE
                     : IconName.DELETE,
                 },

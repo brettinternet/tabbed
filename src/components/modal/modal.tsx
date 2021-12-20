@@ -66,10 +66,10 @@ export const Modal: React.FC<ModalProps> = ({
         >
           <div
             className={cn(
-              'z-modal w-full min-h-screen md:min-h-full md:h-auto md:max-w-md bg-white dark:bg-gray-800 shadow-xl border border-transparent dark:border-gray-700',
+              'z-modal w-full min-h-screen md:min-h-full md:h-auto md:max-w-md bg-white dark:bg-gray-800 shadow-xl dark:shadow-gray-900 border border-transparent dark:border-gray-700',
               variant === Variant.CARD
                 ? 'md:my-8 md:rounded-2xl'
-                : 'pl-3 md:rounded-tl-2xl md:rounded-bl-2xl'
+                : 'md:rounded-tl-2xl md:rounded-bl-2xl'
             )}
           >
             <div

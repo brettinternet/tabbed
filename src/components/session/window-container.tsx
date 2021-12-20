@@ -39,7 +39,7 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
   index,
   window: win,
 }) => (
-  <Draggable draggableId={`${sessionId}-${win.id}`} index={index}>
+  <Draggable draggableId={`window-${sessionId}-${win.id}`} index={index}>
     {(
       dragProvided: DraggableProvided,
       dragSnapshot: DraggableStateSnapshot
@@ -48,7 +48,7 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
         style={{ height: dragSnapshot.isDragging ? '40px' : undefined }}
         className={cn(
           // TODO: change based on scroll direction
-          !dragSnapshot.isDragging && (index === 0 ? 'snap-start' : 'snap-end'),
+          // !dragSnapshot.isDragging && (index === 0 ? 'snap-start' : 'snap-end'),
           'transition-colors duration-150 pb-3 md:pb-0 md:w-80 lg:w-96 md:min-w-[20rem] lg:min-w-[24rem]',
           getContainerBackground({
             isDragging: dragSnapshot.isDragging,
@@ -70,7 +70,7 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
           windowId={win.id}
           window={win}
           className="md:h-tab-list md:overflow-y-scroll md:scroll md:overflow-x-hidden"
-          isDragging={dragSnapshot.isDragging}
+          isWindowDragging={dragSnapshot.isDragging}
         />
       </div>
     )}

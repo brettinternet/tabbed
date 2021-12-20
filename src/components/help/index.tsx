@@ -3,6 +3,7 @@ import cn from 'classnames'
 
 import { Button } from 'components/button'
 import { Icon, IconName } from 'components/icon'
+import { Link } from 'components/link'
 import { H2 } from 'components/markup/h2'
 import { Shortcuts } from 'components/shortcuts'
 import { browserRuntime, browsers } from 'utils/env'
@@ -16,13 +17,37 @@ type Faq = {
 
 const faqs: Faq[] = [
   {
-    q: 'Do you offer technical support?',
-    a: 'Not at this time.',
+    q: 'Where can I submit feature requests?',
+    a: (
+      <Link
+        href="https://github.com/brettinternet/tabbed/discussions/new"
+        newWindow
+      >
+        Submit a feature request
+      </Link>
+    ),
+  },
+  {
+    q: 'I found an issue. How can I report it?',
+    a: (
+      <>
+        <Link
+          href="https://github.com/brettinternet/tabbed/issues/new"
+          newWindow
+        >
+          Submit a ticket
+        </Link>{' '}
+        or{' '}
+        <Link href="https://github.com/brettinternet/tabbed/issues" newWindow>
+          view existing issues
+        </Link>
+      </>
+    ),
   },
   {
     q: 'How can I view incognito/private windows?',
     a: (
-      <span>
+      <>
         {browserRuntime === browsers.CHROMIUM && (
           <>
             Enable access to incognito windows in the browser extension options.{' '}
@@ -31,7 +56,7 @@ const faqs: Faq[] = [
             </Button>
           </>
         )}
-      </span>
+      </>
     ),
   },
 ]

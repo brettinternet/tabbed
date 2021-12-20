@@ -3,7 +3,7 @@ import { log } from 'utils/logger'
 
 export const handleMessageError = (error: unknown) => {
   // If client is not merely closed
-  if (isConnectionFailed(error)) {
+  if (!isConnectionFailed(error)) {
     throw error
   }
 }

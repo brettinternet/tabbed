@@ -2,7 +2,7 @@ import cn, { Argument as ClassNames } from 'classnames'
 
 import { Dropdown, DropdownButtonProps } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
-import { SessionWindowData } from 'utils/sessions'
+import { isCurrentSessionWindow, SessionWindowData } from 'utils/sessions'
 
 import { useHandlers } from './handlers'
 
@@ -58,17 +58,10 @@ const getStateActions = (
 
 export const WindowHeader: React.FC<WindowHeaderProps> = ({
   sessionId,
-  window: {
-    id: windowId,
-    focused,
-    title,
-    state,
-    tabs,
-    activeSession,
-    incognito,
-  },
+  window: win,
   className,
 }) => {
+  const { id: windowId, focused, title, state, tabs, incognito } = win
   const {
     handleOpenWindow,
     // handleSaveWindow,
@@ -120,7 +113,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
             [
               {
                 onClick: handleOpen,
-                text: activeSession ? 'Focus' : 'Open',
+                text: isCurrentSessionWindow(win) ? 'Focus' : 'Open',
                 iconProps: { name: IconName.WINDOW_OPEN },
                 disabled: focused,
               },
@@ -131,7 +124,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
               //   text: 'Save',
               //   iconProps: { name: IconName.SAVE },
               // },
-              ...(activeSession
+              ...(isCurrentSessionWindow(win)
                 ? getStateActions(
                     state,
                     (state: SessionWindowData['state']) => {
@@ -149,9 +142,9 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
                 onClick: () => {
                   handleRemoveWindow({ sessionId, windowIds: [windowId] })
                 },
-                text: activeSession ? 'Close' : 'Delete',
+                text: isCurrentSessionWindow(win) ? 'Close' : 'Delete',
                 iconProps: {
-                  name: activeSession
+                  name: isCurrentSessionWindow(win)
                     ? IconName.WINDOW_REMOVE
                     : IconName.DELETE,
                 },

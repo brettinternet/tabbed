@@ -51,7 +51,7 @@ export const Icon: React.FC<IconProps> = ({
 
   if (isLoading || error || !Svg) {
     return (
-      <div
+      <span
         className={cn(
           getSizeClass(size),
           'rounded-full bg-gray-200 dark:bg-gray-700',

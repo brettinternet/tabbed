@@ -1,8 +1,8 @@
+import { filter } from 'lodash'
 import browser from 'webextension-polyfill'
 
 import { Settings } from 'background/app/settings'
-import { focusWindow, focusWindowTab } from 'background/browser'
-import { reorder } from 'utils/helpers'
+import { isDefined, reorder } from 'utils/helpers'
 import {
   MESSAGE_TYPE_GET_SESSIONS_MANAGER_DATA,
   GetSessionsManagerDataMessage,
@@ -35,18 +35,22 @@ import {
   // MESSAGE_TYPE_MOVE_WINDOWS,
   // MoveWindowsMessage,
   MESSAGE_TYPE_DOWNLOAD_SESSIONS,
-  DownloadSessionsMessage,
-  MESSAGE_TYPE_FIND_DUPLICATE_SESSION_TABS,
-  FindDuplicateSessionTabsMessage,
+  DownloadSessionsMessage, // MESSAGE_TYPE_FIND_DUPLICATE_SESSION_TABS,
+  // FindDuplicateSessionTabsMessage,
   MESSAGE_TYPE_IMPORT_SESSIONS_FROM_TEXT,
   ImportSessionsFromTextMessage,
   MESSAGE_TYPE_QUERY_SESSION,
   QuerySessionMessage,
+  MoveWindowsMessage,
+  MESSAGE_TYPE_MOVE_WINDOWS,
+  createMessageListener,
 } from 'utils/messages'
-import { SessionDataExport, SessionStatus } from 'utils/sessions'
+import { filterTabs, filterWindows, SessionDataExport } from 'utils/sessions'
 import { SettingsData } from 'utils/settings'
 
-import { Session } from './session'
+import { CurrentSession, SavedSession } from './session'
+import { CurrentSessionTab, SavedSessionTab } from './session-tab'
+import { CurrentSessionWindow, SavedSessionWindow } from './session-window'
 import { SessionsManager } from './sessions-manager'
 
 /**
@@ -58,18 +62,18 @@ export const configureClosedWindowListener = (
 ) => {
   // Auto save closed windows
   const handleClosedWindow = async (closedWindowId: number) => {
-    const closedWindow = sessionsManager.current.findWindow(closedWindowId)
+    const closedWindow =
+      sessionsManager.current.searchWindowByAssignedId(closedWindowId)
     if (closedWindow && !(!saveIncognito && closedWindow.incognito)) {
       // When tabs are moved they can trigger the closed window handler
       const currentTabIds = (await browser.tabs.query({}))?.map(({ id }) => id)
       closedWindow.tabs = closedWindow.tabs.filter(
-        (tab) => !currentTabIds.includes(tab.id)
+        (tab) => !currentTabIds.includes(tab.assignedTabId)
       )
       if (closedWindow.tabs.length) {
         await sessionsManager.addPrevious(
-          new Session({
+          SavedSession.from({
             windows: [closedWindow],
-            status: SessionStatus.PREVIOUS,
           })
         )
       }
@@ -98,6 +102,7 @@ export const startListeners = async (
     await sessionsManager.updateCurrentDebounce()
   }
 
+  // Listen for window/tab changes in order to update current session
   browser.windows.onCreated.addListener(updateCurrent)
   browser.windows.onFocusChanged.addListener(updateCurrent)
   browser.tabs.onUpdated.addListener(updateCurrent)
@@ -108,292 +113,310 @@ export const startListeners = async (
   browser.tabs.onActivated.addListener(updateCurrent)
   browser.tabs.onHighlighted.addListener(updateCurrent)
   browser.tabs.onReplaced.addListener(updateCurrent)
-  browser.tabs.onAttached.addListener(updateCurrent)
 
-  browser.runtime.onMessage.addListener(
-    (message: GetSessionsManagerDataMessage) => {
-      if (message.type === MESSAGE_TYPE_GET_SESSIONS_MANAGER_DATA) {
-        return Promise.resolve(sessionsManager.toJSON())
-      }
+  createMessageListener<GetSessionsManagerDataMessage>(
+    MESSAGE_TYPE_GET_SESSIONS_MANAGER_DATA,
+    () => sessionsManager.toJSON()
+  )
+
+  // TODO: for selecting saved sessions to look at?
+  createMessageListener<QuerySessionMessage>(
+    MESSAGE_TYPE_QUERY_SESSION,
+    ({ sessionId }) => sessionsManager.get(sessionId)
+  )
+
+  createMessageListener<SaveExistingSessionMessage>(
+    MESSAGE_TYPE_SAVE_EXISTING_SESSION,
+    ({ sessionId }) => {
+      const session = sessionsManager.get(sessionId)
+      return sessionsManager.addSaved(session)
     }
   )
 
-  browser.runtime.onMessage.addListener((message: QuerySessionMessage) => {
-    if (message.type === MESSAGE_TYPE_QUERY_SESSION) {
-      const { current, sessionId } = message.value
-      return new Promise((resolve) => {
-        if (current) {
-          return resolve(sessionsManager.current)
-        } else if (sessionId) {
-          return resolve(sessionsManager.get(sessionId))
-        } else {
-          // TODO: send toast to frontend
-        }
+  createMessageListener<SaveWindowsMessage>(
+    MESSAGE_TYPE_SAVE_WINDOWS,
+    async ({ sessionId, windowIds }) => {
+      const session = sessionsManager.get(sessionId)
+      const windows = filterWindows(session.windows, windowIds)
+      await sessionsManager.addSaved({
+        windows,
       })
-    }
-  })
-
-  browser.runtime.onMessage.addListener(
-    (message: SaveExistingSessionMessage) => {
-      if (message.type === MESSAGE_TYPE_SAVE_EXISTING_SESSION) {
-        return new Promise((resolve) => {
-          const { sessionId } = message.value
-          const session = sessionsManager.get(sessionId)
-          return resolve(sessionsManager.addSaved(session))
-        })
-      }
     }
   )
-
-  browser.runtime.onMessage.addListener((message: SaveWindowsMessage) => {
-    if (message.type === MESSAGE_TYPE_SAVE_WINDOWS) {
-      const { sessionId, windowIds } = message.value
-      return new Promise(async (resolve) => {
-        const session = sessionsManager.get(sessionId)
-        const windows = session.windows.filter(({ id }) =>
-          windowIds.includes(id)
-        )
-        const newSession = new Session({
-          windows,
-          status: SessionStatus.SAVED,
-        })
-        await sessionsManager.addSaved(newSession)
-        resolve(newSession)
-      })
-    }
-  })
 
   // TODO: update session windows here on frontend
-  browser.runtime.onMessage.addListener((message: UpdateSessionMessage) => {
-    if (message.type === MESSAGE_TYPE_UPDATE_SESSION) {
-      return new Promise(async (resolve) => {
-        const { sessionId, title } = message.value
-        const session = sessionsManager.get(sessionId)
-        session.update({ title })
-        await sessionsManager.handleChange()
-        resolve(session)
-      })
-    }
-  })
-
-  browser.runtime.onMessage.addListener((message: OpenSessionsMessage) => {
-    if (message.type === MESSAGE_TYPE_OPEN_SESSIONS) {
-      return new Promise(async (resolve) => {
-        const tasks = message.value.sessionIds.map(async (sessionId) => {
-          const session = sessionsManager.get(sessionId)
-          return await session.open()
-        })
-        resolve(await Promise.all(tasks))
-      })
-    }
-  })
-
-  browser.runtime.onMessage.addListener(
-    (message: OpenSessionWindowsMessage) => {
-      if (message.type === MESSAGE_TYPE_OPEN_SESSION_WINDOWS) {
-        return new Promise(async (resolve) => {
-          const { sessionId, windowIds, options } = message.value
-          const session = sessionsManager.get(sessionId)
-          const tasks = windowIds.map(async (windowId) => {
-            if (
-              !options?.forceOpen &&
-              sessionsManager.current.id === session.id
-            ) {
-              return await focusWindow(windowId)
-            } else {
-              const win = session.findWindow(windowId)
-              return await win.open()
-            }
-          })
-          resolve(await Promise.all(tasks))
-        })
-      }
+  createMessageListener<UpdateSessionMessage>(
+    MESSAGE_TYPE_UPDATE_SESSION,
+    async ({ sessionId, title }) => {
+      const session = sessionsManager.get(sessionId)
+      session.update({ title })
+      await sessionsManager.handleChange()
+      return session
     }
   )
 
-  browser.runtime.onMessage.addListener((message: OpenSessionTabsMessage) => {
-    if (message.type === MESSAGE_TYPE_OPEN_SESSION_TABS) {
-      return new Promise(async (resolve) => {
-        const { sessionId, tabs, options } = message.value
-        const session = sessionsManager.get(sessionId)
-        const tasks: Promise<void>[] = []
-        tabs.forEach(({ windowId, tabIds }) => {
-          if (
-            !options?.forceOpen &&
-            sessionsManager.current.id === session.id
-          ) {
-            tabIds.forEach((tabId) => {
-              tasks.push(focusWindowTab(windowId, tabId))
-            })
-          } else {
-            const win = session.findWindow(windowId)
-            tabIds.forEach((tabId) => {
-              const tab = win.findTab(tabId)
-              tasks.push(tab.open())
-            })
-          }
+  createMessageListener<MoveWindowsMessage>(
+    MESSAGE_TYPE_MOVE_WINDOWS,
+    async ({ from, to }) => {
+      const fromSession = sessionsManager.get(from.sessionId)
+      const windows = filterWindows(fromSession.windows, from.windowIds)
+      const toSession = sessionsManager.get(to.sessionId)
+      if (from.sessionId === to.sessionId) {
+        const indices = windows.map((win) => toSession.findWindowIndex(win.id))
+        indices.forEach((index) => {
+          toSession.reorderWindows(index, to.index)
         })
-        resolve(await Promise.all(tasks))
-      })
+      } else {
+        const tasks = windows.map(async (win) => {
+          fromSession.removeWindow(win.id)
+          await toSession.addWindow({
+            window: win,
+            index: to.index,
+            focused: true,
+          })
+        })
+        await Promise.all(tasks)
+      }
+      await sessionsManager.handleChange()
     }
-  })
+  )
 
-  browser.runtime.onMessage.addListener((message: DeleteSessionsMessage) => {
-    if (message.type === MESSAGE_TYPE_DELETE_SESSIONS) {
-      return new Promise(async (resolve) => {
-        const tasks = message.value.map(async ({ sessionId, status }) =>
-          sessionsManager.delete(sessionId, status)
+  createMessageListener<MoveTabsMessage>(
+    MESSAGE_TYPE_MOVE_TABS,
+    async ({ from, to }) => {
+      const fromSession = sessionsManager.get(from.sessionId)
+      const fromWindow = fromSession.findWindow(from.windowId)
+      const toSession = sessionsManager.get(to.sessionId)
+      const tabs = filterTabs(fromWindow.tabs, from.tabIds)
+      if (to.windowId) {
+        const toWindow = toSession.findWindow(to.windowId)
+        await toWindow.addTabs(tabs, to.index, to.pinned)
+      } else {
+        const { incognito, focused, state, height, width, top, left } =
+          fromWindow
+
+        await CurrentSessionWindow.from({
+          tabs,
+          incognito: isDefined(to.incognito) ? to.incognito : incognito,
+          focused,
+          state,
+          height,
+          width,
+          top,
+          left,
+        })
+        await Promise.all(
+          tabs.map(async (t) => await fromWindow.removeTab(t.id))
         )
-        resolve(await Promise.all(tasks))
-      })
-    }
-  })
-
-  browser.runtime.onMessage.addListener(
-    (message: RemoveSessionWindowsMessage) => {
-      if (message.type === MESSAGE_TYPE_REMOVE_SESSION_WINDOWS) {
-        return new Promise(async (resolve) => {
-          const { sessionId, windowIds } = message.value
-          const session = sessionsManager.get(sessionId)
-          // todo save after
-          const tasks = windowIds.map(async (windowId) =>
-            session.removeWindow(windowId)
-          )
-          resolve(await Promise.all(tasks))
-        })
       }
+
+      if ([from.sessionId, to.sessionId].includes(sessionsManager.current.id)) {
+        await sessionsManager.updateCurrent()
+      }
+      await sessionsManager.handleChange()
+      // const toWindow = toSession.findWindow(to.windowId)
+      // let toWindow: SessionWindow | undefined
+      // // move to defined window, otherwise create new window
+      // if (isDefined(to.windowId)) {
+      //   toWindow = toSession.findWindow(to.windowId)
+      // } else {
+      //   // const newWindow = new SessionWindow({
+      //   //   ...fromWindow,
+      //   //   tabs: [],
+      //   //   id: undefined,
+      //   // })
+      //   // newWindow.activeSession = toSession.active || false
+      //   // // await toSession.addWindow({ window: newWindow, focused: false })
+      //   // toWindow = toSession.findWindow(newWindow.id)
+      //   // console.log('toWindow: ', toWindow)
+      //   // await toWindow.open()
+      //   const newWindowId = await openWindow({ ...fromWindow, tabs: [] })
+      //   if (newWindowId) {
+      //     const win = await browser.windows.get(newWindowId)
+      //     await toSession.addWindow({
+      //       window: SessionWindow.fromWindow(win, toSession.active || false),
+      //       focused: false,
+      //     })
+      //     toWindow = toSession.findWindow(newWindowId)
+      //   }
+      // }
+      // if (toWindow) {
+      //   if (isDefined(to.pinned)) {
+      //     // move to window before pinning
+      //     if (
+      //       from.windowId !== to.windowId &&
+      //       to.sessionId === sessionsManager.current.id
+      //     ) {
+      //       await toWindow.addTabs(tabs, to.index)
+      //     }
+      //     const tasks = tabs.map(async (tab) => {
+      //       if (tab.activeSession) {
+      //         await browser.tabs.update(tab.id, {
+      //           pinned: to.pinned,
+      //         })
+      //       } else {
+      //         tab.update({
+      //           pinned: to.pinned,
+      //         })
+      //       }
+      //     })
+      //     await Promise.all(tasks)
+      //   }
+      //   // pinning moves the tab to last pin, so moving is required again
+      //   await toWindow.addTabs(tabs, to.index)
+      //   if (from.sessionId !== to.sessionId) {
+      //     tabs.forEach(async (tab) => {
+      //       fromWindow.removeTab(tab.id)
+      //     })
+      //   }
+      //   if (
+      //     [from.sessionId, to.sessionId].includes(sessionsManager.current.id)
+      //   ) {
+      //     await sessionsManager.updateCurrent()
+      //   }
+      //   await sessionsManager.handleChange()
+      // }
     }
   )
 
-  browser.runtime.onMessage.addListener((message: RemoveSessionTabsMessage) => {
-    if (message.type === MESSAGE_TYPE_REMOVE_SESSION_TABS) {
-      return new Promise(async (resolve) => {
-        const { sessionId, tabs } = message.value
+  createMessageListener<OpenSessionsMessage>(
+    MESSAGE_TYPE_OPEN_SESSIONS,
+    async ({ sessionIds }) => {
+      const tasks = sessionIds.map(async (sessionId) => {
         const session = sessionsManager.get(sessionId)
-        const tasks: Promise<void>[] = []
-        tabs.forEach(({ windowId, tabIds }) => {
-          const win = session.findWindow(windowId)
-          tabIds.forEach((tabId) => {
-            tasks.push(win.removeTab(tabId))
-          })
-        })
-        resolve(await Promise.all(tasks))
+        return await session.open()
       })
+      await Promise.all(tasks)
     }
-  })
+  )
 
-  // TODO: consolidate options with class update options - probably separate current into new handler
-  // update session after patch with handleChange()
-  browser.runtime.onMessage.addListener((message: PatchWindowMessage) => {
-    if (message.type === MESSAGE_TYPE_PATCH_WINDOW) {
-      return new Promise(async (resolve) => {
-        const { sessionId, windowId, options } = message.value
-        const session = sessionsManager.get(sessionId)
-        if (session.id === sessionsManager.current.id) {
-          resolve(await browser.windows.update(windowId, options))
-        } else {
-          const win = session.findWindow(windowId)
-          resolve(win.update(options))
-        }
-      })
-    }
-  })
-
-  // TODO: consolidate options with class update options - probably separate current into new handler
-  browser.runtime.onMessage.addListener((message: PatchTabMessage) => {
-    if (message.type === MESSAGE_TYPE_PATCH_TAB) {
-      return new Promise(async (resolve) => {
-        const { sessionId, windowId, tabId, options } = message.value
-        const session = sessionsManager.get(sessionId)
-        if (session.id === sessionsManager.current.id) {
-          await browser.tabs.update(tabId, options)
-        } else {
-          const win = session.findWindow(windowId)
-          const tab = win.findTab(tabId)
-          resolve(tab.update(options))
-        }
-        // send update
-      })
-    }
-  })
-
-  browser.runtime.onMessage.addListener((message: DiscardTabsMessage) => {
-    if (message.type === MESSAGE_TYPE_DISCARD_TABS) {
-      return new Promise(async (resolve) => {
-        const { sessionId, windowId, tabIds } = message.value
-        const session = sessionsManager.get(sessionId)
-        if (session.id === sessionsManager.current.id) {
-          resolve(await browser.tabs.discard(tabIds))
-        } else {
-          const win = session.findWindow(windowId)
-          if (Array.isArray(tabIds)) {
-            const tabs = win.tabs.filter((t) => tabIds.includes(t.id))
-            tabs.forEach((t) => {
-              t.discarded = true
-            })
-            resolve(tabs)
-          } else {
-            const tab = win.findTab(tabIds)
-            tab.discarded = true
-            resolve(tab)
-          }
-        }
-      })
-    }
-  })
-
-  // TODO: add "fromWindowId" and "fromSessionId"
-  browser.runtime.onMessage.addListener((message: MoveTabsMessage) => {
-    if (message.type === MESSAGE_TYPE_MOVE_TABS) {
-      return new Promise((resolve) => {
-        const { sessionId, windowId, tabIds, index: toIndex } = message.value
-        const session = sessionsManager.get(sessionId)
+  createMessageListener<OpenSessionWindowsMessage>(
+    MESSAGE_TYPE_OPEN_SESSION_WINDOWS,
+    async ({ sessionId, windowIds, options }) => {
+      const session = sessionsManager.get(sessionId)
+      const tasks = windowIds.map(async (windowId) => {
         const win = session.findWindow(windowId)
-        const tabIdsArr = Array.isArray(tabIds) ? tabIds : [tabIds]
-        const tabIndices = win.tabs.reduce<number[]>(
-          (acc, { id }, index) =>
-            tabIdsArr.includes(id) ? acc.concat(index) : acc,
-          []
-        )
-        tabIndices.forEach((fromIndex, i) => {
-          reorder(win.tabs, fromIndex, toIndex + i)
-        })
-        resolve(win.tabs)
+        if (win instanceof CurrentSessionWindow && !options?.forceOpen) {
+          return await win.focus()
+        } else {
+          return await win.open()
+        }
       })
+      await Promise.all(tasks)
     }
-  })
+  )
 
-  browser.runtime.onMessage.addListener((message: DownloadSessionsMessage) => {
-    if (message.type === MESSAGE_TYPE_DOWNLOAD_SESSIONS) {
-      return new Promise(async (resolve) => {
-        const { sessionIds } = message.value
-        resolve(await sessionsManager.download(sessionIds))
-      })
-    }
-  })
-
-  browser.runtime.onMessage.addListener(
-    (message: ImportSessionsFromTextMessage) => {
-      if (message.type === MESSAGE_TYPE_IMPORT_SESSIONS_FROM_TEXT) {
-        return new Promise((resolve) => {
-          const { content } = message.value
-          const data = JSON.parse(content) as SessionDataExport
-
-          if (!data.sessions || !Array.isArray(data.sessions)) {
-            throw Error('Unrecognized data format, sessions not found')
-          }
-
-          if (!data.sessions[0]?.id) {
-            throw Error('No sessions found')
-          }
-
-          for (const session of data.sessions.reverse()) {
-            sessionsManager.addSaved(session)
-          }
-          resolve(undefined)
-          // TODO: send update
+  createMessageListener<OpenSessionTabsMessage>(
+    MESSAGE_TYPE_OPEN_SESSION_TABS,
+    async ({ sessionId, tabs, options }) => {
+      const session = sessionsManager.get(sessionId)
+      const tasks: Promise<void>[] = []
+      tabs.forEach(({ windowId, tabIds }) => {
+        const win = session.findWindow(windowId)
+        tabIds.forEach((tabId) => {
+          const tab = win.findTab(tabId)
+          const task =
+            tab instanceof CurrentSessionTab && !options?.forceOpen
+              ? tab.focus()
+              : tab.open(browser.windows.WINDOW_ID_CURRENT)
+          tasks.push(task)
         })
+      })
+      return await Promise.all(tasks)
+    }
+  )
+
+  createMessageListener<DeleteSessionsMessage>(
+    MESSAGE_TYPE_DELETE_SESSIONS,
+    async (sessions) => {
+      const tasks = sessions.map(async ({ sessionId, category }) =>
+        sessionsManager.delete(sessionId, category)
+      )
+      return await Promise.all(tasks)
+    }
+  )
+
+  createMessageListener<RemoveSessionWindowsMessage>(
+    MESSAGE_TYPE_REMOVE_SESSION_WINDOWS,
+    async ({ sessionId, windowIds }) => {
+      const session = sessionsManager.get(sessionId)
+      // todo save after
+      const tasks = windowIds.map(
+        async (windowId) => await session.removeWindow(windowId)
+      )
+      return await Promise.all(tasks)
+    }
+  )
+
+  createMessageListener<RemoveSessionTabsMessage>(
+    MESSAGE_TYPE_REMOVE_SESSION_TABS,
+    async ({ sessionId, tabs }) => {
+      const session = sessionsManager.get(sessionId)
+      const tasks: Promise<void> | void[] = []
+      tabs.forEach(({ windowId, tabIds }) => {
+        const win = session.findWindow(windowId)
+        tabIds.forEach(async (tabId) => {
+          tasks.push(await win.removeTab(tabId))
+        })
+      })
+      return await Promise.all(tasks)
+    }
+  )
+
+  // TODO: update session after patch with handleChange()
+  createMessageListener<PatchWindowMessage>(
+    MESSAGE_TYPE_PATCH_WINDOW,
+    async ({ sessionId, windowId, options }) => {
+      const session = sessionsManager.get(sessionId)
+      const win = session.findWindow(windowId)
+      return win.update(options)
+    }
+  )
+
+  createMessageListener<PatchTabMessage>(
+    MESSAGE_TYPE_PATCH_TAB,
+    async ({ sessionId, windowId, tabId, options }) => {
+      const session = sessionsManager.get(sessionId)
+      const win = session.findWindow(windowId)
+      const tab = win.findTab(tabId)
+      return tab.update(options)
+      // TODO: send update
+    }
+  )
+
+  createMessageListener<DiscardTabsMessage>(
+    MESSAGE_TYPE_DISCARD_TABS,
+    async ({ sessionId, windowId, tabIds }) => {
+      const session = sessionsManager.get(sessionId)
+      const win = session.findWindow(windowId)
+      const tabs = filterTabs(win.tabs, tabIds)
+      const tasks = tabs.map(async (t) => await t.update({ discarded: true }))
+      return Promise.all(tasks)
+    }
+  )
+
+  createMessageListener<DownloadSessionsMessage>(
+    MESSAGE_TYPE_DOWNLOAD_SESSIONS,
+    async ({ sessionIds }) => await sessionsManager.download(sessionIds)
+  )
+
+  createMessageListener<ImportSessionsFromTextMessage>(
+    MESSAGE_TYPE_IMPORT_SESSIONS_FROM_TEXT,
+    async ({ content }) => {
+      const data = JSON.parse(content) as SessionDataExport
+
+      if (!data.sessions || !Array.isArray(data.sessions)) {
+        throw Error('Unrecognized data format, sessions not found')
       }
+
+      if (!data.sessions[0]?.id) {
+        throw Error('No sessions found')
+      }
+
+      for (const session of data.sessions.reverse()) {
+        await sessionsManager.addSaved(session)
+      }
+      // TODO: send update
     }
   )
 

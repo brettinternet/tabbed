@@ -1,18 +1,20 @@
-import { Droppable, DroppableProvided } from 'react-beautiful-dnd'
+import { Droppable } from 'react-beautiful-dnd'
 
 import { SessionData } from 'utils/sessions'
 import { useMedia } from 'utils/window'
 
-import { EmptyActions } from './empty-actions'
-import { DroppableType } from './store'
+import { EmptyWindow } from './empty-window'
+import { ActiveDragKind, ActiveDragKindType, DroppableType } from './store'
 import { WindowContainer } from './window-container'
 
 type SessionContainerProps = {
   session: SessionData
+  activeDragKind: ActiveDragKindType
 }
 
 export const SessionContainer: React.FC<SessionContainerProps> = ({
   session,
+  activeDragKind,
 }) => {
   const direction = useMedia<'vertical' | 'horizontal'>([
     'vertical',
@@ -23,11 +25,11 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
   ])
   return (
     <Droppable
-      droppableId="session"
+      droppableId={session.id}
       type={DroppableType.SESSION}
       direction={direction}
     >
-      {(provided: DroppableProvided) => (
+      {(provided) => (
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
@@ -42,7 +44,7 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
             />
           ))}
           {provided.placeholder}
-          {session.windows.length < 3 && <EmptyActions />}
+          <EmptyWindow isTabDragging={activeDragKind === ActiveDragKind.TAB} />
         </div>
       )}
     </Droppable>

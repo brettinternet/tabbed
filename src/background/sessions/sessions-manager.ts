@@ -1,12 +1,7 @@
-import {
-  Exclude,
-  instanceToPlain,
-  plainToInstance,
-  Type,
-} from 'class-transformer'
+import { Exclude, instanceToPlain, Type } from 'class-transformer'
 import { lightFormat } from 'date-fns'
 import { debounce } from 'lodash'
-import browser from 'webextension-polyfill'
+import { uniqBy } from 'lodash'
 
 import { Settings } from 'background/app/settings'
 import { isNewTab, urlsMatch } from 'background/browser'
@@ -18,52 +13,55 @@ import { downloadJson } from 'utils/helpers'
 import {
   MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA,
   PushSessionManagerDataMessage,
+  sendMessage,
 } from 'utils/messages'
 import {
-  SessionStatus,
-  SessionStatusType,
-  UpdateSessionData,
   SessionDataExport,
   SessionsManagerData,
   SessionsManagerClass,
+  SavedSessionCategoryType,
+  SessionData,
+  UpdateSavedSessionData,
+  SavedSessionData,
+  SavedSessionCategory,
+  StoredCurrentSessionData,
 } from 'utils/sessions'
 
-import { Session } from './session'
+import { CurrentSession, SavedSession } from './session'
 
 const logContext = 'background/sessions/sessions-manager'
 
-type SavedSessions = {
-  currentWindowOrder: number[]
-  previous: Session[]
-  saved: Session[]
+type StoredSessions = {
+  current: StoredCurrentSessionData
+  previous: SavedSessionData[]
+  saved: SavedSessionData[]
 }
 
 /**
- * Since subclasses are reasonably coupled anyway, we do use circular references
- * To reference parent class, but that's probably okay
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_Management#cycles_are_no_longer_a_problem
- * `class-transformer` serialization ignores circular references for us
- *
  * Two side-effects are maintained here:
  * 1. save the data to storage when it changes
  * 2. push data to frontend
  */
 export interface SessionsManager extends SessionsManagerClass {}
 export class SessionsManager {
-  @Type(() => Session)
-  current: Session
+  @Type(() => CurrentSession)
+  current: CurrentSession
 
-  @Type(() => Session)
-  saved: Session[]
+  @Type(() => SavedSession)
+  saved: SavedSession[]
 
-  @Type(() => Session)
-  previous: Session[]
+  @Type(() => SavedSession)
+  previous: SavedSession[]
 
   @Exclude()
   settings: Settings
 
   constructor(
-    { current, saved, previous }: SessionsManagerData<Session>,
+    {
+      current,
+      saved,
+      previous,
+    }: SessionsManagerData<CurrentSession, SavedSession>,
     settings: Settings
   ) {
     this.current = current
@@ -74,14 +72,21 @@ export class SessionsManager {
 
   static async load(settings: Settings): Promise<SessionsManager> {
     const {
-      currentWindowOrder = [],
+      current,
       saved = [],
       previous = [],
-    } = (await LocalStorage.get<SavedSessions>(LocalStorage.key.SESSIONS)) || {}
+    } = (await LocalStorage.get<StoredSessions>(LocalStorage.key.SESSIONS)) ||
+    {}
 
-    const current = await this.getCurrent()
-    current.windows = current.sortWindows(current.windows, currentWindowOrder)
-    return new SessionsManager({ current, saved, previous }, settings)
+    // save more fields on current, like window title, etc
+    return new SessionsManager(
+      {
+        current: await this.getCurrent(current),
+        saved: saved.map((s) => SavedSession.from(s)),
+        previous: previous.map((s) => SavedSession.from(s)),
+      },
+      settings
+    )
   }
 
   /**
@@ -89,24 +94,28 @@ export class SessionsManager {
    */
   private async save() {
     this.validate()
-    await LocalStorage.set(LocalStorage.key.SESSIONS, {
-      currentWindowOrder: this.current.windows.map(({ id }) => id),
+    const storedSessions: StoredSessions = {
+      current: {
+        windows: this.current.windows.map(({ id, assignedWindowId }) => ({
+          id,
+          assignedWindowId,
+        })),
+      },
       saved: this.saved,
       previous: this.previous,
-    })
+    }
+    await LocalStorage.set(LocalStorage.key.SESSIONS, storedSessions)
   }
 
   /**
    * Push update to frontend
    */
   private async sendUpdate() {
-    const message: PushSessionManagerDataMessage = {
-      type: MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA,
-      value: this.toJSON(),
-    }
-
     try {
-      await browser.runtime.sendMessage(message)
+      await sendMessage<PushSessionManagerDataMessage>(
+        MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA,
+        this.toJSON()
+      )
     } catch (err) {
       handleMessageError(err)
     }
@@ -124,53 +133,25 @@ export class SessionsManager {
    * Validate data before save
    */
   private validate() {
-    this.saved.map((session) => ({ ...session, status: SessionStatus.SAVED }))
-    this.previous.map((session) => ({
-      ...session,
-      status: SessionStatus.PREVIOUS,
-    }))
-    this.current.status = SessionStatus.CURRENT
-    // TODO: check for duplicate IDs
-  }
-
-  get allSessions(): Session[] {
-    return [this.current, ...this.saved, ...this.previous]
+    this.saved = uniqBy(this.saved, 'uuid')
+    this.previous = uniqBy(this.previous, 'uuid')
   }
 
   toJSON() {
     return JSON.stringify(instanceToPlain(this))
   }
 
-  // static fromJSON(json: string) {
-  //   const { current, saved, previous }: { current: Session } & SavedSessions =
-  //     JSON.parse(json)
-  //   // return plainToInstance(SessionsManager, parsed)
-  //   return new SessionsManager({ current, saved, previous })
-  // }
-
-  /**
-   * add a session according to its status
-   * any session with a 'current' status will be added to 'previous'
-   */
-  add(session: Session) {
-    switch (session.status) {
-      case SessionStatus.SAVED:
-        this.addSaved(session)
-        break
-      case SessionStatus.CURRENT:
-      case SessionStatus.PREVIOUS:
-        this.addPrevious(session)
-        break
-    }
-  }
-
-  // TODO: When to overwrite current and unshift previous current to "previous"
-  static async getCurrent(): Promise<Session> {
-    return await Session.createFromCurrentWindows()
+  // TODO: When to overwrite current and unshift previous current to "previous" - as autosave
+  static async getCurrent(
+    current?: StoredCurrentSessionData
+  ): Promise<CurrentSession> {
+    return await CurrentSession.fromBrowser({
+      windowOrder: current?.windows,
+    })
   }
 
   async updateCurrent() {
-    await this.current.updateCurrentWindows()
+    await this.current.updateFromBrowser()
     await this.handleChange()
   }
 
@@ -180,30 +161,32 @@ export class SessionsManager {
   /**
    * Avoid conflicts with imported sessions by assigned a new ID
    */
-  import(session: Session) {
-    session.newId()
-    this.add(session)
+  import(session: SessionData) {
+    const saveSession = SavedSession.from(session)
+    this.addSaved(saveSession)
     this.handleChange()
   }
 
-  async addSaved(session: Session) {
-    session.status = SessionStatus.SAVED
-    session.userSavedDate = new Date()
-    this.filterWindowTabs(session)
-    this.saved.unshift(session)
+  async addSaved<T extends Omit<SessionData, 'id'>>(session: T) {
+    return this.add(session, SavedSessionCategory.SAVED)
+  }
+
+  async addPrevious<T extends Omit<SessionData, 'id'>>(session: T) {
+    return this.add(session, SavedSessionCategory.PREVIOUS)
+  }
+
+  private async add<T extends Omit<SessionData, 'id'>>(
+    session: T,
+    category: SavedSessionCategoryType
+  ) {
+    const savedSession = SavedSession.from(session)
+    this.filterWindowTabs(savedSession)
+    this[category].unshift(savedSession)
     this.handleChange()
     return session
   }
 
-  async addPrevious(session: Session) {
-    session.status = SessionStatus.PREVIOUS
-    this.filterWindowTabs(session)
-    this.previous.unshift(session)
-    this.handleChange()
-    return session
-  }
-
-  async filterWindowTabs(session: Session) {
+  private async filterWindowTabs(session: SavedSession) {
     session.windows = session.windows.map((win) => {
       win.tabs = win.tabs.filter((tab) => {
         if (!isNewTab(tab)) {
@@ -224,25 +207,24 @@ export class SessionsManager {
   }
 
   /**
-   * Look in current, saved, previous
+   * Look for current, saved or previous
    */
-  get(sessionId: string, status?: SessionStatusType) {
-    if (status === SessionStatus.CURRENT) {
+  get(sessionId: SessionData['id'], category?: SavedSessionCategoryType) {
+    if (sessionId === this.current.id) {
       return this.current
     } else {
-      return this.find(sessionId, status)
+      return this.find(sessionId, category)
     }
   }
 
   /**
-   * Look only in saved, previous
+   * Search saved/previous
    */
-  find(
-    sessionId: string,
-    status?: Extract<SessionStatusType, 'previous' | 'saved'>
-  ) {
-    const sessions = status ? this[status] : this.allSessions
-    const session = sessions.find((s) => s.id === sessionId)
+  find(sessionId: SessionData['id'], category?: SavedSessionCategoryType) {
+    const sessions = category
+      ? this[category]
+      : [...this.saved, ...this.previous]
+    const session = sessions.find(({ id }) => id === sessionId)
     if (!session) {
       throw new BackgroundError(
         logContext,
@@ -253,11 +235,11 @@ export class SessionsManager {
     return session
   }
 
-  findIndex(
-    sessionId: string,
-    status: Extract<SessionStatusType, 'previous' | 'saved'>
-  ) {
-    const index = this[status].findIndex((s) => s.id === sessionId)
+  findIndex(sessionId: SessionData['id'], category?: SavedSessionCategoryType) {
+    const sessions = category
+      ? this[category]
+      : [...this.saved, ...this.previous]
+    const index = sessions.findIndex(({ id }) => id === sessionId)
 
     if (index === -1) {
       throw new BackgroundError(
@@ -270,29 +252,31 @@ export class SessionsManager {
   }
 
   async update(
-    sessionId: string,
-    params: UpdateSessionData,
-    status?: SessionStatusType
+    sessionId: SessionData['id'],
+    params: UpdateSavedSessionData,
+    category?: SavedSessionCategoryType
   ) {
-    const session = this.get(sessionId, status)
+    const session = this.get(sessionId, category)
     session.update(params)
     await this.handleChange()
   }
 
-  async delete(
-    sessionId: string,
-    status: Extract<SessionStatusType, 'previous' | 'saved'>
-  ) {
-    const index = this.findIndex(sessionId, status)
-    this[status].splice(index, 1)
+  async delete(sessionId: string, category: SavedSessionCategoryType) {
+    const index = this.findIndex(sessionId, category)
+    this[category].splice(index, 1)
     await this.handleChange()
   }
 
-  async download(sessionIds?: string[]) {
+  async download(sessionIds: SessionData['id'][]) {
     await this.updateCurrent()
+    const storedSessions = [
+      SavedSession.from(this.current),
+      ...this.saved,
+      ...this.previous,
+    ]
     const sessions = sessionIds
-      ? this.allSessions.filter(({ id }) => sessionIds.includes(id))
-      : this.allSessions
+      ? storedSessions.filter(({ id }) => sessionIds.includes(id))
+      : storedSessions
 
     const now = new Date()
     const timestamp = lightFormat(now, 'yyyy-MM-dd-hh-mm-ss-SS')

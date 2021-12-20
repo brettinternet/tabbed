@@ -4,12 +4,11 @@ import { configureClosedWindowListener } from 'background/sessions'
 import { SessionsManager } from 'background/sessions/sessions-manager'
 import { updateLogLevel, log } from 'utils/logger'
 import {
-  MESSAGE_TYPE_UPDATE_LOG_LEVEL,
-  UpdateLogLevelMessage,
   MESSAGE_TYPE_GET_SETTINGS,
   GetSettingsMessage,
   MESSAGE_TYPE_UPDATE_SETTINGS,
   UpdateSettingsMessage,
+  createMessageListener,
 } from 'utils/messages'
 
 import {
@@ -72,33 +71,24 @@ export const startListeners = async (
   void configureTabCountListeners(settings.showTabCountBadge)
   void configureExtensionActions(settings.extensionClickAction)
 
-  browser.runtime.onMessage.addListener((message: GetSettingsMessage) => {
-    if (message.type === MESSAGE_TYPE_GET_SETTINGS) {
-      return Promise.resolve(settings)
-    }
-  })
+  createMessageListener<GetSettingsMessage>(
+    MESSAGE_TYPE_GET_SETTINGS,
+    () => settings
+  )
 
-  browser.runtime.onMessage.addListener((message: UpdateSettingsMessage) => {
-    if (message.type === MESSAGE_TYPE_UPDATE_SETTINGS) {
-      return new Promise(async (resolve) => {
-        const changedSettings = message.value
-        const updatedSettings = await settings.update(changedSettings)
-        const sideEffects = []
-        let key: keyof Settings
-        for (key in changedSettings) {
-          sideEffects.push(
-            handleSettingsSideEffects(key, updatedSettings, sessionsManager)
-          )
-        }
-        await Promise.all(sideEffects)
-        resolve(updatedSettings)
-      })
+  createMessageListener<UpdateSettingsMessage>(
+    MESSAGE_TYPE_UPDATE_SETTINGS,
+    async (changedSettings) => {
+      const updatedSettings = await settings.update(changedSettings)
+      const sideEffects = []
+      let key: keyof Settings
+      for (key in changedSettings) {
+        sideEffects.push(
+          handleSettingsSideEffects(key, updatedSettings, sessionsManager)
+        )
+      }
+      await Promise.all(sideEffects)
+      return updatedSettings
     }
-  })
-
-  browser.runtime.onMessage.addListener((message: UpdateLogLevelMessage) => {
-    if (message.type === MESSAGE_TYPE_UPDATE_LOG_LEVEL) {
-      void updateLogLevel(message.value)
-    }
-  })
+  )
 }

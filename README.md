@@ -46,6 +46,10 @@ npm test
 
 <!--
 TODO:
+fix move
+fix scroll x axis with tab
+clean up backend, make more functional?
+  windows/tabs with id are active? otherwise remove when saved?
 combine windows
 combine tabs - turn into group?
 animate slide to previous history sessions https://www.framer.com/docs/examples/

@@ -1,39 +1,72 @@
 import { Tabs } from 'webextension-polyfill'
 
-import { closeTab, focusWindowTab, openTab } from 'background/browser'
-import { generateFallbackId } from 'utils/helpers'
-import { SessionTabClass, SessionTabData } from 'utils/sessions'
+import { closeTab, openTab, updateTab, updateWindow } from 'background/browser'
+import { isDefined } from 'utils/helpers'
+import {
+  CurrentSessionTabClass,
+  CurrentSessionTabData,
+  SavedSessionTabClass,
+  SavedSessionTabData,
+  UpdateCurrentSessionTabData,
+  UpdateSavedSessionTabData,
+} from 'utils/sessions'
 
-export interface SessionTab extends SessionTabClass {}
-export class SessionTab {
+import { createId, fallbackTabId } from './generate'
+
+/**
+ * Currently active tab
+ */
+export interface CurrentSessionTab extends CurrentSessionTabClass {}
+export class CurrentSessionTab {
   constructor({
-    id,
+    assignedTabId,
+    assignedWindowId,
     url,
     favIconUrl,
     title,
-    windowId,
     active,
     pinned,
     muted,
     discarded,
     attention,
     groupId,
-    incognito,
-    activeSession,
-  }: SessionTabData) {
-    this.id = id
+  }: // incognito,
+  Omit<CurrentSessionTabData, 'id'>) {
+    this.id = createId('tab')
+    this.assignedTabId = assignedTabId
+    this.assignedWindowId = assignedWindowId
     this.url = url
     this.favIconUrl = favIconUrl
     this.title = title
-    this.windowId = windowId
     this.active = active
     this.pinned = pinned
     this.muted = muted
     this.discarded = discarded
     this.attention = attention
     this.groupId = groupId
-    this.incognito = incognito
-    this.activeSession = activeSession
+    // this.incognito = incognito
+  }
+
+  static async from<
+    T extends Omit<CurrentSessionTab, 'id'> | Omit<SavedSessionTab, 'id'>
+  >(
+    tab: T,
+    assignedWindowId: CurrentSessionTabData['assignedWindowId']
+  ): Promise<CurrentSessionTab | undefined> {
+    const { url, pinned } = tab
+    const newTab = await openTab({
+      url,
+      pinned,
+      windowId: assignedWindowId,
+    })
+    const assignedTabId = newTab?.id
+    if (isDefined(assignedTabId)) {
+      return new CurrentSessionTab({
+        ...tab,
+        assignedWindowId,
+        assignedTabId,
+      })
+    }
   }
 
   /**
@@ -41,14 +74,10 @@ export class SessionTab {
    */
   static fromTab(
     tab: Tabs.Tab,
-    {
-      windowId,
-      incognito,
-      activeSession,
-    }: { windowId: number; incognito: boolean; activeSession: boolean }
-  ): SessionTab | undefined {
+    { windowId, incognito }: { windowId: number; incognito?: boolean }
+  ): CurrentSessionTab | undefined {
     const {
-      id: maybeId,
+      id: maybeAssignedTabId,
       url: maybeUrl,
       pendingUrl,
       favIconUrl,
@@ -63,70 +92,123 @@ export class SessionTab {
     const url = maybeUrl || pendingUrl
 
     if (url) {
-      return new SessionTab({
-        id: maybeId || generateFallbackId(),
+      return new CurrentSessionTab({
+        assignedTabId: maybeAssignedTabId || fallbackTabId(),
         url,
         favIconUrl,
         title,
-        windowId,
+        assignedWindowId: windowId,
         active,
         pinned,
         muted: mutedInfo?.muted || false,
         discarded: discarded || false,
         attention: attention || false,
         groupId,
-        incognito,
-        activeSession,
+        // incognito,
       })
     }
   }
 
-  togglePin() {
-    this.pinned = !this.pinned
-  }
-
   async focus() {
-    await focusWindowTab(this.windowId, this.id)
+    await updateWindow(this.assignedWindowId, { focused: true })
+    await updateTab(this.assignedTabId, { active: true })
   }
 
-  async open() {
-    const { url, pinned, windowId } = this
-    await openTab({ url, pinned, windowId, incognito: this.incognito })
-    // await openTabOrFocus({ url, pinned, windowId }, this.incognito)
+  async open(windowId?: CurrentSessionTab['assignedWindowId']) {
+    const { url, pinned } = this
+    await openTab({
+      url,
+      pinned,
+      windowId: windowId || this.assignedWindowId,
+    })
   }
 
-  update({
+  async close() {
+    await closeTab(this.assignedTabId)
+  }
+
+  async update({
     url,
+    active,
+    discarded,
+    pinned,
+    muted,
+    attention,
+    groupId,
+  }: UpdateCurrentSessionTabData) {
+    const { title } = await updateTab(this.assignedTabId, {
+      url,
+      active,
+      discarded,
+      pinned,
+      muted,
+    })
+    this.url = url || this.url
+    this.title = title
+    this.active = isDefined(active) ? active : this.active
+    this.discarded = isDefined(discarded) ? discarded : this.discarded
+    this.pinned = isDefined(pinned) ? pinned : this.pinned
+    this.muted = isDefined(muted) ? muted : this.muted
+    this.attention = isDefined(attention) ? attention : this.attention
+    this.groupId = groupId || this.groupId
+  }
+}
+
+/**
+ * Tab in saved session
+ */
+export interface SavedSessionTab extends SavedSessionTabClass {}
+export class SavedSessionTab {
+  constructor({
+    url,
+    favIconUrl,
     title,
-    windowId,
     active,
     pinned,
     muted,
     discarded,
     attention,
     groupId,
-  }: Partial<
-    Pick<
-      SessionTabData,
-      | 'url'
-      | 'title'
-      | 'windowId'
-      | 'active'
-      | 'pinned'
-      | 'muted'
-      | 'discarded'
-      | 'attention'
-      | 'groupId'
-    >
-  >) {
+  }: // incognito,
+  Omit<SavedSessionTabData, 'id'>) {
+    this.id = createId('tab')
+    this.url = url
+    this.favIconUrl = favIconUrl
+    this.title = title
+    this.active = active
+    this.pinned = pinned
+    this.muted = muted
+    this.discarded = discarded
+    this.attention = attention
+    this.groupId = groupId
+    // this.incognito = incognito
+  }
+
+  async open({
+    windowId,
+    incognito,
+  }: { windowId?: number; incognito?: boolean } = {}) {
+    const { url, pinned } = this
+    await openTab({ url, pinned, windowId, incognito })
+  }
+
+  update({
+    url,
+    title,
+    active,
+    pinned,
+    muted,
+    discarded,
+    attention,
+    groupId,
+  }: UpdateSavedSessionTabData) {
     this.url = url || this.url
     this.title = title || this.title
-    this.windowId = windowId || this.windowId
-    this.active = active || this.active
-    this.pinned = pinned || this.pinned
-    this.muted = muted || this.muted
-    this.discarded = discarded || this.discarded
-    this.attention = attention || this.attention
+    this.active = isDefined(active) ? active : this.active
+    this.discarded = isDefined(discarded) ? discarded : this.discarded
+    this.pinned = isDefined(pinned) ? pinned : this.pinned
+    this.muted = isDefined(muted) ? muted : this.muted
+    this.attention = isDefined(attention) ? attention : this.attention
     this.groupId = groupId || this.groupId
   }
 }

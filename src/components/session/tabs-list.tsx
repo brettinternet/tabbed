@@ -29,7 +29,7 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
 }) => (
   <>
     {tabs.map((tab, index) => {
-      const id = `${windowId}-${tab.id}`
+      const id = `tab-${windowId}-${tab.id}`
       return (
         <Draggable key={id} draggableId={id} index={index}>
           {(
@@ -69,7 +69,7 @@ type TabsListProps = {
   windowId: SessionWindowData['id']
   sessionId: SessionData['id']
   className?: ClassNames
-  isDragging: boolean
+  isWindowDragging: boolean
 }
 
 /**
@@ -92,7 +92,7 @@ export const TabsList: React.FC<TabsListProps> = ({
   windowId,
   window: win,
   className,
-  isDragging,
+  isWindowDragging,
 }) => (
   <Droppable
     droppableId={`${windowId}`}
@@ -120,7 +120,7 @@ export const TabsList: React.FC<TabsListProps> = ({
           tabs={win.tabs}
           sessionId={sessionId}
           windowId={windowId}
-          isWindowDragging={isDragging}
+          isWindowDragging={isWindowDragging}
         />
         {dropProvided.placeholder}
       </div>

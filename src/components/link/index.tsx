@@ -20,6 +20,7 @@ type LinkProps = {
   buttonShape?: ButtonProps['shape']
   text?: string
   iconProps?: IconProps
+  newWindow?: boolean
 } & React.AnchorHTMLAttributes<HTMLAnchorElement>
 
 export const Link: React.FC<LinkProps> = ({
@@ -27,9 +28,10 @@ export const Link: React.FC<LinkProps> = ({
   text = children,
   href,
   className,
-  buttonVariant,
-  buttonShape,
+  buttonVariant = 'link',
+  buttonShape = 'none',
   iconProps,
+  newWindow,
   ...props
 }) => (
   <a
@@ -38,6 +40,7 @@ export const Link: React.FC<LinkProps> = ({
       className,
       getClass({ shape: buttonShape, variant: buttonVariant })
     )}
+    {...(newWindow ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
     {...props}
   >
     {iconProps && <Icon {...iconProps} className={text && 'mr-2'} />}

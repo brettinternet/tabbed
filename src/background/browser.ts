@@ -182,22 +182,41 @@ export const closeTab = (tabIds: number | number[]) =>
 export const closeWindow = (windowId: number) =>
   browser.windows.remove(windowId)
 
-export const focusWindow = async (windowId: number) => {
-  await browser.windows.update(windowId, {
-    focused: true,
+export const moveTabs = async ({
+  tabIds,
+  index,
+  windowId,
+}: {
+  tabIds: number[]
+  index: number
+  windowId: number
+}) => {
+  await browser.tabs.move(tabIds, {
+    index,
+    windowId,
   })
 }
 
-const activateTab = async (tabId: number) => {
-  await browser.tabs.update(tabId, {
-    active: true,
-  })
+export const updateWindow = async (
+  windowId: number,
+  values: Windows.UpdateUpdateInfoType
+) => await browser.windows.update(windowId, values)
+
+export const updateTab = async (
+  tabId: number,
+  {
+    discarded,
+    ...values
+  }: Tabs.UpdateUpdatePropertiesType & { discarded?: boolean }
+) => {
+  if (isDefined(discarded)) {
+    await browser.tabs.discard(tabId)
+  }
+  return await browser.tabs.update(tabId, values)
 }
 
-export const focusWindowTab = async (windowId: number, tabId: number) => {
-  await focusWindow(windowId)
-  await activateTab(tabId)
-}
+export const isAllowedIncognitoAccess = async () =>
+  await browser.extension.isAllowedIncognitoAccess()
 
 type TabOptions = {
   url: string
@@ -215,7 +234,7 @@ export const openTab = async (
   { url, pinned, windowId, incognito, active }: TabOptions,
   focus: boolean = true
 ) => {
-  const allowed = await browser.extension.isAllowedIncognitoAccess()
+  const allowed = await isAllowedIncognitoAccess()
   if (incognito && !allowed) {
     /**
      * Guide user to enable it:
@@ -260,10 +279,10 @@ const openTabs = async (tabs: TabOptions[], windowId?: number) => {
       windowId,
     })
   })
-  await Promise.all(tasks)
+  return await Promise.all(tasks)
 }
 
-export const openTabOrFocus = async (
+const openTabOrFocus = async (
   query: Tabs.QueryQueryInfoType,
   incognito?: boolean
 ) => {
@@ -279,7 +298,8 @@ export const openTabOrFocus = async (
   }
 
   if (tab?.id && tab?.windowId) {
-    await focusWindowTab(tab.windowId, tab.id)
+    await updateWindow(tab.windowId, { focused: true })
+    await updateTab(tab.id, { active: true })
   } else {
     const { url, pinned } = query
     if (url) {
@@ -296,6 +316,7 @@ type WindowOptions = {
   left?: number
   incognito?: boolean
   tabs: TabOptions[]
+  focused?: boolean
 }
 
 // TODO: Add find option to optionally search by ID
@@ -305,28 +326,26 @@ type WindowOptions = {
 export const openWindow = async (w: WindowOptions) => {
   const options: Windows.CreateCreateDataType = {
     state: w.state,
-  }
-  switch (w.state) {
-    case 'normal':
-      options.height = w.height
-      options.width = w.width
-      break
-    case 'minimized':
-      break
-    case 'maximized':
-      options.top = w.top
-      options.left = w.left
-      break
-  }
-
-  const createdWindow = await browser.windows.create({
+    focused: w.focused,
     incognito: w.incognito,
-    ...options,
-  })
+  }
+  if (w.state === 'normal') {
+    options.height = w.height
+    options.width = w.width
+    options.top = w.top
+    options.left = w.left
+  }
 
-  if (w.tabs && createdWindow.id) {
+  const createdWindow = await browser.windows.create(options)
+
+  if (w.tabs.length > 0 && createdWindow.id) {
     const emptyStartupTabIds = createdWindow.tabs?.map(({ id }) => id) || []
-    await openTabs(w.tabs, createdWindow.id)
+    // If the window should explicitly not be focused, then make sure none of the tabs are active
+    // otherwise, an active tab will cause the window to be focused
+    if (w.focused === false) {
+      w.tabs = w.tabs.map((tab) => ({ ...tab, active: false }))
+    }
+    const createdTabs = await openTabs(w.tabs, createdWindow.id)
     const newWindow = await getWindow(createdWindow.id, { populate: true })
     const tabsToClose = newWindow.tabs?.filter(({ id }) =>
       emptyStartupTabIds.includes(id)
@@ -339,17 +358,16 @@ export const openWindow = async (w: WindowOptions) => {
     if (closeTabs) {
       await Promise.all(closeTabs)
     }
-    return createdWindow.id
+    return { window: createdWindow, tabs: createdTabs }
   }
+
+  return {}
 }
 
 /**
  * @returns array of window IDs
  */
-export const openWindows = async (
-  windows: WindowOptions[]
-): Promise<number[]> => {
+export const openWindows = async (windows: WindowOptions[]) => {
   const tasks = windows.map(openWindow)
-  const results = await Promise.all(tasks)
-  return results.filter(isDefined)
+  return await Promise.all(tasks)
 }

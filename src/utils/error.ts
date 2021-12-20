@@ -9,5 +9,6 @@ import { Runtime } from 'webextension-polyfill'
  * Sometimes client-sent messages fail on start-up or after the tab sleeps
  */
 export const isConnectionFailed = (err: unknown) =>
-  (err as Runtime.PropertyLastErrorType)?.message !==
-  'Could not establish connection. Receiving end does not exist.'
+  (err as Runtime.PropertyLastErrorType)?.message?.includes(
+    'Could not establish connection. Receiving end does not exist.'
+  )

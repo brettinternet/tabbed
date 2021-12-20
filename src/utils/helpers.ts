@@ -1,6 +1,19 @@
 export type Valueof<T> = T[keyof T]
 
 /**
+ * @source https://stackoverflow.com/a/54178819
+ */
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
+
+/**
+ * @source https://stackoverflow.com/a/53229567
+ */
+type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never }
+export type XOR<T, U> = T | U extends object
+  ? (Without<T, U> & U) | (Without<U, T> & T)
+  : T | U
+
+/**
  * Determine if a value is defined
  */
 export const isDefined = <T>(arg: T | undefined): arg is T =>
@@ -65,16 +78,16 @@ export const insert = <T>(list: T[], item: T, index: number) => {
  */
 export const reorder = <T>(
   list: T[],
-  startIndex: number,
-  endIndex: number,
+  fromIndex: number,
+  toIndex: number,
   mutate?: (target: T) => T
 ): T[] => {
   const copy = list.slice()
-  let [target] = copy.splice(startIndex, 1)
+  let [target] = copy.splice(fromIndex, 1)
   if (mutate) {
     target = mutate(target)
   }
-  copy.splice(endIndex, 0, target)
+  copy.splice(toIndex, 0, target)
   return copy
 }
 
@@ -98,8 +111,6 @@ export const spliceSeparate = <T>(
   return [fromCopy, toCopy]
 }
 
-export const generateFallbackId = () => new Date().valueOf()
-
 /**
  * Downloads data as JSON by creating a url blog, adding an anchor to
  * the DOM and initiliazing the download
@@ -120,4 +131,12 @@ export const downloadJson = (filename: string, data: unknown) => {
   anchor.click()
   window.URL.revokeObjectURL(url)
   anchor.remove()
+}
+
+export const tryParse = (str: unknown) => {
+  try {
+    return JSON.parse(str as string)
+  } catch {
+    return str
+  }
 }

@@ -13,9 +13,19 @@ if (isPopup) {
   document.body.classList.add('overflow-hidden')
 }
 
+/**
+ * @docs DND callbacks
+ * https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/guides/responders.md
+ */
 export const SessionLayout = () => {
   const [settings] = useSettings()
-  const { onDragEnd, sessionsManager, setSessionsManager } = useSessions()
+  const {
+    onBeforeCapture,
+    onDragEnd,
+    activeDragKind,
+    sessionsManager,
+    setSessionsManager,
+  } = useSessions()
   useListeners(setSessionsManager)
 
   if (sessionsManager) {
@@ -28,8 +38,11 @@ export const SessionLayout = () => {
             : undefined,
         }}
       >
-        <DragDropContext onDragEnd={onDragEnd}>
-          <SessionContainer session={session} />
+        <DragDropContext
+          onBeforeCapture={onBeforeCapture}
+          onDragEnd={onDragEnd}
+        >
+          <SessionContainer session={session} activeDragKind={activeDragKind} />
         </DragDropContext>
       </div>
     )

@@ -1,3 +1,6 @@
+import { v4 as uuidv4 } from 'uuid'
+import browser from 'webextension-polyfill'
+
 import { SessionTabData, SessionWindowData } from 'utils/sessions'
 
 const getSortedOccurrences = (arr: string[]) => {
@@ -100,3 +103,11 @@ export const generateSessionTitle = (windows: SessionWindowData[]) => {
   }, [] as string[])
   return formatTopTitlesAndMore(titles)
 }
+
+export const fallbackTabId = (): number => new Date().valueOf()
+export const fallbackWindowId = (): number => browser.windows.WINDOW_ID_CURRENT
+
+/**
+ * Creates a UUID
+ */
+export const createId = (prefix: string) => `${prefix}-${uuidv4()}`
