@@ -164,7 +164,6 @@ export type SessionData<T extends SessionWindowData = SessionWindowData> = {
 export type StoredCurrentSessionData = {
   windows: {
     assignedWindowId: CurrentSessionWindow['assignedWindowId']
-    id: CurrentSessionWindow['id']
   }[]
 }
 export type UpdateCurrentSessionData = Partial<

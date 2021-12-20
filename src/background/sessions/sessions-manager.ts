@@ -96,8 +96,7 @@ export class SessionsManager {
     this.validate()
     const storedSessions: StoredSessions = {
       current: {
-        windows: this.current.windows.map(({ id, assignedWindowId }) => ({
-          id,
+        windows: this.current.windows.map(({ assignedWindowId }) => ({
           assignedWindowId,
         })),
       },

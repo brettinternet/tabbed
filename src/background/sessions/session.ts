@@ -89,7 +89,7 @@ export class CurrentSession {
       windows: windowOrder
         ? CurrentSession.sortWindows(
             windows,
-            windowOrder.map(({ id }) => id)
+            windowOrder.map(({ assignedWindowId }) => assignedWindowId)
           )
         : windows,
       title: title || generateSessionTitle(windows),
@@ -109,18 +109,18 @@ export class CurrentSession {
     })
     this.windows = CurrentSession.sortWindows(
       updatedWindows,
-      this.windows.map(({ id }) => id)
+      this.windows.map(({ assignedWindowId }) => assignedWindowId)
     )
     this.title = generateSessionTitle(this.windows)
   }
 
   static sortWindows(
     windows: CurrentSessionWindow[],
-    ids: CurrentSessionWindow['id'][]
+    ids: CurrentSessionWindow['assignedWindowId'][]
   ) {
     return windows.sort((a, b) => {
-      const aIndex = ids.findIndex((id) => id === a.id)
-      const bIndex = ids.findIndex((id) => id === b.id)
+      const aIndex = ids.findIndex((id) => id === a.assignedWindowId)
+      const bIndex = ids.findIndex((id) => id === b.assignedWindowId)
 
       // sort missing (new) values to end
       if (aIndex === -1) {
