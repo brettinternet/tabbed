@@ -30,8 +30,7 @@ export class CurrentSessionTab {
     discarded,
     attention,
     groupId,
-  }: // incognito,
-  Omit<CurrentSessionTabData, 'id'>) {
+  }: Omit<CurrentSessionTabData, 'id'>) {
     this.id = createId('tab')
     this.assignedTabId = assignedTabId
     this.assignedWindowId = assignedWindowId
@@ -44,7 +43,6 @@ export class CurrentSessionTab {
     this.discarded = discarded
     this.attention = attention
     this.groupId = groupId
-    // this.incognito = incognito
   }
 
   static async from<
@@ -74,7 +72,7 @@ export class CurrentSessionTab {
    */
   static fromTab(
     tab: Tabs.Tab,
-    { windowId, incognito }: { windowId: number; incognito?: boolean }
+    windowId: CurrentSessionTab['assignedWindowId']
   ): CurrentSessionTab | undefined {
     const {
       id: maybeAssignedTabId,
@@ -104,7 +102,6 @@ export class CurrentSessionTab {
         discarded: discarded || false,
         attention: attention || false,
         groupId,
-        // incognito,
       })
     }
   }
@@ -169,8 +166,7 @@ export class SavedSessionTab {
     discarded,
     attention,
     groupId,
-  }: // incognito,
-  Omit<SavedSessionTabData, 'id'>) {
+  }: Omit<SavedSessionTabData, 'id'>) {
     this.id = createId('tab')
     this.url = url
     this.favIconUrl = favIconUrl
@@ -181,7 +177,6 @@ export class SavedSessionTab {
     this.discarded = discarded
     this.attention = attention
     this.groupId = groupId
-    // this.incognito = incognito
   }
 
   async open({

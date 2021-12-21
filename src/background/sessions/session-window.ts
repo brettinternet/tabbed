@@ -101,11 +101,7 @@ export class CurrentSessionWindow {
         return new CurrentSessionWindow({
           ...win,
           tabs: tabs
-            .map((tab) =>
-              CurrentSessionTab.fromTab(tab, {
-                windowId: assignedWindowId,
-              })
-            )
+            .map((tab) => CurrentSessionTab.fromTab(tab, assignedWindowId))
             .filter(isDefined),
           assignedWindowId,
         })
@@ -127,9 +123,7 @@ export class CurrentSessionWindow {
       left,
     } = win
     const assignedWindowId = maybeAssignedWindowId || fallbackWindowId()
-    const tabs = maybeTabs
-      ? this.mapTabs(maybeTabs, { windowId: assignedWindowId, incognito })
-      : []
+    const tabs = maybeTabs ? this.mapTabs(maybeTabs, assignedWindowId) : []
     return new CurrentSessionWindow({
       id,
       assignedWindowId,
@@ -147,14 +141,14 @@ export class CurrentSessionWindow {
 
   private static mapTabs(
     tabs: Tabs.Tab[],
-    meta: { windowId: number; incognito: boolean }
+    assignedWindowId: CurrentSessionTab['assignedWindowId']
   ): CurrentSessionTab[] {
     return (
       tabs
         // TODO: is this always necessary?
         .sort((a, b) => a.index - b.index)
         .reduce<CurrentSessionTab[]>((acc, tab) => {
-          const maybeTab = CurrentSessionTab.fromTab(tab, meta)
+          const maybeTab = CurrentSessionTab.fromTab(tab, assignedWindowId)
           return maybeTab ? acc.concat(maybeTab) : acc
         }, [])
     )
