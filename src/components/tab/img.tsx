@@ -46,7 +46,12 @@ export const Img: React.FC<ImgProps> = ({
   }
 
   return (
-    <div className="w-8 h-8 min-w-min overflow-hidden rounded-full flex items-center justify-center bg-slate-200 dark:bg-slate-700">
+    <div
+      className={cn(
+        'w-8 h-8 min-w-min overflow-hidden rounded-full flex items-center justify-center bg-slate-200 dark:bg-slate-700',
+        className
+      )}
+    >
       <span className="block">{getInitials(url)}</span>
     </div>
   )

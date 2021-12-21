@@ -212,68 +212,6 @@ export const startListeners = async (
         await sessionsManager.updateCurrent()
       }
       await sessionsManager.handleChange()
-      // const toWindow = toSession.findWindow(to.windowId)
-      // let toWindow: SessionWindow | undefined
-      // // move to defined window, otherwise create new window
-      // if (isDefined(to.windowId)) {
-      //   toWindow = toSession.findWindow(to.windowId)
-      // } else {
-      //   // const newWindow = new SessionWindow({
-      //   //   ...fromWindow,
-      //   //   tabs: [],
-      //   //   id: undefined,
-      //   // })
-      //   // newWindow.activeSession = toSession.active || false
-      //   // // await toSession.addWindow({ window: newWindow, focused: false })
-      //   // toWindow = toSession.findWindow(newWindow.id)
-      //   // console.log('toWindow: ', toWindow)
-      //   // await toWindow.open()
-      //   const newWindowId = await openWindow({ ...fromWindow, tabs: [] })
-      //   if (newWindowId) {
-      //     const win = await browser.windows.get(newWindowId)
-      //     await toSession.addWindow({
-      //       window: SessionWindow.fromWindow(win, toSession.active || false),
-      //       focused: false,
-      //     })
-      //     toWindow = toSession.findWindow(newWindowId)
-      //   }
-      // }
-      // if (toWindow) {
-      //   if (isDefined(to.pinned)) {
-      //     // move to window before pinning
-      //     if (
-      //       from.windowId !== to.windowId &&
-      //       to.sessionId === sessionsManager.current.id
-      //     ) {
-      //       await toWindow.addTabs(tabs, to.index)
-      //     }
-      //     const tasks = tabs.map(async (tab) => {
-      //       if (tab.activeSession) {
-      //         await browser.tabs.update(tab.id, {
-      //           pinned: to.pinned,
-      //         })
-      //       } else {
-      //         tab.update({
-      //           pinned: to.pinned,
-      //         })
-      //       }
-      //     })
-      //     await Promise.all(tasks)
-      //   }
-      //   // pinning moves the tab to last pin, so moving is required again
-      //   await toWindow.addTabs(tabs, to.index)
-      //   if (from.sessionId !== to.sessionId) {
-      //     tabs.forEach(async (tab) => {
-      //       fromWindow.removeTab(tab.id)
-      //     })
-      //   }
-      //   if (
-      //     [from.sessionId, to.sessionId].includes(sessionsManager.current.id)
-      //   ) {
-      //     await sessionsManager.updateCurrent()
-      //   }
-      //   await sessionsManager.handleChange()
-      // }
     }
   )
 
