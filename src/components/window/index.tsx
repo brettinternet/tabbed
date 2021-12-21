@@ -2,13 +2,13 @@ import cn, { Argument as ClassNames } from 'classnames'
 
 import { Dropdown, DropdownButtonProps } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
-import { isCurrentSessionWindow, SessionWindowData } from 'utils/sessions'
-
-import { useHandlers } from './handlers'
+import { useWindowHandlers } from 'components/session/handlers'
+import { BrandedUuid } from 'utils/generate'
+import { isCurrentSessionWindow, SessionWindow } from 'utils/session-window'
 
 type WindowHeaderProps = {
-  sessionId: string
-  window: SessionWindowData
+  sessionId: BrandedUuid<'session'>
+  window: SessionWindow
   className?: ClassNames
 }
 
@@ -17,8 +17,8 @@ type WindowHeaderProps = {
  * "normal" | "minimized" | "maximized" | "fullscreen" | "docked"
  */
 const getStateActions = (
-  currentState: SessionWindowData['state'],
-  updateWindowState: (state: SessionWindowData['state']) => void
+  currentState: SessionWindow['state'],
+  updateWindowState: (state: SessionWindow['state']) => void
 ): DropdownButtonProps[] => {
   const normal: DropdownButtonProps = {
     onClick: () => {
@@ -62,16 +62,11 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
   className,
 }) => {
   const { id: windowId, focused, title, state, tabs, incognito } = win
-  const {
-    handleOpenWindow,
-    // handleSaveWindow,
-    handleRemoveWindow,
-    handleUpdateWindow,
-  } = useHandlers()
+  const { openWindows, updateWindow, removeWindows } = useWindowHandlers()
 
   const handleOpen = () => {
     if (!focused) {
-      handleOpenWindow({ sessionId, windowIds: [windowId] })
+      openWindows({ sessionId, windowIds: [windowId] })
     }
   }
 
@@ -125,22 +120,19 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
               //   iconProps: { name: IconName.SAVE },
               // },
               ...(isCurrentSessionWindow(win)
-                ? getStateActions(
-                    state,
-                    (state: SessionWindowData['state']) => {
-                      handleUpdateWindow({
-                        sessionId,
-                        windowId,
-                        options: { state },
-                      })
-                    }
-                  )
+                ? getStateActions(state, (state: SessionWindow['state']) => {
+                    updateWindow({
+                      sessionId,
+                      windowId,
+                      options: { state },
+                    })
+                  })
                 : []),
             ],
             [
               {
                 onClick: () => {
-                  handleRemoveWindow({ sessionId, windowIds: [windowId] })
+                  removeWindows({ sessionId, windowIds: [windowId] })
                 },
                 text: isCurrentSessionWindow(win) ? 'Close' : 'Delete',
                 iconProps: {

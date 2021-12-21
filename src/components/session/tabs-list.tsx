@@ -10,14 +10,15 @@ import {
 } from 'react-beautiful-dnd'
 
 import { Tab } from 'components/tab'
-import { SessionData, SessionWindowData } from 'utils/sessions'
+import { Session } from 'utils/session'
+import { SessionWindow } from 'utils/session-window'
 
-import { DroppableType } from './store'
+import { DroppableType } from './dnd-store'
 
 type InnerTabListProps = {
-  windowId: SessionWindowData['id']
-  sessionId: SessionData['id']
-  tabs: SessionWindowData['tabs']
+  windowId: SessionWindow['id']
+  sessionId: Session['id']
+  tabs: SessionWindow['tabs']
   isWindowDragging: boolean
 }
 
@@ -29,7 +30,7 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
 }) => (
   <>
     {tabs.map((tab, index) => {
-      const id = `tab-${windowId}-${tab.id}`
+      const id = `${windowId}-${tab.id}`
       return (
         <Draggable key={id} draggableId={id} index={index}>
           {(
@@ -65,9 +66,9 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
 const MemoizedInnerTabList = memo(InnerTabList)
 
 type TabsListProps = {
-  window: SessionWindowData
-  windowId: SessionWindowData['id']
-  sessionId: SessionData['id']
+  window: SessionWindow
+  windowId: SessionWindow['id']
+  sessionId: Session['id']
   className?: ClassNames
   isWindowDragging: boolean
 }

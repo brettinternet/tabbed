@@ -1,23 +1,23 @@
 import { atom, useAtom } from 'jotai'
 import { SetStateAction, useCallback, useEffect } from 'react'
-import browser from 'webextension-polyfill'
 
+import { isPopup, useBackground } from 'components/app/store'
 import { useTryToastError } from 'components/error/handlers'
-import { popupUrl, tabUrl, popoutUrl, sidebarUrl } from 'utils/env'
 import { getKeys } from 'utils/helpers'
 import { updateLogLevel } from 'utils/logger'
-import { SettingsData, Themes, ThemeType } from 'utils/settings'
-
-import { saveSettings } from './handlers'
-
-// Feature flags
-export const isPopup =
-  window.location.href.includes(popupUrl) || !window.location.href.includes('?')
-export const isTab = window.location.href.includes(tabUrl)
-export const isPopout = window.location.href.includes(popoutUrl)
-export const isSidebar = window.location.href.includes(sidebarUrl)
-export const isSidebarSupported = !!browser.sidebarAction
-export const isMac = window.navigator.userAgent.toLowerCase().includes('mac')
+import {
+  MESSAGE_TYPE_UPDATED_SETTING,
+  sendMessage,
+  UpdatedSettingMessage,
+} from 'utils/messages'
+import {
+  Settings,
+  Themes,
+  ThemeType,
+  loadSettings,
+  updateSettings,
+  defaultSettings,
+} from 'utils/settings'
 
 const setFontSize = (size: number) => {
   document.documentElement.style.fontSize = `${size}px`
@@ -40,9 +40,9 @@ const setBodySize = (width: number, height: number) => {
 /**
  * Invokes side effects for settings startup and changes
  */
-const handleSettingsSideEffects = async <K extends keyof SettingsData>(
+const handleSettingsSideEffects = async <K extends keyof Settings>(
   key: K,
-  settings: SettingsData
+  settings: Settings
 ) => {
   switch (key) {
     case 'fontSize': {
@@ -76,46 +76,47 @@ const handleSettingsSideEffects = async <K extends keyof SettingsData>(
   }
 }
 
-const settingsAtom = atom<SettingsData | undefined>(undefined)
+const settingsAtom = atom<Settings>(defaultSettings)
 
-export type SetSettings = (
-  update: SetStateAction<SettingsData | undefined>
-) => void
+export type SetSettings = (update: SetStateAction<Settings>) => void
 export const useSettings = (): [
-  SettingsData | undefined,
-  SetSettings,
-  (values: Partial<SettingsData>) => Promise<void>
+  Settings,
+  (values: Partial<Settings>) => Promise<void>
 ] => {
   const tryToastError = useTryToastError()
+  const port = useBackground()
   const [settings, setSettings] = useAtom(settingsAtom)
 
+  useEffect(() => {
+    const load = async () => {
+      const settings = await loadSettings()
+      const keys = getKeys(settings)
+      await Promise.all(
+        keys.map(async (key) => handleSettingsSideEffects(key, settings))
+      )
+      setSettings(settings)
+    }
+
+    void load()
+  }, [setSettings])
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const updateSettings = useCallback(
-    tryToastError(async (values: Partial<SettingsData>) => {
-      const settings = await saveSettings(values)
-      if (settings) {
-        const keys = getKeys(values)
-        await Promise.all(
-          keys.map(async (key) => handleSettingsSideEffects(key, settings))
-        )
-        setSettings(settings)
-      }
+  const _updateSettings = useCallback(
+    tryToastError(async (values: Partial<Settings>) => {
+      const keys = getKeys(values)
+      const settings = await updateSettings(values)
+      await Promise.all(
+        keys.map(async (key) => handleSettingsSideEffects(key, settings))
+      )
+      sendMessage<UpdatedSettingMessage>(
+        port,
+        MESSAGE_TYPE_UPDATED_SETTING,
+        values
+      )
+      setSettings(settings)
     }),
-    [setSettings, tryToastError]
+    [port, tryToastError]
   )
 
-  useEffect(() => {
-    if (settings) {
-      const act = async () => {
-        const keys = getKeys(settings)
-        await Promise.all(
-          keys.map(async (key) => handleSettingsSideEffects(key, settings))
-        )
-      }
-
-      void act()
-    }
-  }, [settings])
-
-  return [settings, setSettings, updateSettings]
+  return [settings, _updateSettings]
 }

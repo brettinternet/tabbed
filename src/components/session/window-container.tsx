@@ -6,14 +6,15 @@ import {
 } from 'react-beautiful-dnd'
 
 import { WindowHeader } from 'components/window'
-import { SessionData, SessionWindowData } from 'utils/sessions'
+import { Session } from 'utils/session'
+import { SessionWindow } from 'utils/session-window'
 
 import { TabsList } from './tabs-list'
 
 type SessionWindowProps = {
-  sessionId: SessionData['id']
+  sessionId: Session['id']
   index: number
-  window: SessionWindowData
+  window: SessionWindow
 }
 
 const getContainerBackground = ({
@@ -39,7 +40,7 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
   index,
   window: win,
 }) => (
-  <Draggable draggableId={`window-${sessionId}-${win.id}`} index={index}>
+  <Draggable draggableId={`${sessionId}-${win.id}`} index={index}>
     {(
       dragProvided: DraggableProvided,
       dragSnapshot: DraggableStateSnapshot

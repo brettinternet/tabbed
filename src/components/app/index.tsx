@@ -1,44 +1,34 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { v4 as uuidv4 } from 'uuid'
+import browser from 'webextension-polyfill'
 
+import { Button } from 'components/button'
+import { withErrorBoundary } from 'components/error/boundary'
 import { Layout } from 'components/layout'
 import { ModalProvider } from 'components/modal/provider'
 import { SessionLayout } from 'components/session'
-import { useShortcuts } from 'components/shortcuts/store'
 import { ToastContainer } from 'components/toast'
-import { useToasts } from 'components/toast/store'
+import { CONNECT_NAME_CLIENT_PREFIX, sendConnect } from 'utils/connect'
+import { isProd } from 'utils/env'
 
-import { useHandlers } from './handlers'
-import { useSettings } from './store'
+import { Mounted } from './mounted'
+import { usePort } from './store'
 
-export const App = () => {
-  const [settings, setSettings] = useSettings()
-  const [isLoading, setLoading] = useState(true)
-  const { add: addToast } = useToasts()
-  const { getSettings } = useHandlers(setSettings)
-  useShortcuts(settings?.shortcuts || false)
+const App: React.FC = () => {
+  const [port, setPort] = usePort()
 
   useEffect(() => {
-    const fetchSettings = async () => {
-      const settings = await getSettings() // ~29 ms
-      if (settings) {
-        setSettings(settings)
-      } else {
-        addToast({
-          title: 'Error',
-          message: 'Unable to load app settings. Please refresh the extension.',
-          variant: 'error',
-          autoDismiss: false,
-        })
-      }
-      setLoading(false)
-    }
+    const clientId = uuidv4()
+    const backgroundPort = sendConnect(
+      `${CONNECT_NAME_CLIENT_PREFIX}-${clientId}`
+    )
+    setPort(backgroundPort)
+  }, [setPort])
 
-    void fetchSettings()
-  }, [setSettings, addToast, getSettings])
-
-  if (!isLoading) {
+  if (port) {
     return (
       <Layout>
+        <Mounted />
         <SessionLayout />
         <ToastContainer />
         <ModalProvider />
@@ -46,5 +36,26 @@ export const App = () => {
     )
   }
 
+  // TODO: add loading
   return null
 }
+
+export const AppWithErrorBoundary = withErrorBoundary(App, {
+  defaultMessage: (
+    <>
+      The app encountered an unrecoverable error, please{' '}
+      <Button
+        className="text-white underline"
+        inline
+        variant="none"
+        shape="none"
+        onClick={() => {
+          browser.runtime.reload()
+        }}
+      >
+        click to reload the extension
+      </Button>
+    </>
+  ),
+  showErrorMessage: !isProd,
+})

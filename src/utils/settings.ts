@@ -1,6 +1,7 @@
 // Types shared between background and client
 import { isProd } from 'utils/env'
 import { Valueof } from 'utils/helpers'
+import { LocalStorage } from 'utils/storage'
 
 export const Layouts = {
   LIST: 'list',
@@ -29,7 +30,7 @@ type WindowPosition = {
   width: number
 }
 
-export type SettingsData = {
+export type Settings = {
   layout: LayoutType
   extensionClickAction: ExtensionClickActionType
   showTabCountBadge: boolean
@@ -52,7 +53,7 @@ export type SettingsData = {
   }
 }
 
-export const defaultSettings: SettingsData = {
+export const defaultSettings: Settings = {
   layout: Layouts.LIST,
   extensionClickAction: ExtensionClickActions.POPUP,
   showTabCountBadge: true,
@@ -79,4 +80,28 @@ chrome-extension://*`,
     parsed: ['chrome://bookmarks', 'chrome-extension://*'],
     error: undefined,
   },
+}
+
+/**
+ * Settings are potentially partial between upgrades and new features
+ */
+export const loadSettings = async (): Promise<Settings> => {
+  const settings = await LocalStorage.get<Partial<Settings>>(
+    LocalStorage.key.SETTINGS
+  )
+  return Object.assign({}, defaultSettings, settings)
+}
+
+const saveSettings = async (settings: Settings) => {
+  await LocalStorage.set(LocalStorage.key.SETTINGS, settings)
+}
+
+export const updateSettings = async (someSettings: Partial<Settings>) => {
+  const settings: Settings = Object.assign(
+    {},
+    await loadSettings(),
+    someSettings
+  )
+  await saveSettings(settings)
+  return settings
 }

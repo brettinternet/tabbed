@@ -7,13 +7,13 @@ import {
   openExtensionNewTab,
   openExtensionExistingTab,
   openExtensionPopout,
-} from 'background/browser'
-import { SessionsManager } from 'background/sessions/sessions-manager'
+} from 'utils/browser'
 import { popupUrl, sidebarUrl } from 'utils/env'
+import { SAVE_SESSIONS } from 'utils/flags'
 import { isDefined } from 'utils/helpers'
 import { log } from 'utils/logger'
-import { ExtensionClickActions } from 'utils/settings'
-import { SettingsData } from 'utils/settings'
+import { addSaved, loadSessionsManager, save } from 'utils/sessions-manager'
+import { Settings, ExtensionClickActions } from 'utils/settings'
 
 type MenuId = string | number
 let menuIds: {
@@ -24,9 +24,7 @@ let menuIds: {
   popup?: MenuId
 } = {}
 
-export const configurePopoutAction = (
-  popoutState: SettingsData['popoutState']
-) => {
+export const configurePopoutAction = (popoutState: Settings['popoutState']) => {
   menuIds.popout = browser.contextMenus.create({
     title: 'Open in popout window',
     contexts: ['browser_action'],
@@ -36,7 +34,7 @@ export const configurePopoutAction = (
   })
 }
 
-export const configureExtension = async (sessionsManager: SessionsManager) => {
+export const configureExtension = async () => {
   await Promise.all(
     [menuIds.sidebar, menuIds.tab, menuIds.saveContext].map(async (id) => {
       if (isDefined(id)) {
@@ -59,24 +57,30 @@ export const configureExtension = async (sessionsManager: SessionsManager) => {
     onclick: openExtensionNewTab,
   })
 
-  menuIds.saveContext = browser.contextMenus.create({
-    id: 'save-session',
-    title: 'Save session',
-    contexts: ['page'],
-    onclick: async () => {
-      try {
-        await sessionsManager.addSaved(sessionsManager.current)
-        await browser.notifications.create({
-          type: 'basic',
-          iconUrl: 'icons/icon-32x32.png',
-          title: 'Session saved',
-          message: 'The current session has been saved',
-        })
-      } catch (err) {
-        log.error(err)
-      }
-    },
-  })
+  if (SAVE_SESSIONS) {
+    menuIds.saveContext = browser.contextMenus.create({
+      id: 'save-session',
+      title: 'Save session',
+      contexts: ['page'],
+      onclick: async () => {
+        try {
+          const sessionsManager = await loadSessionsManager()
+          await addSaved(sessionsManager, sessionsManager.current)
+          await save(sessionsManager)
+          // TODO: send msg to client to reload sessions
+          // but how to reload without overwrite save?
+          await browser.notifications.create({
+            type: 'basic',
+            iconUrl: 'icon-32x32.png',
+            title: 'Session saved',
+            message: 'The current session has been saved',
+          })
+        } catch (err) {
+          log.error(err)
+        }
+      },
+    })
+  }
 }
 
 const enablePopup = async () => {
@@ -91,7 +95,7 @@ const disablePopup = async () => {
  * Setup certain browser actions related to the browser toolbar
  */
 export const configureExtensionActions = async (
-  extensionClickAction: SettingsData['extensionClickAction']
+  extensionClickAction: Settings['extensionClickAction']
 ) => {
   if (extensionClickAction === ExtensionClickActions.TAB) {
     await disablePopup()

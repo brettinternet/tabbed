@@ -1,6 +1,6 @@
 import hotkeys from 'hotkeys-js'
 import { noop } from 'lodash'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { isPopup } from 'components/app/store'
 import { useModal } from 'components/modal/store'
@@ -106,67 +106,74 @@ export const Shortcut: ShortcutType = {
  */
 export const useShortcuts = (enabled: boolean) => {
   const { modal, ...updateModal } = useModal()
+  const previousEnabled = useRef<boolean>()
 
   useEffect(() => {
-    log.debug(logContext, 'setupShortcuts', enabled)
-    const hotkeyShortcuts = Object.values(Shortcut)
-      .map(({ hotkey }) => hotkey)
-      .join(',')
+    if (enabled !== previousEnabled.current) {
+      log.debug(logContext, 'setupShortcuts', enabled)
+      const hotkeyShortcuts = Object.values(Shortcut)
+        .map(({ hotkey }) => hotkey)
+        .join(',')
 
-    if (enabled) {
-      hotkeys(hotkeyShortcuts, ShortcutScopes.ENABLED, (event, handler) => {
-        if (enabled) {
-          event.preventDefault()
-          switch (handler.key) {
-            case Shortcut.question.hotkey:
-              updateModal.shortcuts.toggle()
-              break
-            case Shortcut.escape.hotkey:
-              if (!!modal) {
+      if (enabled) {
+        hotkeys(hotkeyShortcuts, ShortcutScopes.ENABLED, (event, handler) => {
+          if (enabled) {
+            event.preventDefault()
+            switch (handler.key) {
+              case Shortcut.question.hotkey:
+                updateModal.shortcuts.toggle()
+                break
+              case Shortcut.escape.hotkey:
+                if (!!modal) {
+                  updateModal.off()
+                } else if (isPopup) {
+                  window.close()
+                }
+                break
+              case Shortcut.slash.hotkey: {
                 updateModal.off()
-              } else if (isPopup) {
-                window.close()
+                const search = document.getElementById('search')
+                search?.focus()
+                break
               }
-              break
-            case Shortcut.slash.hotkey: {
-              updateModal.off()
-              const search = document.getElementById('search')
-              search?.focus()
-              break
+              case Shortcut.backtick.hotkey:
+                updateModal.settings.toggle()
+                break
+              case Shortcut.i.hotkey:
+                updateModal.importer.set(true)
+                break
+              case Shortcut.r.hotkey:
+                // void openSessionEdit()
+                break
+              case Shortcut.backspace.hotkey:
+              case Shortcut.delete.hotkey:
+                // void handleDelete(event)
+                break
+              case Shortcut.ctrl_z.hotkey:
+                // void undo()
+                break
+              case Shortcut.ctrl_y.hotkey:
+                // void redo()
+                break
+              case Shortcut.c.hotkey:
+                // handleSelectCurrentSession()
+                break
             }
-            case Shortcut.backtick.hotkey:
-              updateModal.settings.toggle()
-              break
-            case Shortcut.i.hotkey:
-              updateModal.importer.set(true)
-              break
-            case Shortcut.r.hotkey:
-              // void openSessionEdit()
-              break
-            case Shortcut.backspace.hotkey:
-            case Shortcut.delete.hotkey:
-              // void handleDelete(event)
-              break
-            case Shortcut.ctrl_z.hotkey:
-              // void undo()
-              break
-            case Shortcut.ctrl_y.hotkey:
-              // void redo()
-              break
-            case Shortcut.c.hotkey:
-              // handleSelectCurrentSession()
-              break
           }
-        }
-      })
-    } else {
-      hotkeys('', ShortcutScopes.DISABLED, noop)
+        })
+      } else {
+        hotkeys('', ShortcutScopes.DISABLED, noop)
+      }
+
+      // https://github.com/jaywcjlove/hotkeys/issues/90
+      hotkeys.setScope(ShortcutScopes[enabled ? 'ENABLED' : 'DISABLED'])
+      hotkeys.deleteScope(ShortcutScopes[enabled ? 'DISABLED' : 'ENABLED'])
+
+      log.debug(logContext, `hotkeys scope: '${hotkeys.getScope()}'`)
     }
-
-    // https://github.com/jaywcjlove/hotkeys/issues/90
-    hotkeys.setScope(ShortcutScopes[enabled ? 'ENABLED' : 'DISABLED'])
-    hotkeys.deleteScope(ShortcutScopes[enabled ? 'DISABLED' : 'ENABLED'])
-
-    log.debug(logContext, `hotkeys scope: '${hotkeys.getScope()}'`)
   }, [enabled, modal, updateModal])
+
+  useEffect(() => {
+    previousEnabled.current = enabled
+  }, [enabled])
 }

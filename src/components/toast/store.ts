@@ -8,7 +8,7 @@ import { log } from 'utils/logger'
 const logContext = 'components/toast/store'
 
 export type ToastOptions = {
-  message: string
+  message: React.ReactNode
   variant?: MessageVariantType
   autoDismiss?: boolean
   duration?: number
@@ -39,6 +39,7 @@ export const useToasts = () => {
       ...toastOptions,
       id,
     }
+    log.debug(logContext, toast)
     setToasts((toasts) => [...toasts, toast])
     return id
   }

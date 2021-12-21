@@ -8,6 +8,7 @@ declare global {
     // For debugging in dev
     browser?: unkown
     sessionsManager?: unknown
+    app?: unknown
   }
 
   /**

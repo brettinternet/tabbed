@@ -1,14 +1,14 @@
 import { Droppable } from 'react-beautiful-dnd'
 
-import { SessionData } from 'utils/sessions'
+import { Session } from 'utils/session'
 import { useMedia } from 'utils/window'
 
+import { ActiveDragKind, ActiveDragKindType, DroppableType } from './dnd-store'
 import { EmptyWindow } from './empty-window'
-import { ActiveDragKind, ActiveDragKindType, DroppableType } from './store'
 import { WindowContainer } from './window-container'
 
 type SessionContainerProps = {
-  session: SessionData
+  session: Session
   activeDragKind: ActiveDragKindType
 }
 
@@ -25,7 +25,7 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
   ])
   return (
     <Droppable
-      droppableId={session.id}
+      droppableId={`${session.id}`}
       type={DroppableType.SESSION}
       direction={direction}
     >
