@@ -7,7 +7,7 @@
     "start:app": "ts-node -P scripts/tsconfig.json scripts/start-cra",
     "start:tailwind": "npx tailwindcss --postcss -i ./src/styles/index.css -o ./src/index.css --watch",
     "start:background": "esbuild src/background/index.ts --bundle --sourcemap --outdir=build/background --inject:env.js --watch",
-    "build": "run-s clean build:tailwind build:app build:icons build:background build:manifest",
+    "build": "run-s clean build:tailwind build:icons build:app build:background build:manifest",
     "build:icons": "run-s icons",
     "build:app": "craco build",
     "build:tailwind": "npx tailwindcss -m --postcss -i ./src/styles/index.css -o ./src/index.css",
