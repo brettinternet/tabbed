@@ -10,7 +10,7 @@ import {
 } from 'react-beautiful-dnd'
 
 import { Tab } from 'components/tab'
-import { SessionData, SessionWindowData } from 'utils/sessions'
+import { SessionData, SessionWindowData } from 'utils/sessions/types'
 
 import { DroppableType } from './store'
 

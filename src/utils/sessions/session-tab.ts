@@ -1,6 +1,6 @@
 import { Tabs } from 'webextension-polyfill'
 
-import { closeTab, openTab, updateTab, updateWindow } from 'background/browser'
+import { closeTab, openTab, updateTab, updateWindow } from 'utils/browser'
 import { isDefined } from 'utils/helpers'
 import {
   CurrentSessionTabClass,
@@ -9,7 +9,7 @@ import {
   SavedSessionTabData,
   UpdateCurrentSessionTabData,
   UpdateSavedSessionTabData,
-} from 'utils/sessions'
+} from 'utils/sessions/types'
 
 import { createId, fallbackTabId } from './generate'
 

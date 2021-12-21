@@ -1,11 +1,12 @@
-import { useSettings } from 'components/app/store'
 import { useModal } from 'components/modal/store'
 import {
   SettingsData,
   ExtensionClickActions,
   defaultSettings, // ExtensionClickActionType,
   ThemeType,
-} from 'utils/settings'
+} from 'utils/settings/types'
+
+import { useSettings } from './store'
 
 /**
  * Find the closest input value to constraint list for font size
@@ -18,7 +19,7 @@ const clamp = (x: number, min: number, max: number) =>
 
 export const useHandlers = () => {
   const modal = useModal()
-  const [userSettings, , updateSettings] = useSettings()
+  const [userSettings, updateSettings] = useSettings()
   const settings = userSettings || defaultSettings
 
   // const handleChangeLayout: React.ChangeEventHandler<HTMLInputElement> = useCallback(

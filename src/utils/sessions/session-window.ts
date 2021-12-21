@@ -7,8 +7,8 @@ import {
   moveTabs,
   openWindow,
   updateWindow,
-} from 'background/browser'
-import { BackgroundError } from 'background/error'
+} from 'utils/browser'
+import { AppError } from 'utils/error'
 import { isDefined } from 'utils/helpers'
 import {
   CurrentSessionWindowClass,
@@ -20,7 +20,7 @@ import {
   SavedSessionWindowData,
   SessionTabData,
   UpdateSessionWindow,
-} from 'utils/sessions'
+} from 'utils/sessions/types'
 
 import { createId, fallbackWindowId, generateWindowTitle } from './generate'
 import { CurrentSessionTab, SavedSessionTab } from './session-tab'
@@ -30,7 +30,7 @@ const logContext = 'background/sessions/session-window'
 const findTab = <T extends SessionTabData>(tabs: T[], tabId: T['id']): T => {
   const tab = tabs.find((t) => t.id === tabId)
   if (!tab) {
-    throw new BackgroundError(logContext, `Unable to find tab by ID ${tabId}`)
+    throw new AppError(logContext, `Unable to find tab by ID ${tabId}`)
   }
 
   return tab
@@ -42,7 +42,7 @@ const findTabIndex = <T extends SessionTabData>(
 ): number => {
   const index = tabs.findIndex((t) => t.id === tabId)
   if (index === -1) {
-    throw new BackgroundError(logContext, `Unable to find tab by ID ${tabId}`)
+    throw new AppError(logContext, `Unable to find tab by ID ${tabId}`)
   }
 
   return index
@@ -329,7 +329,7 @@ export class SavedSessionWindow {
   removeTab(id: SavedSessionTab['id']) {
     const index = this.findTabIndex(id)
     if (index === -1) {
-      new BackgroundError(logContext, `Unable to find tab by ID ${id}`)
+      new AppError(logContext, `Unable to find tab by ID ${id}`)
     }
 
     this.tabs.splice(index, 1)

@@ -2,7 +2,7 @@ import browser, { Tabs, Windows } from 'webextension-polyfill'
 
 import { tabUrl, popoutUrl } from 'utils/env'
 import { isDefined } from 'utils/helpers'
-import { SettingsData } from 'utils/settings'
+import { SettingsData } from 'utils/settings/types'
 
 export const openExtensionPopup = () => browser.browserAction.openPopup()
 

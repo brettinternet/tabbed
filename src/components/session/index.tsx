@@ -1,9 +1,9 @@
 import { DragDropContext } from 'react-beautiful-dnd'
 
-import { useSettings, isPopup } from 'components/app/store'
-import { defaultSettings } from 'utils/settings'
+import { isPopup } from 'components/app/store'
+import { useSettings } from 'components/settings/store'
+import { defaultSettings } from 'utils/settings/types'
 
-import { useListeners } from './handlers'
 import { SessionContainer } from './session-container'
 import { useSessions } from './store'
 
@@ -19,14 +19,8 @@ if (isPopup) {
  */
 export const SessionLayout = () => {
   const [settings] = useSettings()
-  const {
-    onBeforeCapture,
-    onDragEnd,
-    activeDragKind,
-    sessionsManager,
-    setSessionsManager,
-  } = useSessions()
-  useListeners(setSessionsManager)
+  const { onBeforeCapture, onDragEnd, activeDragKind, sessionsManager } =
+    useSessions()
 
   if (sessionsManager) {
     const session = sessionsManager.current

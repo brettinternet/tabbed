@@ -1,5 +1,8 @@
-import { LocalStorage } from 'background/storage'
-import { SettingsData, defaultSettings } from 'utils/settings'
+import { instanceToPlain } from 'class-transformer'
+
+import { LocalStorage } from 'utils/storage'
+
+import { SettingsData, defaultSettings } from './types'
 
 export interface Settings extends SettingsData {}
 export class Settings {
@@ -43,7 +46,7 @@ export class Settings {
   }
 
   async save() {
-    await LocalStorage.set(LocalStorage.key.SETTINGS, this)
+    await LocalStorage.set(LocalStorage.key.SETTINGS, this.get())
   }
 
   async update(partialSettings: Partial<SettingsData>) {
@@ -83,5 +86,9 @@ export class Settings {
       sortFocusedWindowFirst ?? this.sortFocusedWindowFirst
     this.saveIncognito = saveIncognito ?? this.saveIncognito
     this.excludedUrls = excludedUrls ?? this.excludedUrls
+  }
+
+  get() {
+    return instanceToPlain(this) as SettingsData
   }
 }

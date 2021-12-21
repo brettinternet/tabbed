@@ -1,7 +1,7 @@
 import { Type } from 'class-transformer'
 
-import { closeWindow, getAllWindows } from 'background/browser'
-import { BackgroundError } from 'background/error'
+import { closeWindow, getAllWindows } from 'utils/browser'
+import { AppError } from 'utils/error'
 import { isDefined, reorder } from 'utils/helpers'
 import {
   CurrentSessionClass,
@@ -13,7 +13,7 @@ import {
   StoredCurrentSessionData,
   UpdateCurrentSessionData,
   UpdateSavedSessionData,
-} from 'utils/sessions'
+} from 'utils/sessions/types'
 
 import { createId } from './generate'
 import { generateSessionTitle } from './generate'
@@ -28,7 +28,7 @@ const findWindow = <T extends SessionWindowData>(
 ): T => {
   const win = windows.find((w) => w.id === id)
   if (!win) {
-    throw new BackgroundError(logContext, `Unable to find window by ID ${id}`)
+    throw new AppError(logContext, `Unable to find window by ID ${id}`)
   }
 
   return win
@@ -40,7 +40,7 @@ const findWindowIndex = <T extends SessionWindowData>(
 ): number => {
   const index = windows.findIndex((w) => w.id === id)
   if (index === -1) {
-    throw new BackgroundError(logContext, `Unable to find window by ID ${id}`)
+    throw new AppError(logContext, `Unable to find window by ID ${id}`)
   }
 
   return index
@@ -258,7 +258,7 @@ export class SavedSession {
   removeWindow(id: SavedSessionWindow['id']) {
     const index = this.findWindowIndex(id)
     if (index === -1) {
-      throw new BackgroundError(logContext, `Unable to find window by ID ${id}`)
+      throw new AppError(logContext, `Unable to find window by ID ${id}`)
     }
     const [removed] = this.windows.splice(index, 1)
     return removed

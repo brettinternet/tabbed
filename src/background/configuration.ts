@@ -7,13 +7,14 @@ import {
   openExtensionNewTab,
   openExtensionExistingTab,
   openExtensionPopout,
-} from 'background/browser'
-import { SessionsManager } from 'background/sessions/sessions-manager'
+} from 'utils/browser'
 import { popupUrl, sidebarUrl } from 'utils/env'
+import { SAVE_SESSIONS } from 'utils/flags'
 import { isDefined } from 'utils/helpers'
 import { log } from 'utils/logger'
-import { ExtensionClickActions } from 'utils/settings'
-import { SettingsData } from 'utils/settings'
+import { SessionsManager } from 'utils/sessions/sessions-manager'
+import { Settings } from 'utils/settings/settings-manager'
+import { SettingsData, ExtensionClickActions } from 'utils/settings/types'
 
 type MenuId = string | number
 let menuIds: {
@@ -36,7 +37,7 @@ export const configurePopoutAction = (
   })
 }
 
-export const configureExtension = async (sessionsManager: SessionsManager) => {
+export const configureExtension = async () => {
   await Promise.all(
     [menuIds.sidebar, menuIds.tab, menuIds.saveContext].map(async (id) => {
       if (isDefined(id)) {
@@ -59,24 +60,32 @@ export const configureExtension = async (sessionsManager: SessionsManager) => {
     onclick: openExtensionNewTab,
   })
 
-  menuIds.saveContext = browser.contextMenus.create({
-    id: 'save-session',
-    title: 'Save session',
-    contexts: ['page'],
-    onclick: async () => {
-      try {
-        await sessionsManager.addSaved(sessionsManager.current)
-        await browser.notifications.create({
-          type: 'basic',
-          iconUrl: 'icons/icon-32x32.png',
-          title: 'Session saved',
-          message: 'The current session has been saved',
-        })
-      } catch (err) {
-        log.error(err)
-      }
-    },
-  })
+  if (SAVE_SESSIONS) {
+    menuIds.saveContext = browser.contextMenus.create({
+      id: 'save-session',
+      title: 'Save session',
+      contexts: ['page'],
+      onclick: async () => {
+        try {
+          const sessionsManager = await Settings.load().then(
+            SessionsManager.load
+          )
+          await sessionsManager.addSaved(sessionsManager.current)
+          await sessionsManager.save()
+          // TODO: send msg to client to reload sessions
+          // but how to reload without overwrite save?
+          await browser.notifications.create({
+            type: 'basic',
+            iconUrl: 'icon-32x32.png',
+            title: 'Session saved',
+            message: 'The current session has been saved',
+          })
+        } catch (err) {
+          log.error(err)
+        }
+      },
+    })
+  }
 }
 
 const enablePopup = async () => {

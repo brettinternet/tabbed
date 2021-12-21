@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react'
 import { Droppable } from 'react-beautiful-dnd'
 import browser from 'webextension-polyfill'
 
-import { isAllowedIncognitoAccess } from 'background/browser'
 import { Button } from 'components/button'
 import { Icon, IconName } from 'components/icon'
+import { isAllowedIncognitoAccess } from 'utils/browser'
 
 import { DroppableId, DroppableType } from './store'
 

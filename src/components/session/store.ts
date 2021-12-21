@@ -6,13 +6,14 @@ import {
 } from 'react-beautiful-dnd'
 
 import { isDefined, reorder, spliceSeparate, Valueof } from 'utils/helpers'
+import { useSessionsManager } from 'utils/sessions'
 import {
   SessionsManagerData,
   SessionTabData,
   SessionWindowData,
-} from 'utils/sessions'
+} from 'utils/sessions/types'
 
-import { useHandlers } from './handlers'
+// import { useHandlers } from './handlers'
 
 const shouldPin = (
   target: SessionWindowData['tabs'][number],
@@ -41,7 +42,7 @@ const reorderTabs = ({
   windows: SessionWindowData[]
   source: DraggableLocation
   destination: DraggableLocation
-  moveTabs: ReturnType<typeof useHandlers>['moveTabs']
+  moveTabs: ReturnType<typeof useSessionsManager>['moveTabs']
 }): SessionWindowData[] => {
   const windows = _windows.slice()
 
@@ -152,27 +153,9 @@ export const DroppableType = {
 } as const
 
 export const useSessions = () => {
-  const [sessionsManager, setSessionsManager] = useState<SessionsManagerData>()
+  const { sessionsManager, moveWindows, moveTabs } = useSessionsManager()
   const [activeDragKind, setActiveDragKind] =
     useState<ActiveDragKindType>(undefined)
-  console.log('sessionsManager: ', sessionsManager)
-  const { getSessionsManagerData, moveWindows, moveTabs } = useHandlers()
-
-  useEffect(() => {
-    const fetch = async () => {
-      const startTime = performance.now()
-      const manager = await getSessionsManagerData()
-      const endTime = performance.now()
-      console.log(
-        `Call to load manager took ${endTime - startTime} milliseconds`
-      )
-      if (manager) {
-        setSessionsManager(manager)
-      }
-    }
-
-    void fetch()
-  }, [getSessionsManagerData])
 
   const onBeforeCapture: OnBeforeCaptureResponder = useCallback(
     ({ draggableId }) => {
@@ -184,64 +167,54 @@ export const useSessions = () => {
   )
 
   const onDragEnd = useCallback(
-    (result: DropResult) => {
-      const { source, destination } = result
+    async (result: DropResult) => {
+      if (sessionsManager) {
+        const { source, destination } = result
 
-      // Dropped somewhere and moved
-      if (
-        destination &&
-        !(
-          source.droppableId === destination.droppableId &&
-          source.index === destination.index
-        )
-      ) {
-        // reordering window
-        if (result.type === DroppableType.SESSION) {
-          setSessionsManager((sessionsManager) => {
-            if (sessionsManager) {
-              const sessionId = sessionsManager.current.id
-              const win = sessionsManager.current.windows[source.index]
-              void moveWindows({
-                from: {
-                  sessionId,
-                  windowIds: [win.id],
-                },
-                to: {
-                  sessionId,
-                  index: destination.index,
-                },
-              })
-              const reorderedWindows = reorder(
-                sessionsManager.current.windows,
-                source.index,
-                destination.index
-              )
-              sessionsManager.current.windows = reorderedWindows
-              return sessionsManager
-            }
-          })
-          return
-        }
-
-        // reordering tab
-        setSessionsManager((sessionsManager) => {
-          if (sessionsManager) {
+        // Dropped somewhere and moved
+        if (
+          destination &&
+          !(
+            source.droppableId === destination.droppableId &&
+            source.index === destination.index
+          )
+        ) {
+          // reordering window
+          if (result.type === DroppableType.SESSION) {
+            const sessionId = sessionsManager.current.id
+            const win = sessionsManager.current.windows[source.index]
+            await moveWindows({
+              from: {
+                sessionId,
+                windowIds: [win.id],
+              },
+              to: {
+                sessionId,
+                index: destination.index,
+              },
+            })
+            // const reorderedWindows = reorder(
+            //   sessionsManager.current.windows,
+            //   source.index,
+            //   destination.index
+            // )
+            // sessionsManager.current.windows = reorderedWindows
+          } else {
+            // reordering tab
             const sessionId = sessionsManager.current.id
             const windows = sessionsManager.current.windows
-            const reorderedWindowTabs = reorderTabs({
+            reorderTabs({
               sessionId,
               windows,
               source,
               destination,
               moveTabs,
             })
-            sessionsManager.current.windows = reorderedWindowTabs
-            return sessionsManager
           }
-        })
-      }
+        }
 
-      setActiveDragKind(undefined)
+        setActiveDragKind(undefined)
+      }
     },
     [moveWindows, moveTabs]
   )
@@ -251,6 +224,5 @@ export const useSessions = () => {
     onDragEnd,
     activeDragKind,
     sessionsManager,
-    setSessionsManager,
   }
 }

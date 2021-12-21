@@ -2,9 +2,8 @@ import cn, { Argument as ClassNames } from 'classnames'
 
 import { Dropdown, DropdownButtonProps } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
-import { isCurrentSessionWindow, SessionWindowData } from 'utils/sessions'
-
-import { useHandlers } from './handlers'
+import { useSessionsManager } from 'utils/sessions'
+import { isCurrentSessionWindow, SessionWindowData } from 'utils/sessions/types'
 
 type WindowHeaderProps = {
   sessionId: string
@@ -62,16 +61,11 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
   className,
 }) => {
   const { id: windowId, focused, title, state, tabs, incognito } = win
-  const {
-    handleOpenWindow,
-    // handleSaveWindow,
-    handleRemoveWindow,
-    handleUpdateWindow,
-  } = useHandlers()
+  const { openWindows, updateWindow, removeWindows } = useSessionsManager()
 
   const handleOpen = () => {
     if (!focused) {
-      handleOpenWindow({ sessionId, windowIds: [windowId] })
+      openWindows({ sessionId, windowIds: [windowId] })
     }
   }
 
@@ -128,7 +122,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
                 ? getStateActions(
                     state,
                     (state: SessionWindowData['state']) => {
-                      handleUpdateWindow({
+                      updateWindow({
                         sessionId,
                         windowId,
                         options: { state },
@@ -140,7 +134,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
             [
               {
                 onClick: () => {
-                  handleRemoveWindow({ sessionId, windowIds: [windowId] })
+                  removeWindows({ sessionId, windowIds: [windowId] })
                 },
                 text: isCurrentSessionWindow(win) ? 'Close' : 'Delete',
                 iconProps: {

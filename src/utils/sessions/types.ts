@@ -1,16 +1,10 @@
 import { Tabs, Windows } from 'webextension-polyfill'
 
-import type { CurrentSession, SavedSession } from 'background/sessions/session'
-import type {
-  CurrentSessionTab,
-  SavedSessionTab,
-} from 'background/sessions/session-tab'
-import type {
-  CurrentSessionWindow,
-  SavedSessionWindow,
-} from 'background/sessions/session-window'
+import { PartialBy, Valueof } from 'utils/helpers'
 
-import { PartialBy, Valueof } from './helpers'
+import type { CurrentSession, SavedSession } from './session'
+import type { CurrentSessionTab, SavedSessionTab } from './session-tab'
+import type { CurrentSessionWindow, SavedSessionWindow } from './session-window'
 
 /**
  * Tab data

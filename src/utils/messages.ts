@@ -1,21 +1,20 @@
-import log from 'loglevel'
 import browser from 'webextension-polyfill'
-import { Tabs, Windows } from 'webextension-polyfill'
+import { Windows } from 'webextension-polyfill'
 
 import type { ToastOptions } from 'components/toast/store'
+import { log } from 'utils/logger'
 // import type { SearchSessionsResults } from 'background/search/sessions'
 import {
-  SessionsManagerData,
   SessionData,
   SavedSessionCategoryType,
   SessionWindowData,
   SessionTabData,
   UpdateCurrentSessionTabData,
   UpdateSavedSessionTabData,
-} from 'utils/sessions'
-import type { SettingsData } from 'utils/settings'
+} from 'utils/sessions/types'
+import type { SettingsData } from 'utils/settings/types'
 
-import { tryParse, XOR } from './helpers'
+import { tryParse } from './helpers'
 
 export const sendMessage = <
   T extends { type: string; value?: unknown },
@@ -61,14 +60,23 @@ export const createMessageListener = <
   handler: C,
   parse?: boolean
 ) => {
-  browser.runtime.onMessage.addListener((message: T) => {
+  const _handler = (message: T) => {
     if (message.type === type) {
       const { value } = message
       const parsedValue = parse && value ? JSON.parse(value as string) : value
       log.debug('message listener', type, parsedValue)
       return Promise.resolve(handler(parsedValue))
     }
-  })
+  }
+
+  return {
+    startListener: () => {
+      browser.runtime.onMessage.addListener(_handler)
+    },
+    removeListener: () => {
+      browser.runtime.onMessage.removeListener(_handler)
+    },
+  }
 }
 
 type MessageWithValue<T, U = undefined> = {
@@ -80,51 +88,24 @@ type Message<T> = {
   type: T
 }
 
-// TODO: add detailed comments describing each message's usage
-
-// settings
-export const MESSAGE_TYPE_GET_SETTINGS = 'get_settings'
-export type GetSettingsMessage = Message<typeof MESSAGE_TYPE_GET_SETTINGS>
-export type GetSettingsResponse = SettingsData
-
-// huh? when?
-export const MESSAGE_TYPE_PUSH_SETTINGS = 'push_settings'
-export type PushSettingsMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_PUSH_SETTINGS,
-  SettingsData
->
-
-export const MESSAGE_TYPE_UPDATE_SETTINGS = 'update_settings'
-export type UpdateSettingsMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_UPDATE_SETTINGS,
+/**
+ * Handle background side effects when a setting is changed
+ */
+export const MESSAGE_TYPE_UPDATED_SETTING = 'updated_setting'
+export type UpdatedSettingMessage = MessageWithValue<
+  typeof MESSAGE_TYPE_UPDATED_SETTING,
   Partial<SettingsData>
 >
-export type UpdateSettingsResponse = SettingsData
 
-// session list
-export const MESSAGE_TYPE_GET_SESSIONS_MANAGER_DATA =
-  'get_sessions_manager_data'
-export type GetSessionsManagerDataMessage = Message<
-  typeof MESSAGE_TYPE_GET_SESSIONS_MANAGER_DATA
->
-export type GetSessionListsResponse = SessionsManagerData
-
-export const MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA =
-  'push_sessions_manager_data'
-export type PushSessionManagerDataMessage<T = string> = MessageWithValue<
-  typeof MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA,
-  T // stringified `SessionsManagerData`
+/**
+ * Tell client when current session has changed, e.g. tab closed, window focused, etc
+ */
+export const MESSAGE_TYPE_CURRENT_SESSION_CHANGE = 'current_session_change'
+export type CurrentSessionChangeMessage = Message<
+  typeof MESSAGE_TYPE_CURRENT_SESSION_CHANGE
 >
 
-// query sessions
-export const MESSAGE_TYPE_QUERY_SESSION = 'query_session'
-export type QuerySessionMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_QUERY_SESSION,
-  {
-    sessionId: string
-  }
->
-export type QuerySessionResponse = SessionData | undefined
+///////////////////
 
 // session actions
 
@@ -136,58 +117,6 @@ export type UpdateSelectedSessionIdMessage = MessageWithValue<
   {
     sessionId: SessionData['id']
     category: SavedSessionCategoryType
-  }
->
-
-// save
-export const MESSAGE_TYPE_SAVE_EXISTING_SESSION = 'save_existing_session'
-export type SaveExistingSessionMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_SAVE_EXISTING_SESSION,
-  { sessionId: SessionData['id'] }
->
-
-export const MESSAGE_TYPE_SAVE_WINDOWS = 'save_windows'
-export type SaveWindowsMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_SAVE_WINDOWS,
-  {
-    sessionId: SessionData['id']
-    windowIds: SessionWindowData['id'][]
-  }
->
-
-// open
-export const MESSAGE_TYPE_OPEN_SESSIONS = 'open_sessions'
-export type OpenSessionsMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_OPEN_SESSIONS,
-  { sessionIds: SessionData['id'][] }
->
-
-export type OpenWindowOptions = {
-  forceOpen?: boolean
-}
-export const MESSAGE_TYPE_OPEN_SESSION_WINDOWS = 'open_session_windows'
-export type OpenSessionWindowsMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_OPEN_SESSION_WINDOWS,
-  {
-    sessionId: SessionData['id']
-    windowIds: SessionWindowData['id'][]
-    options?: OpenWindowOptions
-  }
->
-
-export type OpenTabOptions = {
-  forceOpen?: boolean
-}
-export const MESSAGE_TYPE_OPEN_SESSION_TABS = 'open_session_tabs'
-export type OpenSessionTabsMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_OPEN_SESSION_TABS,
-  {
-    sessionId: SessionData['id']
-    tabs: {
-      windowId: SessionWindowData['id']
-      tabIds: SessionTabData['id'][]
-    }[]
-    options?: OpenTabOptions
   }
 >
 
@@ -203,20 +132,12 @@ export type DeleteSessionsMessage = MessageWithValue<
 
 export const MESSAGE_TYPE_REMOVE_SESSION_WINDOWS = 'remove_session_windows'
 export type RemoveSessionWindowsMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_REMOVE_SESSION_WINDOWS,
-  { sessionId: SessionData['id']; windowIds: SessionWindowData['id'][] }
+  typeof MESSAGE_TYPE_REMOVE_SESSION_WINDOWS
 >
 
 export const MESSAGE_TYPE_REMOVE_SESSION_TABS = 'remove_session_tabs'
 export type RemoveSessionTabsMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_REMOVE_SESSION_TABS,
-  {
-    sessionId: SessionData['id']
-    tabs: {
-      windowId: SessionWindowData['id']
-      tabIds: SessionTabData['id'][]
-    }[]
-  }
+  typeof MESSAGE_TYPE_REMOVE_SESSION_TABS
 >
 
 // update
@@ -240,21 +161,6 @@ export type PatchWindowMessage = MessageWithValue<
   }
 >
 
-export const MESSAGE_TYPE_MOVE_WINDOWS = 'move_windows'
-export type MoveWindowsMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_MOVE_WINDOWS,
-  {
-    from: {
-      sessionId: SessionData['id']
-      windowIds: SessionWindowData['id'][]
-    }
-    to: {
-      sessionId: SessionData['id']
-      index: number
-    }
-  }
->
-
 export const MESSAGE_TYPE_PATCH_TAB = 'patch_tab'
 export type PatchTabMessage = MessageWithValue<
   typeof MESSAGE_TYPE_PATCH_TAB,
@@ -267,31 +173,6 @@ export type PatchTabMessage = MessageWithValue<
 >
 
 // extra tab actions
-export const MESSAGE_TYPE_MOVE_TABS = 'move_tabs'
-export type MoveTabsMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_MOVE_TABS,
-  {
-    from: {
-      sessionId: SessionData['id']
-      windowId: SessionWindowData['id']
-      tabIds: SessionTabData['id'][]
-    }
-    to: {
-      sessionId: SessionData['id']
-      pinned?: boolean
-    } & XOR<
-      {
-        windowId: SessionWindowData['id'] // when undefined, create new window
-        index: Tabs.MoveMovePropertiesType['index']
-      },
-      {
-        windowId?: undefined
-        incognito?: boolean // when no windowId is defined, otherwise incognito state depends on existing window
-      }
-    >
-  }
->
-
 export const MESSAGE_TYPE_DISCARD_TABS = 'discard_tabs'
 export type DiscardTabsMessage = MessageWithValue<
   typeof MESSAGE_TYPE_DISCARD_TABS,
@@ -300,31 +181,6 @@ export type DiscardTabsMessage = MessageWithValue<
     windowId: SessionWindowData['id']
     tabIds: SessionTabData['id'][]
   }
->
-
-// export const MESSAGE_TYPE_FIND_DUPLICATE_SESSION_TABS =
-//   'find_duplicate_session_tabs'
-// export type FindDuplicateSessionTabsMessage = MessageWithValue<
-//   typeof MESSAGE_TYPE_FIND_DUPLICATE_SESSION_TABS,
-//   { sessionId: SessionData['id'] }
-// >
-// export type FindDuplicateSessionTabsResponse = string[] // urls
-
-// download/backup
-export type DownloadSessionsOptions = {
-  sessionIds: SessionData['id'][]
-}
-export const MESSAGE_TYPE_DOWNLOAD_SESSIONS = 'download_sessions'
-export type DownloadSessionsMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_DOWNLOAD_SESSIONS,
-  DownloadSessionsOptions
->
-
-export const MESSAGE_TYPE_IMPORT_SESSIONS_FROM_TEXT =
-  'import_sessions_from_text'
-export type ImportSessionsFromTextMessage = MessageWithValue<
-  typeof MESSAGE_TYPE_IMPORT_SESSIONS_FROM_TEXT,
-  { content: string }
 >
 
 // search

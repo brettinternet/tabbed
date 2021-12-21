@@ -6,7 +6,7 @@ import {
 } from 'react-beautiful-dnd'
 
 import { WindowHeader } from 'components/window'
-import { SessionData, SessionWindowData } from 'utils/sessions'
+import { SessionData, SessionWindowData } from 'utils/sessions/types'
 
 import { TabsList } from './tabs-list'
 

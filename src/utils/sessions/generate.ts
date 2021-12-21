@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 import browser from 'webextension-polyfill'
 
-import { SessionTabData, SessionWindowData } from 'utils/sessions'
+import { SessionTabData, SessionWindowData } from 'utils/sessions/types'
 
 const getSortedOccurrences = (arr: string[]) => {
   const hash = arr.reduce((acc, value) => {

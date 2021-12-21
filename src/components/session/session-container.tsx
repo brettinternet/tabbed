@@ -1,6 +1,6 @@
 import { Droppable } from 'react-beautiful-dnd'
 
-import { SessionData } from 'utils/sessions'
+import { SessionData } from 'utils/sessions/types'
 import { useMedia } from 'utils/window'
 
 import { EmptyWindow } from './empty-window'

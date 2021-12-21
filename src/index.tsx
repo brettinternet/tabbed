@@ -1,5 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
+// polyfill for class-transformer lib
 import 'reflect-metadata'
 import browser from 'webextension-polyfill'
 

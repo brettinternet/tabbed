@@ -3,18 +3,14 @@ import { lightFormat } from 'date-fns'
 import { debounce } from 'lodash'
 import { uniqBy } from 'lodash'
 
-import { Settings } from 'background/app/settings'
-import { isNewTab, urlsMatch } from 'background/browser'
-import { handleMessageError } from 'background/error'
-import { BackgroundError } from 'background/error'
-import { LocalStorage } from 'background/storage'
+import { isNewTab, urlsMatch } from 'utils/browser'
 import { appName } from 'utils/env'
+import { AppError } from 'utils/error'
 import { downloadJson } from 'utils/helpers'
-import {
-  MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA,
-  PushSessionManagerDataMessage,
-  sendMessage,
-} from 'utils/messages'
+import { Settings } from 'utils/settings/settings-manager'
+import { LocalStorage } from 'utils/storage'
+
+import { CurrentSession, SavedSession } from './session'
 import {
   SessionDataExport,
   SessionsManagerData,
@@ -25,9 +21,7 @@ import {
   SavedSessionData,
   SavedSessionCategory,
   StoredCurrentSessionData,
-} from 'utils/sessions'
-
-import { CurrentSession, SavedSession } from './session'
+} from './types'
 
 const logContext = 'background/sessions/sessions-manager'
 
@@ -89,10 +83,14 @@ export class SessionsManager {
     )
   }
 
+  updateSettings(settings: Settings) {
+    this.settings = settings
+  }
+
   /**
    * Save to local storage
    */
-  private async save() {
+  async save() {
     this.validate()
     const storedSessions: StoredSessions = {
       current: {
@@ -104,28 +102,6 @@ export class SessionsManager {
       previous: this.previous,
     }
     await LocalStorage.set(LocalStorage.key.SESSIONS, storedSessions)
-  }
-
-  /**
-   * Push update to frontend
-   */
-  private async sendUpdate() {
-    try {
-      await sendMessage<PushSessionManagerDataMessage>(
-        MESSAGE_TYPE_PUSH_SESSIONS_MANAGER_DATA,
-        this.toJSON()
-      )
-    } catch (err) {
-      handleMessageError(err)
-    }
-  }
-
-  /**
-   * Handle side effects when the data changes
-   * TODO: handle partial updates and set patch to frontend
-   */
-  async handleChange() {
-    Promise.all([this.save(), this.sendUpdate()])
   }
 
   /**
@@ -149,13 +125,12 @@ export class SessionsManager {
     })
   }
 
-  async updateCurrent() {
+  private async _updateCurrent() {
     await this.current.updateFromBrowser()
-    await this.handleChange()
   }
 
   @Exclude()
-  updateCurrentDebounce = debounce(this.updateCurrent, 250)
+  updateCurrent = debounce(this._updateCurrent, 250)
 
   /**
    * Avoid conflicts with imported sessions by assigned a new ID
@@ -163,7 +138,7 @@ export class SessionsManager {
   import(session: SessionData) {
     const saveSession = SavedSession.from(session)
     this.addSaved(saveSession)
-    this.handleChange()
+    this.save()
   }
 
   async addSaved<T extends Omit<SessionData, 'id'>>(session: T) {
@@ -181,7 +156,7 @@ export class SessionsManager {
     const savedSession = SavedSession.from(session)
     this.filterWindowTabs(savedSession)
     this[category].unshift(savedSession)
-    this.handleChange()
+    this.save()
     return session
   }
 
@@ -225,7 +200,7 @@ export class SessionsManager {
       : [...this.saved, ...this.previous]
     const session = sessions.find(({ id }) => id === sessionId)
     if (!session) {
-      throw new BackgroundError(
+      throw new AppError(
         logContext,
         `Unable to find session by ID ${sessionId}`
       )
@@ -241,7 +216,7 @@ export class SessionsManager {
     const index = sessions.findIndex(({ id }) => id === sessionId)
 
     if (index === -1) {
-      throw new BackgroundError(
+      throw new AppError(
         logContext,
         `Unable to find session by ID ${sessionId}`
       )
@@ -257,13 +232,13 @@ export class SessionsManager {
   ) {
     const session = this.get(sessionId, category)
     session.update(params)
-    await this.handleChange()
+    await this.save()
   }
 
   async delete(sessionId: string, category: SavedSessionCategoryType) {
     const index = this.findIndex(sessionId, category)
     this[category].splice(index, 1)
-    await this.handleChange()
+    await this.save()
   }
 
   async download(sessionIds: SessionData['id'][]) {

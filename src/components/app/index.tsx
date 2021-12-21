@@ -1,50 +1,28 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { v4 as uuidv4 } from 'uuid'
 
 import { Layout } from 'components/layout'
 import { ModalProvider } from 'components/modal/provider'
 import { SessionLayout } from 'components/session'
+import { useSettings } from 'components/settings/store'
 import { useShortcuts } from 'components/shortcuts/store'
 import { ToastContainer } from 'components/toast'
-import { useToasts } from 'components/toast/store'
-
-import { useHandlers } from './handlers'
-import { useSettings } from './store'
+import { CONNECT_NAME_CLIENT_PREFIX, sendConnect } from 'utils/connect'
 
 export const App = () => {
-  const [settings, setSettings] = useSettings()
-  const [isLoading, setLoading] = useState(true)
-  const { add: addToast } = useToasts()
-  const { getSettings } = useHandlers(setSettings)
+  const [settings] = useSettings()
   useShortcuts(settings?.shortcuts || false)
 
   useEffect(() => {
-    const fetchSettings = async () => {
-      const settings = await getSettings() // ~29 ms
-      if (settings) {
-        setSettings(settings)
-      } else {
-        addToast({
-          title: 'Error',
-          message: 'Unable to load app settings. Please refresh the extension.',
-          variant: 'error',
-          autoDismiss: false,
-        })
-      }
-      setLoading(false)
-    }
+    const clientId = uuidv4()
+    sendConnect(`${CONNECT_NAME_CLIENT_PREFIX}-${clientId}`)
+  }, [])
 
-    void fetchSettings()
-  }, [setSettings, addToast, getSettings])
-
-  if (!isLoading) {
-    return (
-      <Layout>
-        <SessionLayout />
-        <ToastContainer />
-        <ModalProvider />
-      </Layout>
-    )
-  }
-
-  return null
+  return (
+    <Layout>
+      <SessionLayout />
+      <ToastContainer />
+      <ModalProvider />
+    </Layout>
+  )
 }

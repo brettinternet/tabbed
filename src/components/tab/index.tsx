@@ -2,46 +2,15 @@ import cn, { Argument as ClassNames } from 'classnames'
 
 import { Dropdown } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
+import { useSessionsManager } from 'utils/sessions'
 import {
   isCurrentSessionTab,
   SessionData,
   SessionWindowData,
   SomeSessionTabData,
-} from 'utils/sessions'
+} from 'utils/sessions/types'
 
-import { useHandlers } from './handlers'
 import { Img } from './img'
-
-// TODO: add missing indicatorrs
-/* <div className="flex items-center flex-wrap">
-    {muted && (
-      <Icon
-        title="muted"
-        name={IconName.MUTE}
-        className="mr-2"
-        size="sm"
-      />
-    )}
-    {discarded && (
-      <Icon
-        title="discarded"
-        name={IconName.WINDOW_REMOVE}
-        className="mr-2"
-        size="sm"
-      />
-    )}
-    {attention && (
-      <Icon title="alert" name={IconName.ALERT} className="mr-2" size="sm" />
-    )}
-    {isDefined(groupId) && groupId > -1 && (
-      <span
-        title="group ID"
-        className="inline-block px-1 bg-yellow-900 mr-2"
-      >
-        {groupId}
-      </span>
-    )}
-  </div> */
 
 export type TabProps = {
   windowId: SessionWindowData['id']
@@ -58,9 +27,6 @@ export const Tab: React.FC<TabProps> = ({
   isDragging,
   className,
 }) => {
-  const { handleOpenTab, handleRemoveTab, handleUpdateTab, handleDiscardTab } =
-    useHandlers()
-
   const {
     id: tabId,
     url,
@@ -73,9 +39,10 @@ export const Tab: React.FC<TabProps> = ({
     active,
     // groupId,
   } = tab
+  const { openTabs, updateTab, removeTabs } = useSessionsManager()
 
   const handleOpen = () => {
-    handleOpenTab({ sessionId, tabs: [{ windowId, tabIds: [tabId] }] })
+    openTabs({ sessionId, tabs: [{ windowId, tabIds: [tabId] }] })
   }
 
   // TODO: animate presence (delete) https://www.framer.com/docs/animate-presence/
@@ -135,7 +102,7 @@ export const Tab: React.FC<TabProps> = ({
               },
               {
                 onClick: () => {
-                  handleUpdateTab({
+                  updateTab({
                     sessionId,
                     windowId,
                     tabId,
@@ -149,7 +116,12 @@ export const Tab: React.FC<TabProps> = ({
             [
               {
                 onClick: () => {
-                  handleDiscardTab({ sessionId, windowId, tabIds: [tabId] })
+                  updateTab({
+                    sessionId,
+                    windowId,
+                    tabId,
+                    options: { discarded: !discarded },
+                  })
                 },
                 text: 'Free memory',
                 iconProps: { name: IconName.TAB_DISCARD },
@@ -157,7 +129,7 @@ export const Tab: React.FC<TabProps> = ({
               },
               {
                 onClick: () => {
-                  handleRemoveTab({
+                  removeTabs({
                     sessionId,
                     tabs: [{ windowId, tabIds: [tabId] }],
                   })
