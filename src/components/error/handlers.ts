@@ -39,7 +39,7 @@ const useTryCatch = <E = Error>(
   onError: (err: E) => void = log.error,
   onSuccess: () => void
 ) => {
-  return function <C extends (...args: any[]) => Promise<any>, T = unknown>(
+  return function <C extends (...args: any[]) => any, T = unknown>(
     this: T,
     callback: C
   ) {

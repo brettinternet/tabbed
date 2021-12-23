@@ -13,7 +13,7 @@ import { RadioGroup } from 'components/radiogroup'
 import { Toggle } from 'components/toggle'
 import { browserRuntime, browsers } from 'utils/env'
 import { isDefined } from 'utils/helpers'
-import { ExtensionClickActions, Themes } from 'utils/settings/types'
+import { ExtensionClickActions, Themes } from 'utils/settings'
 
 import { useHandlers } from './handlers'
 

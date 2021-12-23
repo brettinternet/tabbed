@@ -1,7 +1,7 @@
 import { atom, useAtom } from 'jotai'
-import { SetStateAction, useCallback, useEffect, useState } from 'react'
+import { SetStateAction, useCallback, useEffect } from 'react'
 
-import { isPopup } from 'components/app/store'
+import { isPopup, useBackground } from 'components/app/store'
 import { useTryToastError } from 'components/error/handlers'
 import { getKeys } from 'utils/helpers'
 import { updateLogLevel } from 'utils/logger'
@@ -10,8 +10,14 @@ import {
   sendMessage,
   UpdatedSettingMessage,
 } from 'utils/messages'
-import { Settings } from 'utils/settings/settings-manager'
-import { SettingsData, Themes, ThemeType } from 'utils/settings/types'
+import {
+  Settings,
+  Themes,
+  ThemeType,
+  loadSettings,
+  updateSettings,
+  defaultSettings,
+} from 'utils/settings'
 
 const setFontSize = (size: number) => {
   document.documentElement.style.fontSize = `${size}px`
@@ -34,9 +40,9 @@ const setBodySize = (width: number, height: number) => {
 /**
  * Invokes side effects for settings startup and changes
  */
-const handleSettingsSideEffects = async <K extends keyof SettingsData>(
+const handleSettingsSideEffects = async <K extends keyof Settings>(
   key: K,
-  settings: SettingsData
+  settings: Settings
 ) => {
   switch (key) {
     case 'fontSize': {
@@ -70,57 +76,49 @@ const handleSettingsSideEffects = async <K extends keyof SettingsData>(
   }
 }
 
-const settingsManagerAtom = atom<Settings | undefined>(undefined)
+const settingsAtom = atom<Settings>(defaultSettings)
 
-export type SetSettings = (
-  update: SetStateAction<SettingsData | undefined>
-) => void
+export type SetSettings = (update: SetStateAction<Settings>) => void
 export const useSettings = (): [
-  SettingsData | undefined,
-  (values: Partial<SettingsData>) => Promise<void>,
-  Settings | undefined
+  Settings,
+  (values: Partial<Settings>) => Promise<void>
 ] => {
   const tryToastError = useTryToastError()
-  const [settingsManager, setSettingsManager] = useAtom(settingsManagerAtom)
+  const port = useBackground()
+  const [settings, setSettings] = useAtom(settingsAtom)
 
   useEffect(() => {
-    if (!settingsManager) {
+    if (!settings) {
       const load = async () => {
-        const settingsManager = await Settings.load()
-        const settings = settingsManager.get()
+        const settings = await loadSettings()
         const keys = getKeys(settings)
         await Promise.all(
           keys.map(async (key) => handleSettingsSideEffects(key, settings))
         )
-        setSettingsManager(settingsManager)
+        setSettings(settings)
       }
 
       void load()
     }
-  }, [settingsManager])
+  }, [settings])
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const updateSettings = useCallback(
-    tryToastError(async (values: Partial<SettingsData>) => {
-      if (settingsManager) {
-        await settingsManager.update(values)
-        const keys = getKeys(values)
-        await Promise.all([
-          await sendMessage<UpdatedSettingMessage>(
-            MESSAGE_TYPE_UPDATED_SETTING,
-            values
-          ),
-          ...keys.map(async (key) =>
-            handleSettingsSideEffects(key, settingsManager.get())
-          ),
-        ])
-
-        // React doesn't see this as new state since class is only mutated
-        setSettingsManager(new Settings(settingsManager))
-      }
+  const _updateSettings = useCallback(
+    tryToastError(async (values: Partial<Settings>) => {
+      const keys = getKeys(values)
+      const settings = await updateSettings(values)
+      await Promise.all(
+        keys.map(async (key) => handleSettingsSideEffects(key, settings))
+      )
+      sendMessage<UpdatedSettingMessage>(
+        port,
+        MESSAGE_TYPE_UPDATED_SETTING,
+        values
+      )
+      setSettings(settings)
     }),
-    [settingsManager, tryToastError]
+    [port, tryToastError]
   )
 
-  return [settingsManager?.get(), updateSettings, settingsManager]
+  return [settings, _updateSettings]
 }

@@ -2,7 +2,7 @@ import browser, { Tabs, Windows } from 'webextension-polyfill'
 
 import { tabUrl, popoutUrl } from 'utils/env'
 import { isDefined } from 'utils/helpers'
-import { SettingsData } from 'utils/settings/types'
+import { Settings } from 'utils/settings'
 
 export const openExtensionPopup = () => browser.browserAction.openPopup()
 
@@ -20,7 +20,7 @@ export const openExtensionExistingTab = async () => {
 }
 
 export const openExtensionPopout = async (
-  popoutState: SettingsData['popoutState']
+  popoutState: Settings['popoutState']
 ) => {
   await browser.windows.create({
     type: 'popup',
@@ -191,10 +191,11 @@ export const moveTabs = async ({
   index: number
   windowId: number
 }) => {
-  await browser.tabs.move(tabIds, {
+  return (await browser.tabs.move(tabIds, {
     index,
     windowId,
-  })
+  })) as unknown as Promise<Tabs.Tab[]>
+  // casted since multiple tabs are passed instead of single or many
 }
 
 export const updateWindow = async (

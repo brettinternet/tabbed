@@ -2,7 +2,7 @@ import { DragDropContext } from 'react-beautiful-dnd'
 
 import { isPopup } from 'components/app/store'
 import { useSettings } from 'components/settings/store'
-import { defaultSettings } from 'utils/settings/types'
+import { defaultSettings } from 'utils/settings'
 
 import { SessionContainer } from './session-container'
 import { useSessions } from './store'

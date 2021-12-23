@@ -27,27 +27,6 @@ import { CurrentSessionTab, SavedSessionTab } from './session-tab'
 
 const logContext = 'background/sessions/session-window'
 
-const findTab = <T extends SessionTabData>(tabs: T[], tabId: T['id']): T => {
-  const tab = tabs.find((t) => t.id === tabId)
-  if (!tab) {
-    throw new AppError(logContext, `Unable to find tab by ID ${tabId}`)
-  }
-
-  return tab
-}
-
-const findTabIndex = <T extends SessionTabData>(
-  tabs: T[],
-  tabId: T['id']
-): number => {
-  const index = tabs.findIndex((t) => t.id === tabId)
-  if (index === -1) {
-    throw new AppError(logContext, `Unable to find tab by ID ${tabId}`)
-  }
-
-  return index
-}
-
 /**
  * Currently active window
  */

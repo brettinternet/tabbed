@@ -7,9 +7,9 @@ import {
   UpdatedSettingMessage,
   createMessageListener,
 } from 'utils/messages'
-import { Settings } from 'utils/settings/settings-manager'
-import type { SettingsData } from 'utils/settings/types'
+import type { Settings } from 'utils/settings'
 
+import { App } from './app'
 import {
   configurePopoutAction,
   configureExtension,
@@ -27,9 +27,9 @@ const logContext = 'background/settings'
 /**
  * Invokes side effects for settings startup and changes
  */
-const handleSettingsSideEffects = async <K extends keyof SettingsData>(
+const handleSettingsSideEffects = async <K extends keyof Settings>(
   changedKey: K,
-  settings: Partial<SettingsData>
+  settings: Partial<Settings>
 ) => {
   const {
     showTabCountBadge,
@@ -73,31 +73,33 @@ const handleSettingsSideEffects = async <K extends keyof SettingsData>(
   }
 }
 
-export const startBackgroundSettingsListeners = async () => {
-  const settings = (await Settings.load()).get()
-  log.debug(logContext, 'startBackgroundSettingsListeners()', settings)
+export const startBackgroundSettingsListeners = async (
+  initialSettings: Settings
+) => {
+  log.debug(logContext, 'startBackgroundSettingsListeners()', initialSettings)
 
   // reset to avoid duplicates
   await browser.contextMenus.removeAll()
   void configureExtension()
-  configurePopoutAction(settings.popoutState)
-  void configureTabCountListeners(settings.showTabCountBadge)
-  void configureExtensionActions(settings.extensionClickAction)
+  configurePopoutAction(initialSettings.popoutState)
+  void configureTabCountListeners(initialSettings.showTabCountBadge)
+  void configureExtensionActions(initialSettings.extensionClickAction)
 }
 
-export const startClientSettingsListeners = async (
-  clientConnected: boolean
-) => {
-  log.debug(logContext, 'startClientSettingsListeners()', clientConnected)
+export const startClientSettingsListeners = async (app: App) => {
+  log.debug(logContext, 'startClientSettingsListeners()', app)
+
+  const hasClientConnections = app.clients.size !== 0
 
   const {
     startListener: startUpdatedSettingListener,
     removeListener: removeSettingUpdatedListener,
   } = createMessageListener<UpdatedSettingMessage>(
+    app.port,
     MESSAGE_TYPE_UPDATED_SETTING,
     async (changedSettings) => {
       const sideEffects = []
-      let key: keyof SettingsData
+      let key: keyof Settings
       for (key in changedSettings) {
         sideEffects.push(handleSettingsSideEffects(key, changedSettings))
       }
@@ -105,7 +107,7 @@ export const startClientSettingsListeners = async (
     }
   )
 
-  if (clientConnected) {
+  if (hasClientConnections) {
     startUpdatedSettingListener()
   } else {
     removeSettingUpdatedListener()

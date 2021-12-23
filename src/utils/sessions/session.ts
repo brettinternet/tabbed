@@ -22,30 +22,6 @@ import { CurrentSessionWindow, SavedSessionWindow } from './session-window'
 
 const logContext = 'background/sessions/session'
 
-const findWindow = <T extends SessionWindowData>(
-  windows: T[],
-  id: T['id']
-): T => {
-  const win = windows.find((w) => w.id === id)
-  if (!win) {
-    throw new AppError(logContext, `Unable to find window by ID ${id}`)
-  }
-
-  return win
-}
-
-const findWindowIndex = <T extends SessionWindowData>(
-  windows: T[],
-  id: T['id']
-): number => {
-  const index = windows.findIndex((w) => w.id === id)
-  if (index === -1) {
-    throw new AppError(logContext, `Unable to find window by ID ${id}`)
-  }
-
-  return index
-}
-
 /**
  * Session with active windows/tabs
  */

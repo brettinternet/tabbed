@@ -10,8 +10,9 @@ import {
 } from 'utils/messages'
 import { SavedSession } from 'utils/sessions/session'
 import { SessionsManager } from 'utils/sessions/sessions-manager'
-import { Settings } from 'utils/settings/settings-manager'
-import { SettingsData } from 'utils/settings/types'
+import { Settings } from 'utils/settings'
+
+import { App } from './app'
 
 const logContext = 'background/sessions'
 
@@ -55,14 +56,17 @@ export const configureClosedWindowListener = ({
   }
 }
 
-export const startBackgroundSessionListeners = async () => {
-  const settings = (await Settings.load()).get()
-  log.debug(logContext, 'startBackgroundSessionListeners()', settings)
-  configureClosedWindowListener(settings)
+export const startBackgroundSessionListeners = async (
+  initialSettings: Settings
+) => {
+  log.debug(logContext, 'startBackgroundSessionListeners()', initialSettings)
+  configureClosedWindowListener(initialSettings)
 }
 
-export const startClientSessionListeners = async (clientConnected: boolean) => {
-  log.debug(logContext, 'startClientSessionListeners()', clientConnected)
+export const startClientSessionListeners = async (app: App) => {
+  log.debug(logContext, 'startClientSessionListeners()', app)
+
+  const hasClientConnections = app.clients.size !== 0
 
   // const currentSessionChange = async () => {
   //   try {

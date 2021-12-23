@@ -1,10 +1,10 @@
 import { useModal } from 'components/modal/store'
 import {
-  SettingsData,
+  Settings,
   ExtensionClickActions,
   defaultSettings, // ExtensionClickActionType,
   ThemeType,
-} from 'utils/settings/types'
+} from 'utils/settings'
 
 import { useSettings } from './store'
 
@@ -50,7 +50,7 @@ export const useHandlers = () => {
   }
 
   const handleChangeSaveIncognito = async (checked: boolean) => {
-    const change: Partial<SettingsData> = {
+    const change: Partial<Settings> = {
       saveIncognito: checked,
     }
     if (checked) {
@@ -123,7 +123,7 @@ export const useHandlers = () => {
     }
 
   const handleChangeExcludedUrls = async (value: string) => {
-    const excludedUrls: SettingsData['excludedUrls'] = {
+    const excludedUrls: Settings['excludedUrls'] = {
       raw: value.trim(),
       parsed: [],
       error: undefined,

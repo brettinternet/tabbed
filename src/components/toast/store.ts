@@ -39,6 +39,7 @@ export const useToasts = () => {
       ...toastOptions,
       id,
     }
+    log.debug(logContext, toast)
     setToasts((toasts) => [...toasts, toast])
     return id
   }

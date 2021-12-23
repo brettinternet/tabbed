@@ -9,20 +9,31 @@ import { useShortcuts } from 'components/shortcuts/store'
 import { ToastContainer } from 'components/toast'
 import { CONNECT_NAME_CLIENT_PREFIX, sendConnect } from 'utils/connect'
 
+import { usePort } from './store'
+
 export const App = () => {
   const [settings] = useSettings()
+  const [port, setPort] = usePort()
   useShortcuts(settings?.shortcuts || false)
 
   useEffect(() => {
     const clientId = uuidv4()
-    sendConnect(`${CONNECT_NAME_CLIENT_PREFIX}-${clientId}`)
+    const backgroundPort = sendConnect(
+      `${CONNECT_NAME_CLIENT_PREFIX}-${clientId}`
+    )
+    setPort(backgroundPort)
   }, [])
 
-  return (
-    <Layout>
-      <SessionLayout />
-      <ToastContainer />
-      <ModalProvider />
-    </Layout>
-  )
+  if (port) {
+    return (
+      <Layout>
+        <SessionLayout />
+        <ToastContainer />
+        <ModalProvider />
+      </Layout>
+    )
+  }
+
+  // TODO: add loading
+  return null
 }

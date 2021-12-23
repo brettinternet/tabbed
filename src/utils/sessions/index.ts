@@ -28,7 +28,7 @@ import {
 const sessionsManagerAtom = atom<SessionsManager | undefined>(undefined)
 
 export const useSessionsManager = () => {
-  const [, , settingsManager] = useSettings()
+  const [settings] = useSettings()
   const tryToastError = useTryToastError()
   const [sessionsManager, setSessionsManager] = useAtom(sessionsManagerAtom)
   console.log('sessionsManager: ', sessionsManager)

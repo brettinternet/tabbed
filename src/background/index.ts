@@ -1,13 +1,18 @@
-// polyfill for class-transformer lib
-import 'reflect-metadata'
 import browser from 'webextension-polyfill'
 
 import { buildVersion, buildTime } from 'utils/env'
 import { log } from 'utils/logger'
+import { loadSettings } from 'utils/settings'
 
-import { startBackgroundConnectionListener } from './connection'
-import { startBackgroundSessionListeners } from './sessions'
-import { startBackgroundSettingsListeners } from './settings'
+import { AppMaybePort, isAppWithPort, startApp } from './app'
+import {
+  startBackgroundSessionListeners,
+  startClientSessionListeners,
+} from './sessions'
+import {
+  startBackgroundSettingsListeners,
+  startClientSettingsListeners,
+} from './settings'
 
 const logContext = 'background/index'
 const getBytesInUse = browser.storage.local.getBytesInUse
@@ -22,13 +27,24 @@ const logStartup = async () => {
   log.info(status.join('\n'))
 }
 
+const reloadClientListeners = async (app: AppMaybePort) => {
+  if (isAppWithPort(app)) {
+    await Promise.all([
+      startClientSessionListeners(app),
+      startClientSettingsListeners(app),
+    ])
+  }
+}
+
 const main = async () => {
   log.debug(logContext, 'main()')
 
+  startApp(reloadClientListeners)
+  const initialSettings = await loadSettings()
+
   await Promise.all([
-    startBackgroundConnectionListener(),
-    startBackgroundSessionListeners(),
-    startBackgroundSettingsListeners(),
+    startBackgroundSessionListeners(initialSettings),
+    startBackgroundSettingsListeners(initialSettings),
   ])
 
   await logStartup()

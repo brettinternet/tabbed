@@ -1,4 +1,4 @@
-import browser from 'webextension-polyfill'
+import { Runtime } from 'webextension-polyfill'
 import { Windows } from 'webextension-polyfill'
 
 import type { ToastOptions } from 'components/toast/store'
@@ -12,22 +12,22 @@ import {
   UpdateCurrentSessionTabData,
   UpdateSavedSessionTabData,
 } from 'utils/sessions/types'
-import type { SettingsData } from 'utils/settings/types'
+import type { Settings } from 'utils/settings'
 
 import { tryParse } from './helpers'
 
-export const sendMessage = <
-  T extends { type: string; value?: unknown },
-  R = void
->(
+export const sendMessage = <T extends { type: string; value?: unknown }>(
+  port: Runtime.Port | undefined,
   type: T['type'],
   value?: T['value']
-): Promise<R> => {
-  log.debug('sendMessage()', type, tryParse(value))
-  return browser.runtime.sendMessage({
-    type,
-    value,
-  })
+): void => {
+  log.debug('postMessage()', type, tryParse(value))
+  if (port) {
+    port.postMessage({
+      type,
+      value,
+    })
+  }
 }
 
 type MaybeValue<T> = T extends { value: unknown } ? [T['value']] : [undefined?]
@@ -38,24 +38,19 @@ type MaybeValue<T> = T extends { value: unknown } ? [T['value']] : [undefined?]
  * T extends { value: unknown } ? T['value'] : undefined?
  */
 export const createMessageAction =
-  <T extends { type: string; value?: unknown }, R = void>(
-    type: T['type'],
-    parse?: boolean
+  <T extends { type: string; value?: unknown }>(
+    port: Runtime.Port | undefined,
+    type: T['type']
   ) =>
-  async (...[value]: MaybeValue<T>): Promise<R> => {
-    const maybeResponse = await browser.runtime.sendMessage({
-      type,
-      value,
-    })
-    return parse && maybeResponse
-      ? JSON.parse(maybeResponse as unknown as string)
-      : maybeResponse
+  (...[value]: MaybeValue<T>): void => {
+    sendMessage(port, type, value)
   }
 
 export const createMessageListener = <
   T extends { value?: unknown; type: string },
   C extends (value: T['value']) => void = (value: T['value']) => void
 >(
+  port: Runtime.Port | undefined,
   type: T['type'],
   handler: C,
   parse?: boolean
@@ -71,10 +66,14 @@ export const createMessageListener = <
 
   return {
     startListener: () => {
-      browser.runtime.onMessage.addListener(_handler)
+      if (port) {
+        port.onMessage.addListener(_handler)
+      }
     },
     removeListener: () => {
-      browser.runtime.onMessage.removeListener(_handler)
+      if (port) {
+        port.onMessage.removeListener(_handler)
+      }
     },
   }
 }
@@ -94,7 +93,7 @@ type Message<T> = {
 export const MESSAGE_TYPE_UPDATED_SETTING = 'updated_setting'
 export type UpdatedSettingMessage = MessageWithValue<
   typeof MESSAGE_TYPE_UPDATED_SETTING,
-  Partial<SettingsData>
+  Partial<Settings>
 >
 
 /**

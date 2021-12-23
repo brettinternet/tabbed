@@ -1,6 +1,11 @@
-import browser from 'webextension-polyfill'
+import { atom, useAtom } from 'jotai'
+import browser, { Runtime } from 'webextension-polyfill'
 
+import { useToasts } from 'components/toast/store'
 import { popupUrl, tabUrl, popoutUrl, sidebarUrl } from 'utils/env'
+import { log } from 'utils/logger'
+
+const logContext = 'app/store'
 
 // Feature flags
 export const isPopup =
@@ -10,3 +15,27 @@ export const isPopout = window.location.href.includes(popoutUrl)
 export const isSidebar = window.location.href.includes(sidebarUrl)
 export const isSidebarSupported = !!browser.sidebarAction
 export const isMac = window.navigator.userAgent.toLowerCase().includes('mac')
+
+const backgroundPortAtom = atom<Runtime.Port | undefined>(undefined)
+
+export const usePort = () => {
+  return useAtom(backgroundPortAtom)
+}
+
+export const useBackground = () => {
+  const [port] = usePort()
+  const { add: addToast } = useToasts()
+  if (!port) {
+    log.error(
+      logContext,
+      'Failed to send or receive message. Missing background port.'
+    )
+    addToast({
+      variant: 'error',
+      message:
+        'There was an error trying to connect to the app. Please refresh the extension.',
+    })
+  }
+
+  return port
+}
