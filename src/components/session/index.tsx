@@ -4,8 +4,8 @@ import { isPopup } from 'components/app/store'
 import { useSettings } from 'components/settings/store'
 import { defaultSettings } from 'utils/settings'
 
+import { useSessions } from './dnd-store'
 import { SessionContainer } from './session-container'
-import { useSessions } from './store'
 
 // Scrolling is handled within certain divs
 // Without this, there's a minor UI bug where scroll bar appears with spacing on the right

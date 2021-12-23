@@ -3,7 +3,10 @@ import browser, { Tabs } from 'webextension-polyfill'
 import { closeTab, openTab, updateTab, updateWindow } from 'utils/browser'
 import { isDefined, PartialBy } from 'utils/helpers'
 
+import { AppError } from './error'
 import { createId, fallbackTabId } from './generate'
+
+const logContext = 'utils/session-tab'
 
 /**
  * Tab types
@@ -33,9 +36,8 @@ export type CurrentSessionTab = SessionTab & {
   assignedWindowId: number
 }
 export type SavedSessionTab = SessionTab
-export type SomeSessionTab = CurrentSessionTab | SavedSessionTab
 
-type UpdateSessionTabData = Partial<
+type UpdateSessionTab = Partial<
   Pick<
     SessionTab,
     | 'url'
@@ -47,17 +49,13 @@ type UpdateSessionTabData = Partial<
     | 'groupId'
   >
 >
-export type UpdateCurrentSessionTab = UpdateSessionTabData
-export type UpdateSavedSessionTab = UpdateSessionTabData & {
-  title?: string
-}
 
 /**
  * Type guard when tabs are current session
  */
 
 export const isCurrentSessionTab = (
-  tab: SomeSessionTab | undefined
+  tab: CurrentSessionTab | SavedSessionTab | undefined
 ): tab is CurrentSessionTab => (tab ? 'assignedTabId' in tab : false)
 
 export const isCurrentSessionTabs = (
@@ -67,6 +65,27 @@ export const isCurrentSessionTabs = (
 /**
  * Tab actions
  */
+
+export const findTab = <T extends SessionTab>(tabs: T[], tabId: T['id']): T => {
+  const tab = tabs.find((t) => t.id === tabId)
+  if (!tab) {
+    throw new AppError(logContext, `Unable to find tab by ID ${tabId}`)
+  }
+
+  return tab
+}
+
+export const findTabIndex = <T extends SessionTab>(
+  tabs: T[],
+  tabId: T['id']
+): number => {
+  const index = tabs.findIndex((t) => t.id === tabId)
+  if (index === -1) {
+    throw new AppError(logContext, `Unable to find tab by ID ${tabId}`)
+  }
+
+  return index
+}
 
 export const createCurrent = ({
   id,
@@ -98,14 +117,6 @@ export const createCurrent = ({
   }
 }
 
-export const updateCurrent = async (
-  tab: CurrentSessionTab,
-  values: UpdateCurrentSessionTab
-): Promise<CurrentSessionTab> => {
-  const { title } = await updateTab(tab.assignedTabId, values)
-  return Object.assign({}, tab, values, { title })
-}
-
 export const createSaved = ({
   id,
   url,
@@ -132,10 +143,19 @@ export const createSaved = ({
   }
 }
 
-export const updateSaved = (
-  tab: SavedSessionTab,
-  values: UpdateSavedSessionTab
-): SavedSessionTab => Object.assign({}, tab, values)
+/**
+ * Mutates tab
+ */
+export const update = async <T extends CurrentSessionTab | SavedSessionTab>(
+  tab: T,
+  values: UpdateSessionTab
+): Promise<T> => {
+  if (isCurrentSessionTab(tab)) {
+    const { title } = await updateTab(tab.assignedTabId, values)
+    Object.assign(tab, { title })
+  }
+  return Object.assign(tab, values)
+}
 
 export const toCurrent = async <
   T extends
@@ -230,4 +250,18 @@ export const open = async (
 
 export const close = async (tab: CurrentSessionTab) => {
   await closeTab(tab.assignedTabId)
+}
+
+export const removeTabs = async (
+  tabs: CurrentSessionTab[] | SavedSessionTab[],
+  ids: SessionTab['id'][]
+) => {
+  for (const id of ids) {
+    const index = findTabIndex(tabs, id)
+    if (isCurrentSessionTabs(tabs)) {
+      await closeTab(tabs[index].assignedTabId)
+    }
+    tabs.splice(index, ids.length)
+  }
+  return tabs
 }

@@ -8,7 +8,7 @@ import { Button } from 'components/button'
 import { Icon, IconName } from 'components/icon'
 import { isAllowedIncognitoAccess } from 'utils/browser'
 
-import { DroppableId, DroppableType } from './store'
+import { DroppableId, DroppableType } from './dnd-store'
 
 type EmptyWindowProps = {
   isTabDragging: boolean

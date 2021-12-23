@@ -2,12 +2,12 @@ import cn, { Argument as ClassNames } from 'classnames'
 
 import { Dropdown, DropdownButtonProps } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
-import { useSessionsManager } from 'utils/sessions'
-import { isCurrentSessionWindow, SessionWindowData } from 'utils/sessions/types'
+import { useHandlers } from 'components/session/handlers'
+import { isCurrentSessionWindow, SessionWindow } from 'utils/session-window'
 
 type WindowHeaderProps = {
   sessionId: string
-  window: SessionWindowData
+  window: SessionWindow
   className?: ClassNames
 }
 
@@ -16,8 +16,8 @@ type WindowHeaderProps = {
  * "normal" | "minimized" | "maximized" | "fullscreen" | "docked"
  */
 const getStateActions = (
-  currentState: SessionWindowData['state'],
-  updateWindowState: (state: SessionWindowData['state']) => void
+  currentState: SessionWindow['state'],
+  updateWindowState: (state: SessionWindow['state']) => void
 ): DropdownButtonProps[] => {
   const normal: DropdownButtonProps = {
     onClick: () => {
@@ -61,7 +61,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
   className,
 }) => {
   const { id: windowId, focused, title, state, tabs, incognito } = win
-  const { openWindows, updateWindow, removeWindows } = useSessionsManager()
+  const { openWindows, updateWindow, removeWindows } = useHandlers()
 
   const handleOpen = () => {
     if (!focused) {
@@ -119,16 +119,13 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
               //   iconProps: { name: IconName.SAVE },
               // },
               ...(isCurrentSessionWindow(win)
-                ? getStateActions(
-                    state,
-                    (state: SessionWindowData['state']) => {
-                      updateWindow({
-                        sessionId,
-                        windowId,
-                        options: { state },
-                      })
-                    }
-                  )
+                ? getStateActions(state, (state: SessionWindow['state']) => {
+                    updateWindow({
+                      sessionId,
+                      windowId,
+                      options: { state },
+                    })
+                  })
                 : []),
             ],
             [

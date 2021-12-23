@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from 'uuid'
 import browser from 'webextension-polyfill'
 
-import { SessionTabData, SessionWindowData } from 'utils/sessions/types'
+import { SessionTab } from 'utils/session-tab'
+import { SessionWindow } from 'utils/session-window'
 
 const getSortedOccurrences = (arr: string[]) => {
   const hash = arr.reduce((acc, value) => {
@@ -57,7 +58,7 @@ const titleFromProperties = (
   }
 }
 
-const parseTitle = (tab: SessionTabData) => {
+const parseTitle = (tab: SessionTab) => {
   const urlObj = new URL(tab.url)
   const protocol = urlObj.protocol
   let hostname = urlObj.hostname
@@ -81,7 +82,7 @@ const parseTitle = (tab: SessionTabData) => {
   return tabTitle
 }
 
-const getTitlesFromTabs = (tabs: SessionTabData[]) => {
+const getTitlesFromTabs = (tabs: SessionTab[]) => {
   return tabs.reduce((acc, tab) => {
     const tabTitle = parseTitle(tab)
     if (tabTitle) {
@@ -92,12 +93,12 @@ const getTitlesFromTabs = (tabs: SessionTabData[]) => {
 }
 
 const MAX_TITLE_LENTH = 15
-export const generateWindowTitle = (tabs: SessionTabData[]) => {
+export const generateWindowTitle = (tabs: SessionTab[]) => {
   const titles = getTitlesFromTabs(tabs)
   return formatTopTitlesAndMore(titles)
 }
 
-export const generateSessionTitle = (windows: SessionWindowData[]) => {
+export const generateSessionTitle = (windows: SessionWindow[]) => {
   const titles = windows.reduce((acc, { tabs }) => {
     return acc.concat(getTitlesFromTabs(tabs))
   }, [] as string[])

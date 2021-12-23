@@ -8,8 +8,8 @@ import {
   MESSAGE_TYPE_CURRENT_SESSION_CHANGE,
   sendMessage,
 } from 'utils/messages'
-import { SavedSession } from 'utils/sessions/session'
-import { SessionsManager } from 'utils/sessions/sessions-manager'
+import { SavedSession } from 'utils/session'
+import { SessionsManager } from 'utils/sessions-manager'
 import { Settings } from 'utils/settings'
 
 import { App } from './app'

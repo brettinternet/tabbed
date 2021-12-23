@@ -1,7 +1,6 @@
 import { getAllWindows } from './browser'
-import { AppError } from './error'
 import { createId, generateSessionTitle } from './generate'
-import { isDefined, PartialBy, reorder, Valueof, XOR } from './helpers'
+import { isDefined, PartialBy, Valueof } from './helpers'
 import {
   SessionWindow,
   CurrentSessionWindow,
@@ -9,12 +8,7 @@ import {
   fromBrowser as fromBrowserWindow,
   open as openWindow,
   isCurrentSessionWindows,
-  createCurrent as createCurrentWindow,
-  createSaved as createSavedWindow,
-  close as closeWindow,
 } from './session-window'
-
-const logContext = 'utils/session'
 
 /**
  * Session categories, group together in session manager
@@ -40,15 +34,10 @@ export type Session<T extends SessionWindow = SessionWindow> = {
   createdDate?: Date
 }
 
-export type StoredCurrentSessionData = {
-  windows: {
-    assignedWindowId: CurrentSessionWindow['assignedWindowId']
-  }[]
-}
-export type UpdateCurrentSessionData = Partial<
+export type UpdateCurrentSession = Partial<
   Pick<CurrentSession, 'title' | 'windows'>
 >
-export type UpdateSavedSessionData = Partial<
+export type UpdateSavedSession = Partial<
   Pick<SavedSession, 'title' | 'windows'>
 >
 
@@ -58,6 +47,12 @@ export type SavedSession = Session<SavedSessionWindow> & {
    * Date auto or user saved
    */
   userSavedDate: Date
+}
+
+export type StoredCurrentSession = {
+  windows: {
+    assignedWindowId: CurrentSessionWindow['assignedWindowId']
+  }[]
 }
 
 /**
@@ -98,14 +93,6 @@ export const createCurrent = ({
   return session
 }
 
-export const updateCurrent = (
-  session: CurrentSession,
-  values: UpdateCurrentSessionData
-): CurrentSession =>
-  Object.assign({}, session, values, {
-    title: maybeGetTitle(session, values.title),
-  })
-
 export const createSaved = ({
   id,
   title,
@@ -131,37 +118,13 @@ export const createSaved = ({
   return session
 }
 
-export const updateSaved = (
-  session: SavedSession,
-  values: UpdateSavedSessionData
-): SavedSession =>
-  Object.assign({}, session, values, {
+export const update = <T extends CurrentSession | SavedSession>(
+  session: T,
+  values: UpdateCurrentSession
+): T =>
+  Object.assign(session, values, {
     title: maybeGetTitle(session, values.title),
   })
-
-export const findWindow = <T extends SessionWindow>(
-  windows: T[],
-  id: T['id']
-): T => {
-  const win = windows.find((w) => w.id === id)
-  if (!win) {
-    throw new AppError(logContext, `Unable to find window by ID ${id}`)
-  }
-
-  return win
-}
-
-export const findWindowIndex = <T extends SessionWindow>(
-  windows: T[],
-  id: T['id']
-): number => {
-  const index = windows.findIndex((w) => w.id === id)
-  if (index === -1) {
-    throw new AppError(logContext, `Unable to find window by ID ${id}`)
-  }
-
-  return index
-}
 
 const sortWindows = (
   windows: CurrentSessionWindow[],
@@ -190,17 +153,12 @@ const searchWindowByAssignedId = (
   assignedWindowId: CurrentSessionWindow['assignedWindowId']
 ) => session.windows.find((w) => w.assignedWindowId === assignedWindowId)
 
-const searchWindowIndexByAssignedId = (
-  session: CurrentSession,
-  assignedWindowId: CurrentSessionWindow['assignedWindowId']
-) => session.windows.findIndex((w) => w.assignedWindowId === assignedWindowId)
-
 export const fromBrowser = async ({
   windowOrder,
   ...options
 }: Partial<
   Omit<CurrentSession, 'id' | 'windows' | 'active' | 'status'> & {
-    windowOrder: StoredCurrentSessionData['windows']
+    windowOrder: StoredCurrentSession['windows']
   }
 > = {}): Promise<CurrentSession> => {
   const browserWindows = await getAllWindows({ populate: true }, true)
@@ -232,62 +190,11 @@ export const updateFromBrowser = async (session: CurrentSession) => {
     session.windows.map(({ assignedWindowId }) => assignedWindowId)
   )
   session.title = generateSessionTitle(session.windows)
+  return session
 }
 
-export const open = async (session: CurrentSession) => {
+export const open = async (session: CurrentSession | SavedSession) => {
   const tasks = session.windows.map((win) => openWindow(win))
   const results = await Promise.all(tasks)
   return results.filter(isDefined)
-}
-
-export const addWindow = async (
-  session: CurrentSession | SavedSession,
-  {
-    window: win,
-    focused,
-    index,
-  }: {
-    window: CurrentSessionWindow | SavedSessionWindow
-  } & XOR<{ focused?: boolean }, { index?: number }>
-) => {
-  if (isCurrentSession(session)) {
-    const { window: openedBrowserWin, tabs: openedBrowserTabs } =
-      await openWindow(win, focused)
-    if (openedBrowserWin) {
-      const openedWindow = fromBrowserWindow({
-        ...openedBrowserWin,
-        tabs: openedBrowserTabs,
-      })
-      session.windows.push(openedWindow)
-    }
-  } else {
-    const savedWindow = createSavedWindow(win)
-    if (isDefined(index)) {
-      session.windows.splice(index, 0, savedWindow)
-    } else {
-      session.windows.push(savedWindow)
-    }
-  }
-  return session
-}
-
-export const removeWindow = async (
-  session: CurrentSession | SavedSession,
-  id: SessionWindow['id']
-) => {
-  const index = findWindowIndex(session.windows, id)
-  if (isCurrentSession(session)) {
-    await closeWindow(session.windows[index])
-  }
-  session.windows.splice(index, 1)
-  return session
-}
-
-export const reorderWindows = (
-  session: CurrentSession | SavedSession,
-  fromIndex: number,
-  toIndex: number
-) => {
-  session.windows = reorder(session.windows, fromIndex, toIndex)
-  return session
 }

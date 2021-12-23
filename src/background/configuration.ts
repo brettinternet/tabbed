@@ -12,8 +12,8 @@ import { popupUrl, sidebarUrl } from 'utils/env'
 import { SAVE_SESSIONS } from 'utils/flags'
 import { isDefined } from 'utils/helpers'
 import { log } from 'utils/logger'
-import { SessionsManager } from 'utils/sessions/sessions-manager'
-import { Settings, ExtensionClickActions, loadSettings } from 'utils/settings'
+import { addSaved, loadSessionsManager, save } from 'utils/sessions-manager'
+import { Settings, ExtensionClickActions } from 'utils/settings'
 
 type MenuId = string | number
 let menuIds: {
@@ -64,10 +64,9 @@ export const configureExtension = async () => {
       contexts: ['page'],
       onclick: async () => {
         try {
-          // TODO: save session without frontend..
-          // const sessionsManager = await loadSettings.then(SessionsManager.load)
-          // await sessionsManager.addSaved(sessionsManager.current)
-          // await sessionsManager.save()
+          const sessionsManager = await loadSessionsManager()
+          await addSaved(sessionsManager, sessionsManager.current)
+          await save(sessionsManager)
           // TODO: send msg to client to reload sessions
           // but how to reload without overwrite save?
           await browser.notifications.create({

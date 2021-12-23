@@ -2,21 +2,22 @@ import cn, { Argument as ClassNames } from 'classnames'
 
 import { Dropdown } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
-import { useSessionsManager } from 'utils/sessions'
+import { useHandlers } from 'components/session/handlers'
+import { Session } from 'utils/session'
 import {
   isCurrentSessionTab,
-  SessionData,
-  SessionWindowData,
-  SomeSessionTabData,
-} from 'utils/sessions/types'
+  CurrentSessionTab,
+  SavedSessionTab,
+} from 'utils/session-tab'
+import { SessionWindow } from 'utils/session-window'
 
 import { Img } from './img'
 
 export type TabProps = {
-  windowId: SessionWindowData['id']
-  sessionId: SessionData['id']
+  windowId: SessionWindow['id']
+  sessionId: Session['id']
   isDragging: boolean
-  tab: SomeSessionTabData
+  tab: CurrentSessionTab | SavedSessionTab
   className?: ClassNames
 }
 
@@ -39,7 +40,7 @@ export const Tab: React.FC<TabProps> = ({
     active,
     // groupId,
   } = tab
-  const { openTabs, updateTab, removeTabs } = useSessionsManager()
+  const { openTabs, updateTab, removeTabs } = useHandlers()
 
   const handleOpen = () => {
     openTabs({ sessionId, tabs: [{ windowId, tabIds: [tabId] }] })

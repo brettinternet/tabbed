@@ -88,19 +88,17 @@ export const useSettings = (): [
   const [settings, setSettings] = useAtom(settingsAtom)
 
   useEffect(() => {
-    if (!settings) {
-      const load = async () => {
-        const settings = await loadSettings()
-        const keys = getKeys(settings)
-        await Promise.all(
-          keys.map(async (key) => handleSettingsSideEffects(key, settings))
-        )
-        setSettings(settings)
-      }
-
-      void load()
+    const load = async () => {
+      const settings = await loadSettings()
+      const keys = getKeys(settings)
+      await Promise.all(
+        keys.map(async (key) => handleSettingsSideEffects(key, settings))
+      )
+      setSettings(settings)
     }
-  }, [settings])
+
+    void load()
+  }, [])
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const _updateSettings = useCallback(

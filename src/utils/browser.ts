@@ -191,11 +191,15 @@ export const moveTabs = async ({
   index: number
   windowId: number
 }) => {
-  return (await browser.tabs.move(tabIds, {
+  const result = await browser.tabs.move(tabIds, {
     index,
     windowId,
-  })) as unknown as Promise<Tabs.Tab[]>
-  // casted since multiple tabs are passed instead of single or many
+  })
+  if (Array.isArray(result)) {
+    return result
+  } else {
+    return [result]
+  }
 }
 
 export const updateWindow = async (

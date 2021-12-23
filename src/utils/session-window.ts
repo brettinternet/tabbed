@@ -1,14 +1,8 @@
 import { Tabs, Windows } from 'webextension-polyfill'
 
-import {
-  closeTab,
-  closeWindow,
-  moveTabs,
-  openWindow,
-  updateWindow,
-} from 'utils/browser'
+import { closeWindow, moveTabs, openWindow, updateWindow } from 'utils/browser'
 import { AppError } from 'utils/error'
-import { isDefined, PartialBy } from 'utils/helpers'
+import { isDefined, PartialBy, reorder, XOR } from 'utils/helpers'
 
 import { createId, fallbackWindowId, generateWindowTitle } from './generate'
 import {
@@ -19,7 +13,7 @@ import {
   createSaved as createSavedTab,
   fromBrowser as fromBrowserTab,
   toCurrent as toCurrentTab,
-  updateCurrent as updateCurrentTab,
+  update as updateTab,
   isCurrentSessionTabs,
 } from './session-tab'
 
@@ -80,6 +74,35 @@ export const isCurrentSessionWindows = (
  * Windows helpers
  */
 
+export const findWindow = <T extends SessionWindow>(
+  windows: T[],
+  id: T['id']
+): T => {
+  const win = windows.find((w) => w.id === id)
+  if (!win) {
+    throw new AppError(logContext, `Unable to find window by ID ${id}`)
+  }
+
+  return win
+}
+
+export const findWindowIndex = <T extends SessionWindow>(
+  windows: T[],
+  id: T['id']
+): number => {
+  const index = windows.findIndex((w) => w.id === id)
+  if (index === -1) {
+    throw new AppError(logContext, `Unable to find window by ID ${id}`)
+  }
+
+  return index
+}
+
+const maybeGetTitle = (
+  win: CurrentSessionWindow | SavedSessionWindow,
+  maybeTitle?: SessionWindow['title']
+) => maybeTitle ?? (win.title || generateWindowTitle(win.tabs))
+
 export const createCurrent = ({
   id,
   assignedWindowId,
@@ -92,33 +115,26 @@ export const createCurrent = ({
   left,
   width,
   height,
-}: PartialBy<CurrentSessionWindow, 'id'>): CurrentSessionWindow => ({
-  id: id || createId('window'),
-  assignedWindowId,
-  tabs,
-  title: title || generateWindowTitle(tabs),
-  incognito,
-  focused,
-  state,
-  top,
-  left,
-  width,
-  height,
-})
+}: PartialBy<CurrentSessionWindow, 'id'>): CurrentSessionWindow => {
+  const win: CurrentSessionWindow = {
+    id: id || createId('window'),
+    assignedWindowId,
+    tabs,
+    title: title || generateWindowTitle(tabs),
+    incognito,
+    focused,
+    state,
+    top,
+    left,
+    width,
+    height,
+  }
 
-const maybeGetTitle = (
-  win: CurrentSessionWindow | SavedSessionWindow,
-  maybeTitle: SessionWindow['title'] | undefined
-) => maybeTitle ?? (win.title || generateWindowTitle(win.tabs))
+  if (!win.title) {
+    win.title = maybeGetTitle(win)
+  }
 
-export const updateCurrent = async (
-  win: CurrentSessionWindow,
-  values: UpdateSessionWindow
-): Promise<CurrentSessionWindow> => {
-  await updateWindow(win.assignedWindowId, values)
-  return Object.assign({}, win, values, {
-    title: maybeGetTitle(win, values.title),
-  })
+  return win
 }
 
 export const createSaved = ({
@@ -132,26 +148,40 @@ export const createSaved = ({
   left,
   width,
   height,
-}: PartialBy<SavedSessionWindow, 'id'>): SavedSessionWindow => ({
-  id: id || createId('window'),
-  tabs,
-  title: title || generateWindowTitle(tabs),
-  incognito,
-  focused,
-  state,
-  top,
-  left,
-  width,
-  height,
-})
+}: PartialBy<SavedSessionWindow, 'id'>): SavedSessionWindow => {
+  const win: SavedSessionWindow = {
+    id: id || createId('window'),
+    tabs,
+    title,
+    incognito,
+    focused,
+    state,
+    top,
+    left,
+    width,
+    height,
+  }
 
-export const updateSaved = async (
-  win: SavedSessionWindow,
+  if (!win.title) {
+    win.title = maybeGetTitle(win)
+  }
+
+  return win
+}
+
+export const update = async <
+  T extends CurrentSessionWindow | SavedSessionWindow
+>(
+  win: T,
   values: UpdateSessionWindow
-): Promise<SavedSessionWindow> =>
-  Object.assign({}, win, values, {
+): Promise<T> => {
+  if (isCurrentSessionWindow(win)) {
+    await updateWindow(win.assignedWindowId, values)
+  }
+  return Object.assign(win, values, {
     title: maybeGetTitle(win, values.title),
   })
+}
 
 export const toCurrent = async <
   T extends
@@ -228,27 +258,6 @@ export const fromBrowser = (
   })
 }
 
-export const findTab = <T extends SessionTab>(tabs: T[], tabId: T['id']): T => {
-  const tab = tabs.find((t) => t.id === tabId)
-  if (!tab) {
-    throw new AppError(logContext, `Unable to find tab by ID ${tabId}`)
-  }
-
-  return tab
-}
-
-export const findTabIndex = <T extends SessionTab>(
-  tabs: T[],
-  tabId: T['id']
-): number => {
-  const index = tabs.findIndex((t) => t.id === tabId)
-  if (index === -1) {
-    throw new AppError(logContext, `Unable to find tab by ID ${tabId}`)
-  }
-
-  return index
-}
-
 /**
  * Filter has issues with union types
  * https://github.com/microsoft/TypeScript/issues/7294
@@ -293,6 +302,61 @@ export const close = async ({ assignedWindowId }: CurrentSessionWindow) => {
   await closeWindow(assignedWindowId)
 }
 
+export const removeWindows = async (
+  windows: CurrentSessionWindow[] | SavedSessionWindow[],
+  ids: SessionWindow['id'][]
+) => {
+  for (const id of ids) {
+    const index = findWindowIndex(windows, id)
+    if (isCurrentSessionWindows(windows)) {
+      await close(windows[index])
+    }
+    windows.splice(index, 1)
+  }
+  return windows
+}
+
+export const reorderWindows = (
+  windows: CurrentSessionWindow[] | SavedSessionWindow[],
+  fromIndex: number,
+  toIndex: number
+) => {
+  return reorder(windows, fromIndex, toIndex)
+}
+
+export const addWindow = async (
+  windows: CurrentSessionWindow[] | SavedSessionWindow[],
+  {
+    window: win,
+    focused,
+    index,
+  }: {
+    window: CurrentSessionWindow | SavedSessionWindow
+  } & XOR<{ focused?: boolean }, { index?: number }>
+) => {
+  if (isCurrentSessionWindows(windows)) {
+    const { window: openedBrowserWin, tabs: openedBrowserTabs } = await open(
+      win,
+      focused
+    )
+    if (openedBrowserWin) {
+      const openedWindow = fromBrowser({
+        ...openedBrowserWin,
+        tabs: openedBrowserTabs,
+      })
+      windows.push(openedWindow)
+    }
+  } else {
+    const savedWindow = createSaved(win)
+    if (isDefined(index)) {
+      windows.splice(index, 0, savedWindow)
+    } else {
+      windows.push(savedWindow)
+    }
+  }
+  return windows
+}
+
 const move = async (
   win: CurrentSessionWindow,
   tabs: CurrentSessionTab[],
@@ -314,7 +378,7 @@ const move = async (
   // pinning moves the tab to last pin, so moving again is required
   if (isDefined(pinned)) {
     tabs = await Promise.all(
-      tabs.map(async (t) => await updateCurrentTab(t, { pinned }))
+      tabs.map(async (t) => await updateTab(t, { pinned }))
     )
     if (pinned) {
       tabs = await _move()
@@ -332,38 +396,28 @@ export const addTabs = async (
 ) => {
   if (isCurrentSessionWindow(win)) {
     if (isCurrentSessionTabs(tabs)) {
-      tabs = await move(win, tabs, index, pinned)
+      let _tabs = tabs.slice()
+      _tabs = await move(win, _tabs, index, pinned)
+      console.log('_tabs: ', _tabs)
+      win.tabs.splice(index, 0, ..._tabs.map(createCurrentTab))
+    } else {
+      win.tabs.splice(
+        index,
+        0,
+        ...(
+          await Promise.all(
+            tabs.map(async (tab) => {
+              if (isDefined(pinned)) {
+                tab.pinned = pinned
+              }
+              return toCurrentTab(tab, win.assignedWindowId)
+            })
+          )
+        ).filter(isDefined)
+      )
     }
-    win.tabs.splice(
-      index,
-      0,
-      ...(
-        await Promise.all(
-          tabs.map(async (tab) => {
-            if (isDefined(pinned)) {
-              tab.pinned = pinned
-            }
-            return toCurrentTab(tab, win.assignedWindowId)
-          })
-        )
-      ).filter(isDefined)
-    )
   } else {
     win.tabs.splice(index, 0, ...tabs.map(createSavedTab))
-  }
-  return win
-}
-
-export const removeTabs = async (
-  win: CurrentSessionWindow | SavedSessionWindow,
-  ids: SessionTab['id'][]
-) => {
-  for (const id of ids) {
-    const index = findTabIndex(win.tabs, id)
-    if (isCurrentSessionWindow(win)) {
-      await closeTab(win.tabs[index].assignedTabId)
-    }
-    win.tabs.splice(index, ids.length)
   }
   return win
 }
