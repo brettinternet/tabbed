@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion'
-import { useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 
 import { Message } from 'components/message'
 
 import { Toast as ToastObj } from './store'
+import { createTimer } from './timer'
 
 type ToastProps = ToastObj & { remove: (id: string) => void }
 
@@ -16,19 +17,33 @@ export const Toast: React.FC<ToastProps> = ({
   duration,
   remove,
 }) => {
-  useEffect(() => {
-    let timeoutId: number | undefined
+  const timer = useRef<ReturnType<typeof createTimer>>()
 
-    if (autoDismiss && duration > 0) {
-      timeoutId = window.setTimeout(remove, duration, id)
+  useEffect(() => {
+    if (autoDismiss && duration && !timer.current) {
+      timer.current = createTimer(remove, duration, id)
+    } else if (timer.current) {
+      timer.current.clear()
     }
 
     return () => {
-      if (timeoutId) {
-        window.clearTimeout(timeoutId)
+      if (timer.current) {
+        timer.current.clear()
       }
     }
   }, [id, remove, duration, autoDismiss])
+
+  const pause = useCallback(() => {
+    if (autoDismiss && timer.current) {
+      timer.current.pause()
+    }
+  }, [autoDismiss])
+
+  const unpause = useCallback(() => {
+    if (autoDismiss && timer.current) {
+      timer.current.start()
+    }
+  }, [autoDismiss])
 
   return (
     <Message
@@ -48,6 +63,8 @@ export const Toast: React.FC<ToastProps> = ({
       onDismiss={() => {
         remove(id)
       }}
+      onMouseEnter={pause}
+      onMouseLeave={unpause}
     />
   )
 }

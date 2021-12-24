@@ -1,7 +1,7 @@
 import browser, { Tabs } from 'webextension-polyfill'
 
 import { closeTab, openTab, updateTab, updateWindow } from 'utils/browser'
-import { isDefined, PartialBy } from 'utils/helpers'
+import { PartialBy } from 'utils/helpers'
 
 import { AppError } from './error'
 import { BrandedUuid, createId, fallbackTabId } from './generate'

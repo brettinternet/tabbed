@@ -6,7 +6,10 @@ import {
 } from 'react-beautiful-dnd'
 
 import { BrandedUuid, brandUuid } from 'utils/generate'
-import { isDefined, reorder, spliceSeparate, Valueof } from 'utils/helpers'
+import {
+  isDefined, // reorder, spliceSeparate,
+  Valueof,
+} from 'utils/helpers'
 import { SessionTab } from 'utils/session-tab'
 import { SessionWindow } from 'utils/session-window'
 
@@ -155,6 +158,7 @@ export const DroppableType = {
 
 export const useSessions = () => {
   const [sessionsManager] = useSessionsManager()
+  console.log('sessionsManager: ', sessionsManager)
   const { moveWindows, moveTabs } = useDndHandlers()
   const [activeDragKind, setActiveDragKind] =
     useState<ActiveDragKindType>(undefined)
@@ -218,7 +222,7 @@ export const useSessions = () => {
         setActiveDragKind(undefined)
       }
     },
-    [moveWindows, moveTabs]
+    [sessionsManager, moveWindows, moveTabs]
   )
 
   return {

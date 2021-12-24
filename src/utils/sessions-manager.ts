@@ -1,8 +1,9 @@
 import { lightFormat } from 'date-fns'
 import { uniqBy, debounce } from 'lodash'
+import log from 'loglevel'
 
 import { appName } from 'utils/env'
-import { downloadJson } from 'utils/helpers'
+import { downloadJson, isDefined } from 'utils/helpers'
 
 import { isNewTab, urlsMatch } from './browser'
 import { AppError } from './error'
@@ -16,7 +17,6 @@ import {
   StoredCurrentSession,
   createSaved as createSavedSession,
   fromBrowser as sessionFromBrowser,
-  update as _updateSession,
 } from './session'
 import { loadSettings } from './settings'
 import { LocalStorage } from './storage'
@@ -139,6 +139,7 @@ const filterWindowTabs = async (session: SavedSession) => {
             : !urlsMatch(excludedUrl, tab.url)
         )
       }
+      return false
     })
     return win
   })
@@ -239,12 +240,75 @@ export const getSession = (
   sessionsManager: SessionsManager,
   sessionId: Session['id'],
   category?: SavedSessionCategoryType
-) => {
+): CurrentSession | SavedSession => {
   if (sessionId === sessionsManager.current.id) {
     return Object.assign({}, sessionsManager.current)
   } else {
     const session = findSession(sessionsManager, sessionId, category)
     return Object.assign({}, session)
+  }
+}
+
+/**
+ * @usage lookup which category a session is in
+ */
+const findSessionCategory = (
+  sessionsManager: SessionsManager,
+  sessionId: Session['id']
+): { category: SavedSessionCategoryType; index: number } | undefined => {
+  try {
+    const index = findSessionIndex(
+      sessionsManager,
+      sessionId,
+      SavedSessionCategory.SAVED
+    )
+    if (index > -1) {
+      return {
+        category: SavedSessionCategory.SAVED,
+        index,
+      }
+    }
+  } catch {}
+  try {
+    const index = findSessionIndex(
+      sessionsManager,
+      sessionId,
+      SavedSessionCategory.PREVIOUS
+    )
+    if (index > -1) {
+      return {
+        category: SavedSessionCategory.PREVIOUS,
+        index,
+      }
+    }
+  } catch {}
+}
+
+/**
+ * @usage patch a session on the sessions manager
+ */
+export const updateSessionsManager = (
+  sessionsManager: SessionsManager,
+  session: CurrentSession | SavedSession
+) => {
+  if (session.id === sessionsManager.current.id) {
+    return Object.assign({}, sessionsManager, { current: session })
+  } else {
+    const { category, index } =
+      findSessionCategory(sessionsManager, session.id) || {}
+    if (category && isDefined(index)) {
+      return Object.assign({}, sessionsManager, {
+        [category]: sessionsManager[category][index],
+      })
+    } else {
+      log.warn(
+        logContext,
+        'updateSessionsManager()',
+        'Unable to find session to update sessions manager',
+        session
+      )
+      return Object.assign({}, sessionsManager)
+    }
   }
 }
 

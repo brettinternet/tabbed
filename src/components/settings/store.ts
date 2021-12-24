@@ -98,7 +98,7 @@ export const useSettings = (): [
     }
 
     void load()
-  }, [])
+  }, [setSettings])
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const _updateSettings = useCallback(

@@ -8,7 +8,7 @@ import { log } from 'utils/logger'
 const logContext = 'components/toast/store'
 
 export type ToastOptions = {
-  message: string
+  message: React.ReactNode
   variant?: MessageVariantType
   autoDismiss?: boolean
   duration?: number

@@ -22,7 +22,7 @@ export const App = () => {
       `${CONNECT_NAME_CLIENT_PREFIX}-${clientId}`
     )
     setPort(backgroundPort)
-  }, [])
+  }, [setPort])
 
   if (port) {
     return (

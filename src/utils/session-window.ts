@@ -87,10 +87,10 @@ export const isCurrentSessionWindows = (
 /**
  * @returns found window, throws if not found
  */
-export const findWindow = <T extends SessionWindow>(
-  windows: T[],
-  id: T['id']
-): T => {
+export const findWindow = (
+  windows: CurrentSessionWindow[] | SavedSessionWindow[],
+  id: SessionWindow['id']
+): CurrentSessionWindow | SavedSessionWindow => {
   const win = windows.find((w) => w.id === id)
   if (!win) {
     throw new AppError(logContext, `Unable to find window by ID ${id}`)
@@ -102,9 +102,9 @@ export const findWindow = <T extends SessionWindow>(
 /**
  * @returns index of window, throws if not found
  */
-export const findWindowIndex = <T extends SessionWindow>(
-  windows: T[],
-  id: T['id']
+export const findWindowIndex = (
+  windows: CurrentSessionWindow[] | SavedSessionWindow[],
+  id: SessionWindow['id']
 ): number => {
   const index = windows.findIndex((w) => w.id === id)
   if (index === -1) {
@@ -191,12 +191,10 @@ export const createSaved = ({
   return win
 }
 
-export const update = async <
-  T extends CurrentSessionWindow | SavedSessionWindow
->(
-  win: T,
+export const update = async (
+  win: CurrentSessionWindow | SavedSessionWindow,
   values: UpdateSessionWindow
-): Promise<T> => {
+): Promise<CurrentSessionWindow | SavedSessionWindow> => {
   if (isCurrentSessionWindow(win)) {
     await updateWindow(win.assignedWindowId, values)
   }
@@ -459,16 +457,16 @@ const move = async (
  */
 export const addTabs = async (
   win: CurrentSessionWindow | SavedSessionWindow,
-  tabs: CurrentSessionTab[] | SavedSessionTab[],
+  _tabs: CurrentSessionTab[] | SavedSessionTab[],
   index: number,
   pinned?: boolean
 ) => {
+  const tabs = _tabs.slice() // clone
   const updatedTabs = win.tabs.slice() // clone
   if (isCurrentSessionWindow(win)) {
     if (isCurrentSessionTabs(tabs)) {
-      let _tabs = tabs.slice()
-      _tabs = await move(win, _tabs, index, pinned)
-      updatedTabs.splice(index, 0, ..._tabs.map(createCurrentTab))
+      const movedTabs = await move(win, tabs, index, pinned)
+      updatedTabs.splice(index, 0, ...movedTabs.map(createCurrentTab))
     } else {
       updatedTabs.splice(
         index,

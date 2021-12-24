@@ -11,8 +11,7 @@ import {
 import {
   loadSessionsManager,
   save,
-  SessionsManager,
-  updateCurrentSession,
+  SessionsManager, // updateCurrentSession,
 } from 'utils/sessions-manager'
 
 export const sessionsManagerAtom = atom<SessionsManager | undefined>(undefined)
@@ -33,7 +32,7 @@ export const useSessionsManager = (): [
 
     console.log('--------------- LOADING sessions')
     void load()
-  }, [])
+  }, [setSessionsManager, tryToastError])
 
   useEffect(() => {
     const { startListener, removeListener } =
@@ -61,7 +60,7 @@ export const useSessionsManager = (): [
       removeListener()
       window.removeEventListener('unload', handleUnload)
     }
-  }, [sessionsManager])
+  }, [port, sessionsManager])
 
   return [sessionsManager, setSessionsManager]
 }
