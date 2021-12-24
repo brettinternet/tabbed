@@ -4,7 +4,12 @@ import { closeWindow, moveTabs, openWindow, updateWindow } from 'utils/browser'
 import { AppError } from 'utils/error'
 import { isDefined, PartialBy, reorder, XOR } from 'utils/helpers'
 
-import { createId, fallbackWindowId, generateWindowTitle } from './generate'
+import {
+  BrandedUuid,
+  createId,
+  fallbackWindowId,
+  generateWindowTitle,
+} from './generate'
 import {
   SessionTab,
   CurrentSessionTab,
@@ -26,9 +31,14 @@ export type SessionWindow<T extends SessionTab = SessionTab> = {
   /**
    * Generated ID to more uniquely identify the entity
    */
-  id: string
+  id: BrandedUuid<'window'>
   tabs: T[]
+  /**
+   * Title is generated from tab content
+   * TODO: add `userAssignedTitle` field when title is user-editable to avoid overriding
+   */
   title?: string
+  // userAssignedTitle: boolean
   incognito: boolean
   focused: boolean
   state: Windows.WindowState
@@ -53,10 +63,10 @@ export type UpdateSessionWindow = Partial<
   >
 >
 
-type OpenWindowReturn = {
-  window?: Windows.Window
-  tabs?: Tabs.Tab[]
-}
+// type OpenWindowReturn = {
+//   window?: Windows.Window
+//   tabs?: Tabs.Tab[]
+// }
 
 /**
  * Type guards
@@ -74,6 +84,9 @@ export const isCurrentSessionWindows = (
  * Windows helpers
  */
 
+/**
+ * @returns found window, throws if not found
+ */
 export const findWindow = <T extends SessionWindow>(
   windows: T[],
   id: T['id']
@@ -86,6 +99,9 @@ export const findWindow = <T extends SessionWindow>(
   return win
 }
 
+/**
+ * @returns index of window, throws if not found
+ */
 export const findWindowIndex = <T extends SessionWindow>(
   windows: T[],
   id: T['id']
@@ -98,10 +114,16 @@ export const findWindowIndex = <T extends SessionWindow>(
   return index
 }
 
+/**
+ * @usage if no existing title, uses the window tabs to generate a new window title
+ * TODO: avoid overriding user generated title with additional flag to indicate user-edited
+ * and nullish coelesce `maybeTitle ?? (win.title || generateWindowTitle(win.tabs))`
+ * However, for now, we must override to avoid title getting stale since it's generated
+ */
 const maybeGetTitle = (
   win: CurrentSessionWindow | SavedSessionWindow,
-  maybeTitle?: SessionWindow['title']
-) => maybeTitle ?? (win.title || generateWindowTitle(win.tabs))
+  _maybeTitle?: SessionWindow['title']
+) => generateWindowTitle(win.tabs)
 
 export const createCurrent = ({
   id,
@@ -120,7 +142,7 @@ export const createCurrent = ({
     id: id || createId('window'),
     assignedWindowId,
     tabs,
-    title: title || generateWindowTitle(tabs),
+    title,
     incognito,
     focused,
     state,
@@ -178,38 +200,14 @@ export const update = async <
   if (isCurrentSessionWindow(win)) {
     await updateWindow(win.assignedWindowId, values)
   }
-  return Object.assign(win, values, {
+  return Object.assign({}, win, values, {
     title: maybeGetTitle(win, values.title),
   })
 }
 
-export const toCurrent = async <
-  T extends
-    | PartialBy<SavedSessionWindow, 'id'>
-    | PartialBy<CurrentSessionWindow, 'id'>
->(
-  win: T
-) => {
-  if ('assignedWindowId' in win) {
-    return {
-      ...win,
-      tabs: win.tabs.map(createCurrentTab),
-    }
-  } else {
-    const { window, tabs } = await openWindow(win)
-    const assignedWindowId = window?.id
-    if (window && tabs && isDefined(assignedWindowId)) {
-      return createCurrent({
-        ...win,
-        tabs: tabs
-          .map((tab) => fromBrowserTab(tab, assignedWindowId))
-          .filter(isDefined),
-        assignedWindowId,
-      })
-    }
-  }
-}
-
+/**
+ * @usage Maps truthy browser tabs to `CurrentSessionTab`
+ */
 const mapTabs = (
   tabs: Tabs.Tab[],
   assignedWindowId: CurrentSessionTab['assignedWindowId']
@@ -225,9 +223,43 @@ const mapTabs = (
   )
 }
 
+/**
+ * @usage Opens current or saved windows and tabs into the current session
+ * Side effect with creating window and tabs onto window
+ * @returns Promise `CurrentSessionWindow` or `undefined` if failed to create window
+ */
+export const toCurrent = async <
+  T extends
+    | PartialBy<SavedSessionWindow, 'id'>
+    | PartialBy<CurrentSessionWindow, 'id'>
+>(
+  win: T
+): Promise<CurrentSessionWindow | undefined> => {
+  if ('assignedWindowId' in win) {
+    return createCurrent({
+      ...win,
+      tabs: win.tabs.map(createCurrentTab),
+    })
+  } else {
+    const { window, tabs } = await openWindow(win)
+    const assignedWindowId = window?.id
+    if (window && tabs && isDefined(assignedWindowId)) {
+      return createCurrent({
+        ...win,
+        tabs: mapTabs(tabs, assignedWindowId),
+        assignedWindowId,
+      })
+    }
+  }
+}
+
+/**
+ * @usage Creates `CurrentSessionWindow` from browser `Windows.Window`
+ * @note does not produce side effects
+ */
 export const fromBrowser = (
   win: Windows.Window,
-  id?: string
+  id?: BrandedUuid<'window'>
 ): CurrentSessionWindow => {
   const {
     id: maybeAssignedWindowId,
@@ -259,6 +291,7 @@ export const fromBrowser = (
 }
 
 /**
+ * @usage Typed union filter
  * Filter has issues with union types
  * https://github.com/microsoft/TypeScript/issues/7294
  * https://github.com/microsoft/TypeScript/issues/36390
@@ -268,26 +301,35 @@ export const filterWindows = (
   windows: SavedSessionWindow[] | CurrentSessionWindow[],
   ids: SavedSessionWindow['id'][] | CurrentSessionWindow['id'][]
 ) =>
-  // @ts-ignore 😢
+  // @ts-ignore 😢 see linked issues above
   windows.filter((w) => ids.includes(w.id)) as
     | SavedSessionWindow[]
     | CurrentSessionWindow[]
 
+/**
+ * @usage Typed union filter
+ */
 export const filterTabs = (
   tabs: SavedSessionTab[] | CurrentSessionTab[],
   ids: SavedSessionTab['id'][] | CurrentSessionTab['id'][]
 ) =>
-  // @ts-ignore 😢
+  // @ts-ignore 😢 see linked issues above
   tabs.filter((t) => ids.includes(t.id)) as
     | SavedSessionTab[]
     | CurrentSessionTab[]
 
+/**
+ * @usage focuses `CurrentSessionWindow`
+ */
 export const focus = async ({ assignedWindowId }: CurrentSessionWindow) => {
   await updateWindow(assignedWindowId, {
     focused: true,
   })
 }
 
+/**
+ * @usage open current or saved session into the current session
+ */
 export const open = async (
   win: CurrentSessionWindow | SavedSessionWindow,
   focused?: boolean
@@ -298,10 +340,17 @@ export const open = async (
   })
 }
 
+/**
+ * @usage close window in the current session
+ */
 export const close = async ({ assignedWindowId }: CurrentSessionWindow) => {
   await closeWindow(assignedWindowId)
 }
 
+/**
+ * @usage remove windows from saved or current session windows
+ * Side effect of closing windows if `CurrentSessionWindow[]` is provided
+ */
 export const removeWindows = async (
   windows: CurrentSessionWindow[] | SavedSessionWindow[],
   ids: SessionWindow['id'][]
@@ -316,6 +365,10 @@ export const removeWindows = async (
   return windows
 }
 
+/**
+ * @usage Reorders list of windows
+ * Does not produce side effects since window order is fabricated from session manager lists
+ */
 export const reorderWindows = (
   windows: CurrentSessionWindow[] | SavedSessionWindow[],
   fromIndex: number,
@@ -324,8 +377,12 @@ export const reorderWindows = (
   return reorder(windows, fromIndex, toIndex)
 }
 
+/**
+ * @usage Adds a window to a list of windows
+ * @note _SIDE EFFECTS_: opens windows
+ */
 export const addWindow = async (
-  windows: CurrentSessionWindow[] | SavedSessionWindow[],
+  _windows: CurrentSessionWindow[] | SavedSessionWindow[],
   {
     window: win,
     focused,
@@ -334,29 +391,36 @@ export const addWindow = async (
     window: CurrentSessionWindow | SavedSessionWindow
   } & XOR<{ focused?: boolean }, { index?: number }>
 ) => {
+  const windows = _windows.slice() // clone
+  let insertWindow: CurrentSessionWindow | SavedSessionWindow | undefined
   if (isCurrentSessionWindows(windows)) {
     const { window: openedBrowserWin, tabs: openedBrowserTabs } = await open(
       win,
       focused
     )
     if (openedBrowserWin) {
-      const openedWindow = fromBrowser({
+      insertWindow = fromBrowser({
         ...openedBrowserWin,
         tabs: openedBrowserTabs,
       })
-      windows.push(openedWindow)
     }
   } else {
-    const savedWindow = createSaved(win)
+    insertWindow = createSaved(win)
+  }
+  if (insertWindow) {
     if (isDefined(index)) {
-      windows.splice(index, 0, savedWindow)
+      windows.splice(index, 0, insertWindow)
     } else {
-      windows.push(savedWindow)
+      windows.push(insertWindow)
     }
   }
   return windows
 }
 
+/**
+ * @usage handles multi-step move side effect for tabs
+ * @returns moved tabs `CurrentSessionTab[]`
+ */
 const move = async (
   win: CurrentSessionWindow,
   tabs: CurrentSessionTab[],
@@ -374,34 +438,39 @@ const move = async (
   }
 
   // when pinning, move to window
-  tabs = await _move()
-  // pinning moves the tab to last pin, so moving again is required
+  let movedTabs = await _move()
+  // update pinned if defined
   if (isDefined(pinned)) {
-    tabs = await Promise.all(
+    movedTabs = await Promise.all(
       tabs.map(async (t) => await updateTab(t, { pinned }))
     )
+    // pinning moves the tab to last pin, so moving again is necessary
     if (pinned) {
-      tabs = await _move()
+      movedTabs = await _move()
     }
   }
 
-  return tabs
+  return movedTabs
 }
 
+/**
+ * @usage adds tabs, does require window data to know where to add tab in the current session if applicable
+ * @note _SIDE EFFECTS_: opens windows if `CurrentSessionTab[]` are added a `CurrentSessionWindow`
+ */
 export const addTabs = async (
   win: CurrentSessionWindow | SavedSessionWindow,
   tabs: CurrentSessionTab[] | SavedSessionTab[],
   index: number,
   pinned?: boolean
 ) => {
+  const updatedTabs = win.tabs.slice() // clone
   if (isCurrentSessionWindow(win)) {
     if (isCurrentSessionTabs(tabs)) {
       let _tabs = tabs.slice()
       _tabs = await move(win, _tabs, index, pinned)
-      console.log('_tabs: ', _tabs)
-      win.tabs.splice(index, 0, ..._tabs.map(createCurrentTab))
+      updatedTabs.splice(index, 0, ..._tabs.map(createCurrentTab))
     } else {
-      win.tabs.splice(
+      updatedTabs.splice(
         index,
         0,
         ...(
@@ -417,7 +486,7 @@ export const addTabs = async (
       )
     }
   } else {
-    win.tabs.splice(index, 0, ...tabs.map(createSavedTab))
+    updatedTabs.splice(index, 0, ...tabs.map(createSavedTab))
   }
-  return win
+  return Object.assign({}, win, { tabs: updatedTabs }) // clone
 }

@@ -4,6 +4,54 @@ import browser from 'webextension-polyfill'
 import { SessionTab } from 'utils/session-tab'
 import { SessionWindow } from 'utils/session-window'
 
+import { Valueof } from './helpers'
+
+/**
+ * const map of different UUID brands
+ */
+export const Uuid = {
+  TAB: 'tab',
+  WINDOW: 'window',
+  SESSION: 'session',
+} as const
+export type UuidType = Valueof<typeof Uuid>
+
+/**
+ * @note Branded type to increase type safety and prevent abuse
+ * https://gist.github.com/brettinternet/b32a63f057eb58f1a2de3765141097a7
+ */
+export type BrandedUuid<T extends UuidType> = {
+  __uuid: T
+}
+
+/**
+ * @usage Generates UUID with a entity prefix
+ * @returns prefix + "-" + UUID with a branded type
+ */
+export const createId = <T extends UuidType>(prefix: T): BrandedUuid<T> =>
+  `${prefix}-${uuidv4()}` as unknown as BrandedUuid<T>
+
+/**
+ * @usage Cast a value to the UUID brand type
+ * @returns the same value with a branded type
+ */
+export const brandUuid = <T extends UuidType>(str: string) =>
+  str as unknown as BrandedUuid<T>
+
+/**
+ * @usage Cast a branded UUID back to a string
+ * @returns the same value with type string
+ */
+export const unbrandUuid = <T extends UuidType>(uuid: BrandedUuid<T>): string =>
+  uuid as unknown as string
+
+/**
+ * @usage Unlikely to be used, but since browser windows and tabs are optional,
+ * this is a fallback more for typing than for an actual value
+ */
+export const fallbackTabId = (): number => new Date().valueOf()
+export const fallbackWindowId = (): number => browser.windows.WINDOW_ID_CURRENT
+
 const getSortedOccurrences = (arr: string[]) => {
   const hash = arr.reduce((acc, value) => {
     acc[value] = (acc[value] || 0) + 1
@@ -104,11 +152,3 @@ export const generateSessionTitle = (windows: SessionWindow[]) => {
   }, [] as string[])
   return formatTopTitlesAndMore(titles)
 }
-
-export const fallbackTabId = (): number => new Date().valueOf()
-export const fallbackWindowId = (): number => browser.windows.WINDOW_ID_CURRENT
-
-/**
- * Creates a UUID
- */
-export const createId = (prefix: string) => `${prefix}-${uuidv4()}`

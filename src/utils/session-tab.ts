@@ -4,7 +4,7 @@ import { closeTab, openTab, updateTab, updateWindow } from 'utils/browser'
 import { isDefined, PartialBy } from 'utils/helpers'
 
 import { AppError } from './error'
-import { createId, fallbackTabId } from './generate'
+import { BrandedUuid, createId, fallbackTabId } from './generate'
 
 const logContext = 'utils/session-tab'
 
@@ -16,7 +16,7 @@ export type SessionTab = {
   /**
    * Generated ID to more uniquely identify the entity
    */
-  id: string
+  id: BrandedUuid<'tab'>
   url: string
   favIconUrl?: string
   title?: string
@@ -51,21 +51,24 @@ type UpdateSessionTab = Partial<
 >
 
 /**
- * Type guard when tabs are current session
+ * @usage Type guard for `CurrentSessionTab`
+ * @returns true when tab is current session type
  */
-
 export const isCurrentSessionTab = (
   tab: CurrentSessionTab | SavedSessionTab | undefined
 ): tab is CurrentSessionTab => (tab ? 'assignedTabId' in tab : false)
 
+/**
+ * @usage Type guard for `CurrentSessionTab[]`
+ * @returns true when tabs are current session
+ */
 export const isCurrentSessionTabs = (
   tabs: CurrentSessionTab[] | SavedSessionTab[]
 ): tabs is CurrentSessionTab[] => isCurrentSessionTab(tabs[0])
 
 /**
- * Tab actions
+ * @returns tab, throws if tabId not found
  */
-
 export const findTab = <T extends SessionTab>(tabs: T[], tabId: T['id']): T => {
   const tab = tabs.find((t) => t.id === tabId)
   if (!tab) {
@@ -75,6 +78,9 @@ export const findTab = <T extends SessionTab>(tabs: T[], tabId: T['id']): T => {
   return tab
 }
 
+/**
+ * @returns tab index, throws if tabId not found
+ */
 export const findTabIndex = <T extends SessionTab>(
   tabs: T[],
   tabId: T['id']
@@ -100,22 +106,20 @@ export const createCurrent = ({
   discarded,
   attention,
   groupId,
-}: PartialBy<CurrentSessionTab, 'id'>): CurrentSessionTab => {
-  return {
-    id: id || createId('tab'),
-    url,
-    favIconUrl,
-    title,
-    active,
-    pinned,
-    muted,
-    discarded,
-    attention,
-    groupId,
-    assignedWindowId,
-    assignedTabId,
-  }
-}
+}: PartialBy<CurrentSessionTab, 'id'>): CurrentSessionTab => ({
+  id: id || createId('tab'),
+  url,
+  favIconUrl,
+  title,
+  active,
+  pinned,
+  muted,
+  discarded,
+  attention,
+  groupId,
+  assignedWindowId,
+  assignedTabId,
+})
 
 export const createSaved = ({
   id,
@@ -128,23 +132,22 @@ export const createSaved = ({
   discarded,
   attention,
   groupId,
-}: PartialBy<SavedSessionTab, 'id'>): SavedSessionTab => {
-  return {
-    id: id || createId('tab'),
-    url,
-    favIconUrl,
-    title,
-    active,
-    pinned,
-    muted,
-    discarded,
-    attention,
-    groupId,
-  }
-}
+}: PartialBy<SavedSessionTab, 'id'>): SavedSessionTab => ({
+  id: id || createId('tab'),
+  url,
+  favIconUrl,
+  title,
+  active,
+  pinned,
+  muted,
+  discarded,
+  attention,
+  groupId,
+})
 
 /**
- * Mutates tab
+ *
+ * @returns patched current or saved tab
  */
 export const update = async <T extends CurrentSessionTab | SavedSessionTab>(
   tab: T,
@@ -154,9 +157,13 @@ export const update = async <T extends CurrentSessionTab | SavedSessionTab>(
     const { title } = await updateTab(tab.assignedTabId, values)
     Object.assign(tab, { title })
   }
-  return Object.assign(tab, values)
+  return Object.assign({}, tab, values)
 }
 
+/**
+ * @usage Opens a saved or current tab into the current session
+ * Side effect of opening the tab, using the created tab data to return a `CurrentSessionTab`
+ */
 export const toCurrent = async <
   T extends
     | PartialBy<CurrentSessionTab, 'id'>
@@ -171,16 +178,15 @@ export const toCurrent = async <
     pinned,
     windowId: assignedWindowId,
   })
-  const assignedTabId = newTab?.id
-  if (isDefined(assignedTabId)) {
-    return createCurrent({
-      ...tab,
-      assignedWindowId,
-      assignedTabId,
-    })
+  if (newTab) {
+    return fromBrowser(newTab, assignedWindowId)
   }
 }
 
+/**
+ * @usage Converts a browser `Tabs.Tab` to a `CurrentSessionTab`
+ * Does _NOT_ produce side effects, such as opening the tab
+ */
 export const fromBrowser = (
   tab: Tabs.Tab,
   windowId: CurrentSessionTab['assignedWindowId']
@@ -216,6 +222,9 @@ export const fromBrowser = (
   }
 }
 
+/**
+ * @usage focuses a tab and its window in the current session
+ */
 export const focus = async ({
   assignedWindowId,
   assignedTabId,
@@ -224,6 +233,9 @@ export const focus = async ({
   await updateTab(assignedTabId, { active: true })
 }
 
+/**
+ * @usage open current or saved tab into current session
+ */
 export const open = async (
   tab: CurrentSessionTab | SavedSessionTab,
   {
@@ -240,18 +252,24 @@ export const open = async (
     (isCurrentSessionTab(tab)
       ? tab.assignedWindowId
       : browser.windows.WINDOW_ID_CURRENT)
-  await openTab({
+  const createdTab = await openTab({
     url,
     pinned,
     windowId,
     incognito,
   })
+  if (createdTab) {
+    return fromBrowser(createdTab, windowId)
+  }
 }
 
 export const close = async (tab: CurrentSessionTab) => {
   await closeTab(tab.assignedTabId)
 }
 
+/**
+ * @usage remove certain tabs by IDs from a collection of tabs
+ */
 export const removeTabs = async (
   tabs: CurrentSessionTab[] | SavedSessionTab[],
   ids: SessionTab['id'][]

@@ -1,5 +1,5 @@
 import { getAllWindows } from './browser'
-import { createId, generateSessionTitle } from './generate'
+import { BrandedUuid, createId, generateSessionTitle } from './generate'
 import { isDefined, PartialBy, Valueof } from './helpers'
 import {
   SessionWindow,
@@ -25,7 +25,7 @@ export type SavedSessionCategoryType = Valueof<typeof SavedSessionCategory>
  */
 
 export type Session<T extends SessionWindow = SessionWindow> = {
-  id: string
+  id: BrandedUuid<'session'>
   title?: string
   windows: T[]
   /**
@@ -34,12 +34,7 @@ export type Session<T extends SessionWindow = SessionWindow> = {
   createdDate?: Date
 }
 
-export type UpdateCurrentSession = Partial<
-  Pick<CurrentSession, 'title' | 'windows'>
->
-export type UpdateSavedSession = Partial<
-  Pick<SavedSession, 'title' | 'windows'>
->
+export type UpdateSession = Partial<Pick<Session, 'title' | 'windows'>>
 
 export type CurrentSession = Session<CurrentSessionWindow>
 export type SavedSession = Session<SavedSessionWindow> & {
@@ -56,21 +51,21 @@ export type StoredCurrentSession = {
 }
 
 /**
- * Type guards
+ * @usage Type guard
+ * @returns true when session is current
  */
-
 export const isCurrentSession = (
   session: CurrentSession | SavedSession
 ): session is CurrentSession => isCurrentSessionWindows(session.windows)
 
 /**
- * Session helpers
+ * @note update when title is user-editable to nullish coelesce and avoid overriding a
+ * user-edited title: `maybeTitle ?? (session.title || generateSessionTitle(session.windows))`
  */
-
 const maybeGetTitle = (
   session: CurrentSession | SavedSession,
-  maybeTitle?: SessionWindow['title']
-) => maybeTitle ?? (session.title || generateSessionTitle(session.windows))
+  _maybeTitle?: SessionWindow['title']
+) => generateSessionTitle(session.windows)
 
 export const createCurrent = ({
   id,
@@ -118,14 +113,22 @@ export const createSaved = ({
   return session
 }
 
+/**
+ * @usage updates the session
+ * @returns a new session
+ */
 export const update = <T extends CurrentSession | SavedSession>(
   session: T,
-  values: UpdateCurrentSession
+  values: UpdateSession
 ): T =>
-  Object.assign(session, values, {
+  Object.assign({}, session, values, {
     title: maybeGetTitle(session, values.title),
   })
 
+/**
+ * @usage sorts `CurrentSessionWindow[]` with a list of `assignedWindowId[]`.
+ * Used to update `CurrentSession` with the user-defined window order
+ */
 const sortWindows = (
   windows: CurrentSessionWindow[],
   ids: CurrentSessionWindow['assignedWindowId'][]
@@ -148,6 +151,10 @@ const sortWindows = (
   })
 }
 
+/**
+ * @usage search for a window by the `assignedWindowId`
+ * @note does not produce side effects
+ */
 const searchWindowByAssignedId = (
   session: CurrentSession,
   assignedWindowId: CurrentSessionWindow['assignedWindowId']
@@ -175,7 +182,12 @@ export const fromBrowser = async ({
   })
 }
 
-export const updateFromBrowser = async (session: CurrentSession) => {
+/**
+ * @usage Regenerates current session windows and title
+ * @returns a new session reference but same ID
+ */
+export const updateFromBrowser = async (_session: CurrentSession) => {
+  const session = Object.assign({}, _session) // clone
   const windows = await getAllWindows({ populate: true }, true)
   const updatedWindows = windows.map((win) => {
     return fromBrowserWindow(
@@ -193,6 +205,9 @@ export const updateFromBrowser = async (session: CurrentSession) => {
   return session
 }
 
+/**
+ * @usage open a session with all its windows and tabs into the current session
+ */
 export const open = async (session: CurrentSession | SavedSession) => {
   const tasks = session.windows.map((win) => openWindow(win))
   const results = await Promise.all(tasks)

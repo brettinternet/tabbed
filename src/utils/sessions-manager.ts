@@ -14,7 +14,6 @@ import {
   SavedSessionCategoryType,
   Session,
   StoredCurrentSession,
-  UpdateSavedSession,
   createSaved as createSavedSession,
   fromBrowser as sessionFromBrowser,
   update as _updateSession,
@@ -33,18 +32,27 @@ export type SessionsManager = {
   previous: SavedSession[]
 }
 
+/**
+ * Shape of the serialized export
+ */
 export type SessionExport = {
   exportedDate: Date
   sessions: Session[]
 }
 
+/**
+ * Shape of saved sessions in local extension storage
+ */
 type StoredSessions = {
   current: StoredCurrentSession
   previous: SavedSession[]
   saved: SavedSession[]
 }
 
-// TODO: When to overwrite current and unshift previous current to "previous" - as autosave
+/**
+ * @usage Gets the current session using the saved window order
+ * TODO: When to overwrite current and unshift previous current to "previous" - as autosave?
+ */
 export const getCurrent = async (
   current?: StoredCurrentSession
 ): Promise<CurrentSession> => {
@@ -53,9 +61,15 @@ export const getCurrent = async (
   })
 }
 
-const updateCurrentSessionNow = async (sessionsManager: SessionsManager) => {
-  sessionsManager.current = await sessionFromBrowser(sessionsManager.current)
-  return sessionsManager
+/**
+ * @usage Updates the current session with the latest windows/tabs snapshot from browser
+ * @returns a new sessions manager reference with current field updated
+ */
+export const updateCurrentSessionNow = async (
+  sessionsManager: SessionsManager
+) => {
+  const current = await sessionFromBrowser(sessionsManager.current)
+  return Object.assign({}, sessionsManager, { current })
 }
 
 const updateCurrentSessionDebounced = debounce(updateCurrentSessionNow, 250)
@@ -63,7 +77,10 @@ const updateCurrentSessionDebounced = debounce(updateCurrentSessionNow, 250)
 export const updateCurrentSession = async (sessionsManager: SessionsManager) =>
   (await updateCurrentSessionDebounced(sessionsManager)) || sessionsManager
 
-export const loadSessionsManager = async () => {
+/**
+ * @usage loads the session manager from local storage
+ */
+export const loadSessionsManager = async (): Promise<SessionsManager> => {
   const {
     current,
     saved = [],
@@ -78,12 +95,18 @@ export const loadSessionsManager = async () => {
   }
 }
 
+/**
+ * @usage validates and cleans data before saving to local extension storage
+ */
 const validate = (sessionsManager: SessionsManager) => {
   sessionsManager.saved = uniqBy(sessionsManager.saved, 'uuid')
   sessionsManager.previous = uniqBy(sessionsManager.previous, 'uuid')
   return sessionsManager
 }
 
+/**
+ * @usage saves the sessions manager to local extension storage
+ */
 export const save = async (sessionsManager: SessionsManager) => {
   sessionsManager = validate(sessionsManager)
   const { current, saved, previous } = sessionsManager
@@ -99,6 +122,9 @@ export const save = async (sessionsManager: SessionsManager) => {
   await LocalStorage.set(LocalStorage.key.SESSIONS, storedSessions)
 }
 
+/**
+ * @usage Filters out tabs based on user preferences
+ */
 const filterWindowTabs = async (session: SavedSession) => {
   const settings = await loadSettings()
   session.windows = session.windows.map((win) => {
@@ -120,43 +146,54 @@ const filterWindowTabs = async (session: SavedSession) => {
   return session
 }
 
+/**
+ * @usage Saves a session to a category list
+ * @returns a new session manager reference with the added session
+ */
 const addSession = async <T extends PartialBy<Session, 'id'>>(
   sessionsManager: SessionsManager,
   session: T,
   category: SavedSessionCategoryType
 ) => {
+  const sessions = sessionsManager[category].slice() // clone
   let savedSession = createSavedSession(session)
   savedSession = await filterWindowTabs(savedSession)
   sessionsManager[category].unshift(savedSession)
-  save(sessionsManager)
-  return sessionsManager
+  return Object.assign({}, sessionsManager, { [category]: sessions })
 }
 
+/**
+ * @usage add a session to the list of saved sessions
+ */
 export const addSaved = async <T extends PartialBy<Session, 'id'>>(
   sessionsManager: SessionsManager,
   session: T
 ) => await addSession(sessionsManager, session, SavedSessionCategory.SAVED)
 
+/**
+ * @usage add a session to the list of saved sessions
+ */
 export const addPrevious = async <T extends PartialBy<Session, 'id'>>(
   sessionsManager: SessionsManager,
   session: T
 ) => await addSession(sessionsManager, session, SavedSessionCategory.PREVIOUS)
 
 /**
- * Avoid conflicts with imported sessions by assigned a new ID
+ * @usage Adds a saved session to sessions manager, doesn't allow session ID to pass through
+ * @note Avoids conflicts with imported sessions by forcing a new ID
+ * @returns a new sessions manager reference
  */
 export const importSessions = async (
-  sessionsManager: SessionsManager,
+  _sessionsManager: SessionsManager,
   { id: _id, ...session }: Session
 ) => {
   const saveSession = createSavedSession(session)
-  sessionsManager = await addSaved(sessionsManager, saveSession)
-  save(sessionsManager)
+  const sessionsManager = await addSaved(_sessionsManager, saveSession)
   return sessionsManager
 }
 
 /**
- * Search saved/previous
+ * @usage search saved/previous, throws when not found
  */
 export const findSession = (
   sessionsManager: SessionsManager,
@@ -174,6 +211,9 @@ export const findSession = (
   return session
 }
 
+/**
+ * @usage find session by index, throws when not found
+ */
 export const findSessionIndex = (
   sessionsManager: SessionsManager,
   sessionId: Session['id'],
@@ -192,7 +232,8 @@ export const findSessionIndex = (
 }
 
 /**
- * Look for current, saved or previous
+ * @usage Retrieve for current, saved or previous session
+ * @returns a new session object
  */
 export const getSession = (
   sessionsManager: SessionsManager,
@@ -200,22 +241,32 @@ export const getSession = (
   category?: SavedSessionCategoryType
 ) => {
   if (sessionId === sessionsManager.current.id) {
-    return sessionsManager.current
+    return Object.assign({}, sessionsManager.current)
   } else {
-    return findSession(sessionsManager, sessionId, category)
+    const session = findSession(sessionsManager, sessionId, category)
+    return Object.assign({}, session)
   }
 }
 
+/**
+ * @usage removes a session from a sessions manager list category
+ * @returns a new sessions manager reference
+ */
 export const removeSession = async (
   sessionsManager: SessionsManager,
   sessionId: Session['id'],
   category: SavedSessionCategoryType
 ) => {
   const index = findSessionIndex(sessionsManager, sessionId, category)
-  sessionsManager[category].splice(index, 1)
-  await save(sessionsManager)
+  const sessions = sessionsManager[category].slice() // clone
+  sessions.splice(index, 1)
+  return Object.assign({}, sessionsManager, { [category]: sessions })
 }
 
+/**
+ * @usage immediately downloads data from sessions manager by session IDs else all sessions in manager
+ * @note _SIDE EFFECT_: initializes a download in the browser
+ */
 export const downloadSession = async (
   sessionsManager: SessionsManager,
   sessionIds: Session['id'][]

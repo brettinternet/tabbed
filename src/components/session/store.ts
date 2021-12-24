@@ -8,7 +8,12 @@ import {
   CurrentSessionChangeMessage,
   MESSAGE_TYPE_CURRENT_SESSION_CHANGE,
 } from 'utils/messages'
-import { loadSessionsManager, SessionsManager } from 'utils/sessions-manager'
+import {
+  loadSessionsManager,
+  save,
+  SessionsManager,
+  updateCurrentSession,
+} from 'utils/sessions-manager'
 
 export const sessionsManagerAtom = atom<SessionsManager | undefined>(undefined)
 
@@ -16,9 +21,10 @@ export const useSessionsManager = (): [
   SessionsManager | undefined,
   (update?: SetStateAction<SessionsManager | undefined>) => void
 ] => {
-  // const port = useBackground()
+  const port = useBackground()
   const tryToastError = useTryToastError()
   const [sessionsManager, setSessionsManager] = useAtom(sessionsManagerAtom)
+  console.log('SESSIONS/STORE: sessionsManager: ', sessionsManager)
 
   useEffect(() => {
     const load = tryToastError(async () => {
@@ -29,22 +35,33 @@ export const useSessionsManager = (): [
     void load()
   }, [])
 
-  // useEffect(() => {
-  //   const { startListener, removeListener } =
-  //     createMessageListener<CurrentSessionChangeMessage>(
-  //       port,
-  //       MESSAGE_TYPE_CURRENT_SESSION_CHANGE,
-  //       async () => {
-  //         if (sessionsManager) {
-  //           setSessionsManager(await updateCurrentSession(sessionsManager))
-  //         }
-  //       }
-  //     )
+  useEffect(() => {
+    const { startListener, removeListener } =
+      createMessageListener<CurrentSessionChangeMessage>(
+        port,
+        MESSAGE_TYPE_CURRENT_SESSION_CHANGE,
+        async () => {
+          if (sessionsManager) {
+            console.log('told to reload sessions.........')
+            // setSessionsManager(await updateCurrentSession(sessionsManager))
+          }
+        }
+      )
 
-  //   console.log('>>>>>>>>>> loading LISTENER')
-  //   startListener()
-  //   return removeListener
-  // }, [sessionsManager])
+    console.log('>>>>>>>>>> loading LISTENER')
+    startListener()
+
+    const handleUnload = async () => {
+      if (sessionsManager) {
+        await save(sessionsManager)
+      }
+    }
+    window.addEventListener('unload', handleUnload)
+    return () => {
+      removeListener()
+      window.removeEventListener('unload', handleUnload)
+    }
+  }, [sessionsManager])
 
   return [sessionsManager, setSessionsManager]
 }

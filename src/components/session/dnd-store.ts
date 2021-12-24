@@ -5,11 +5,12 @@ import {
   OnBeforeCaptureResponder,
 } from 'react-beautiful-dnd'
 
+import { BrandedUuid, brandUuid } from 'utils/generate'
 import { isDefined, reorder, spliceSeparate, Valueof } from 'utils/helpers'
 import { SessionTab } from 'utils/session-tab'
 import { SessionWindow } from 'utils/session-window'
 
-import { useHandlers } from './handlers'
+import { useDndHandlers } from './handlers'
 import { useSessionsManager } from './store'
 
 const shouldPin = (
@@ -35,19 +36,19 @@ const reorderTabs = async ({
   destination,
   moveTabs,
 }: {
-  sessionId: string
+  sessionId: BrandedUuid<'session'>
   windows: SessionWindow[]
   source: DraggableLocation
   destination: DraggableLocation
-  moveTabs: ReturnType<typeof useHandlers>['moveTabs']
+  moveTabs: ReturnType<typeof useDndHandlers>['moveTabs']
 }): Promise<SessionWindow[]> => {
   const windows = _windows.slice()
 
   const currentWindowIndex = windows.findIndex(
-    (w) => w.id === source.droppableId
+    (w) => w.id === brandUuid<'window'>(source.droppableId)
   )
   const nextWindowIndex = windows.findIndex(
-    (w) => w.id === destination.droppableId
+    (w) => w.id === brandUuid<'window'>(destination.droppableId)
   )
 
   if (currentWindowIndex > -1) {
@@ -71,7 +72,8 @@ const reorderTabs = async ({
         //   source.index,
         //   destination.index
         // )
-        target = windows[nextWindowIndex].tabs[destination.index]
+        // target = windows[nextWindowIndex].tabs[destination.index]
+        target = windows[currentWindowIndex].tabs[source.index]
         target.pinned = shouldPin(target, previousTab, nextTab)
       } else {
         // moving to different window list
@@ -86,14 +88,16 @@ const reorderTabs = async ({
         // windows[nextWindowIndex].tabs = modifiedTo
         // console.log('windows: ', windows, nextWindowIndex, destination.index)
 
-        target = windows[nextWindowIndex].tabs[destination.index]
+        // target = windows[nextWindowIndex].tabs[destination.index]
+        target = windows[currentWindowIndex].tabs[source.index]
         target.pinned = shouldPin(target, previousTab, nextTab)
       }
     } else {
       target = windows[currentWindowIndex].tabs[source.index]
     }
 
-    const windowId: string | undefined = windows[nextWindowIndex]?.id
+    const windowId: BrandedUuid<'window'> | undefined =
+      windows[nextWindowIndex]?.id
 
     await moveTabs({
       from: {
@@ -151,7 +155,7 @@ export const DroppableType = {
 
 export const useSessions = () => {
   const [sessionsManager] = useSessionsManager()
-  const { moveWindows, moveTabs } = useHandlers()
+  const { moveWindows, moveTabs } = useDndHandlers()
   const [activeDragKind, setActiveDragKind] =
     useState<ActiveDragKindType>(undefined)
 

@@ -25,7 +25,7 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
   ])
   return (
     <Droppable
-      droppableId={session.id}
+      droppableId={`${session.id}`}
       type={DroppableType.SESSION}
       direction={direction}
     >

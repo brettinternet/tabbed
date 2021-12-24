@@ -44,23 +44,164 @@ import {
   downloadSession,
   SessionExport,
   save,
+  updateCurrentSessionNow,
 } from 'utils/sessions-manager'
 
 import { sessionsManagerAtom } from './store'
 
-export const useHandlers = () => {
+export const useSessionHandlers = () => {
   const tryToastError = useTryToastError()
   const [sessionsManager, setSessionsManager] = useAtom(sessionsManagerAtom)
-  // console.log('sessionsManager: ', sessionsManager)
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const saveSession = useCallback(
     tryToastError(async (sessionId: Session['id']) => {
       if (sessionsManager) {
         const session = getSession(sessionsManager, sessionId)
-        setSessionsManager(await addSaved(sessionsManager, session))
+        const _sessionsManager = await addSaved(sessionsManager, session)
+        save(_sessionsManager)
+        setSessionsManager(_sessionsManager)
       }
     }),
+    [sessionsManager]
+  )
+
+  const openSessions = useCallback(
+    tryToastError(async ({ sessionIds }: { sessionIds: Session['id'][] }) => {
+      if (sessionsManager) {
+        const tasks = sessionIds.map(async (sessionId) => {
+          const session = getSession(sessionsManager, sessionId)
+          return await openSession(session)
+        })
+        await Promise.all(tasks)
+        setSessionsManager(await updateCurrentSession(sessionsManager))
+      }
+    }),
+    [sessionsManager]
+  )
+
+  const updateSession = useCallback(
+    tryToastError(
+      async ({
+        sessionId,
+        title,
+      }: {
+        sessionId: Session['id']
+        title: string
+      }) => {
+        if (sessionsManager) {
+          const session = getSession(sessionsManager, sessionId)
+          _updateSession(session, { title })
+          await save(sessionsManager)
+          setSessionsManager(sessionsManager)
+        }
+      }
+    ),
+    [sessionsManager]
+  )
+
+  const removeSessions = useCallback(
+    tryToastError(
+      async (
+        sessions: {
+          sessionId: Session['id']
+          category: SavedSessionCategoryType
+        }[]
+      ) => {
+        if (sessionsManager) {
+          let _sessionsManager = Object.assign({}, sessionsManager)
+          for (const { sessionId, category } of sessions) {
+            _sessionsManager = await removeSession(
+              _sessionsManager,
+              sessionId,
+              category
+            )
+          }
+          await save(_sessionsManager)
+          setSessionsManager(_sessionsManager)
+        }
+      }
+    ),
+    [sessionsManager]
+  )
+
+  // TODO ////////////////////////
+
+  const downloadSessions = useCallback(
+    tryToastError(async ({ sessionIds }: { sessionIds: Session['id'][] }) => {
+      if (sessionsManager) {
+        await downloadSession(sessionsManager, sessionIds)
+      }
+    }),
+    [sessionsManager]
+  )
+
+  const importSessionsFromText = useCallback(
+    tryToastError(async ({ content }: { content: string }) => {
+      if (sessionsManager) {
+        const data = JSON.parse(content) as SessionExport
+
+        if (!data.sessions || !Array.isArray(data.sessions)) {
+          throw Error('Unrecognized data format, sessions not found')
+        }
+
+        if (!data.sessions[0]?.id) {
+          throw Error('No sessions found')
+        }
+
+        let newSessionsManager = sessionsManager
+        for (const session of data.sessions.reverse()) {
+          newSessionsManager = await addSaved(newSessionsManager, session)
+        }
+
+        await save(sessionsManager)
+        setSessionsManager(newSessionsManager)
+      }
+    }),
+    [sessionsManager]
+  )
+
+  return {
+    sessionsManager,
+    saveSession,
+    openSessions,
+    updateSession,
+    removeSessions,
+    downloadSessions,
+    importSessionsFromText,
+  }
+}
+
+export const useWindowHandlers = () => {
+  const tryToastError = useTryToastError()
+  const [sessionsManager, setSessionsManager] = useAtom(sessionsManagerAtom)
+
+  const openWindows = useCallback(
+    tryToastError(
+      async ({
+        sessionId,
+        windowIds,
+        options = { focus: true },
+      }: {
+        sessionId: Session['id']
+        windowIds: SessionWindow['id'][]
+        options?: { focus?: boolean }
+      }) => {
+        if (sessionsManager) {
+          const session = getSession(sessionsManager, sessionId)
+          const tasks = windowIds.map(async (windowId) => {
+            const win = findWindow(session.windows, windowId)
+            if (isCurrentSessionWindow(win) && options.focus) {
+              return await focusWindow(win)
+            } else {
+              return await openWindow(win)
+            }
+          })
+          await Promise.all(tasks)
+          setSessionsManager(await updateCurrentSession(sessionsManager))
+        }
+      }
+    ),
     [sessionsManager]
   )
 
@@ -86,6 +227,156 @@ export const useHandlers = () => {
     ),
     [sessionsManager]
   )
+
+  const updateWindow = useCallback(
+    tryToastError(async ({ sessionId, windowId, options }) => {
+      if (sessionsManager) {
+        const session = getSession(sessionsManager, sessionId)
+        const win = findWindow(session.windows, windowId)
+        _updateWindow(win, options)
+        if (sessionsManager.current.id === sessionId) {
+          setSessionsManager(await updateCurrentSession(sessionsManager))
+        } else {
+          await save(sessionsManager)
+          setSessionsManager(sessionsManager)
+        }
+      }
+    }),
+    [sessionsManager]
+  )
+
+  const removeWindows = useCallback(
+    tryToastError(
+      async ({
+        sessionId,
+        windowIds,
+      }: {
+        sessionId: Session['id']
+        windowIds: SessionWindow['id'][]
+      }) => {
+        if (sessionsManager) {
+          const session = getSession(sessionsManager, sessionId)
+          await _removeWindows(session.windows, windowIds)
+          if (sessionsManager.current.id === sessionId) {
+            setSessionsManager(await updateCurrentSession(sessionsManager))
+          } else {
+            await save(sessionsManager)
+            setSessionsManager(sessionsManager)
+          }
+        }
+      }
+    ),
+    [sessionsManager]
+  )
+
+  return {
+    openWindows,
+    saveWindow,
+    updateWindow,
+    removeWindows,
+  }
+}
+
+export const useTabHandlers = () => {
+  const tryToastError = useTryToastError()
+  const [sessionsManager, setSessionsManager] = useAtom(sessionsManagerAtom)
+
+  const openTabs = useCallback(
+    tryToastError(
+      async ({
+        sessionId,
+        tabs,
+        options,
+      }: {
+        sessionId: Session['id']
+        tabs: {
+          windowId: SessionWindow['id']
+          tabIds: SessionTab['id'][]
+        }[]
+        options?: { forceOpen?: boolean }
+      }) => {
+        if (sessionsManager) {
+          const session = getSession(sessionsManager, sessionId)
+          const tasks: Promise<unknown>[] = []
+          tabs.forEach(({ windowId, tabIds }) => {
+            const win = findWindow(session.windows, windowId)
+            tabIds.forEach((tabId) => {
+              const tab = findTab(win.tabs, tabId)
+              const task =
+                isCurrentSessionTab(tab) && !options?.forceOpen
+                  ? focusTab(tab)
+                  : openTab(tab, { incognito: win.incognito })
+              tasks.push(task)
+            })
+          })
+          await Promise.all(tasks)
+          setSessionsManager(await updateCurrentSession(sessionsManager))
+        }
+      }
+    ),
+    [sessionsManager]
+  )
+
+  const updateTab = useCallback(
+    tryToastError(async ({ sessionId, windowId, tabId, options }) => {
+      if (sessionsManager) {
+        const session = getSession(sessionsManager, sessionId)
+        const win = findWindow(session.windows, windowId)
+        const tab = findTab(win.tabs, tabId)
+        _updateTab(tab, options)
+        if (sessionsManager.current.id === sessionId) {
+          setSessionsManager(await updateCurrentSession(sessionsManager))
+        } else {
+          await save(sessionsManager)
+          setSessionsManager(sessionsManager)
+        }
+      }
+    }),
+    [sessionsManager]
+  )
+
+  const removeTabs = useCallback(
+    tryToastError(
+      async ({
+        sessionId,
+        tabs,
+      }: {
+        sessionId: Session['id']
+        tabs: {
+          windowId: SessionWindow['id']
+          tabIds: SessionTab['id'][]
+        }[]
+      }) => {
+        if (sessionsManager) {
+          const session = getSession(sessionsManager, sessionId)
+          const tasks: Promise<unknown> | unknown[] = []
+          tabs.forEach(({ windowId, tabIds }) => {
+            const win = findWindow(session.windows, windowId)
+            tasks.push(_removeTabs(win.tabs, tabIds))
+          })
+          await Promise.all(tasks)
+          if (sessionsManager.current.id === sessionId) {
+            setSessionsManager(await updateCurrentSession(sessionsManager))
+          } else {
+            await save(sessionsManager)
+            setSessionsManager(sessionsManager)
+          }
+        }
+      }
+    ),
+    [sessionsManager]
+  )
+
+  return {
+    openTabs,
+    updateTab,
+    removeTabs,
+  }
+}
+
+export const useDndHandlers = () => {
+  const tryToastError = useTryToastError()
+  const [sessionsManager, setSessionsManager] = useAtom(sessionsManagerAtom)
 
   const moveWindows = useCallback(
     tryToastError(
@@ -166,13 +457,7 @@ export const useHandlers = () => {
           const fromSession = getSession(sessionsManager, from.sessionId)
           const fromWindow = findWindow(fromSession.windows, from.windowId)
           const toSession = getSession(sessionsManager, to.sessionId)
-          console.log(
-            'fromWindow: ',
-            Object.assign({}, fromSession),
-            Object.assign({}, toSession)
-          )
           const tabs = filterTabs(fromWindow.tabs, from.tabIds)
-          console.log('from: ', from, tabs, Object.assign({}, fromWindow))
           if (to.windowId) {
             const toWindowIndex = findWindowIndex(
               toSession.windows,
@@ -208,7 +493,7 @@ export const useHandlers = () => {
           if (
             [from.sessionId, to.sessionId].includes(sessionsManager.current.id)
           ) {
-            setSessionsManager(await updateCurrentSession(sessionsManager))
+            setSessionsManager(await updateCurrentSessionNow(sessionsManager))
           } else {
             await save(sessionsManager)
             setSessionsManager(sessionsManager)
@@ -216,272 +501,11 @@ export const useHandlers = () => {
         }
       }
     ),
-    [sessionsManager]
-  )
-
-  const openSessions = useCallback(
-    tryToastError(async ({ sessionIds }: { sessionIds: Session['id'][] }) => {
-      if (sessionsManager) {
-        const tasks = sessionIds.map(async (sessionId) => {
-          const session = getSession(sessionsManager, sessionId)
-          return await openSession(session)
-        })
-        await Promise.all(tasks)
-        setSessionsManager(await updateCurrentSession(sessionsManager))
-      }
-    }),
-    [sessionsManager]
-  )
-
-  const openWindows = useCallback(
-    tryToastError(
-      async ({
-        sessionId,
-        windowIds,
-        options = { focus: true },
-      }: {
-        sessionId: Session['id']
-        windowIds: SessionWindow['id'][]
-        options?: { focus?: boolean }
-      }) => {
-        if (sessionsManager) {
-          const session = getSession(sessionsManager, sessionId)
-          const tasks = windowIds.map(async (windowId) => {
-            const win = findWindow(session.windows, windowId)
-            if (isCurrentSessionWindow(win) && options.focus) {
-              return await focusWindow(win)
-            } else {
-              return await openWindow(win)
-            }
-          })
-          await Promise.all(tasks)
-          setSessionsManager(await updateCurrentSession(sessionsManager))
-        }
-      }
-    ),
-    [sessionsManager]
-  )
-
-  const openTabs = useCallback(
-    tryToastError(
-      async ({
-        sessionId,
-        tabs,
-        options,
-      }: {
-        sessionId: Session['id']
-        tabs: {
-          windowId: SessionWindow['id']
-          tabIds: SessionTab['id'][]
-        }[]
-        options?: { forceOpen?: boolean }
-      }) => {
-        if (sessionsManager) {
-          const session = getSession(sessionsManager, sessionId)
-          const tasks: Promise<void>[] = []
-          tabs.forEach(({ windowId, tabIds }) => {
-            const win = findWindow(session.windows, windowId)
-            tabIds.forEach((tabId) => {
-              const tab = findTab(win.tabs, tabId)
-              const task =
-                isCurrentSessionTab(tab) && !options?.forceOpen
-                  ? focusTab(tab)
-                  : openTab(tab, { incognito: win.incognito })
-              tasks.push(task)
-            })
-          })
-          await Promise.all(tasks)
-          setSessionsManager(await updateCurrentSession(sessionsManager))
-        }
-      }
-    ),
-    [sessionsManager]
-  )
-
-  const updateSession = useCallback(
-    tryToastError(
-      async ({
-        sessionId,
-        title,
-      }: {
-        sessionId: Session['id']
-        title: string
-      }) => {
-        if (sessionsManager) {
-          const session = getSession(sessionsManager, sessionId)
-          _updateSession(session, { title })
-          await save(sessionsManager)
-          setSessionsManager(sessionsManager)
-        }
-      }
-    ),
-    [sessionsManager]
-  )
-
-  const updateWindow = useCallback(
-    tryToastError(async ({ sessionId, windowId, options }) => {
-      if (sessionsManager) {
-        const session = getSession(sessionsManager, sessionId)
-        const win = findWindow(session.windows, windowId)
-        _updateWindow(win, options)
-        if (sessionsManager.current.id === sessionId) {
-          setSessionsManager(await updateCurrentSession(sessionsManager))
-        } else {
-          await save(sessionsManager)
-          setSessionsManager(sessionsManager)
-        }
-      }
-    }),
-    [sessionsManager]
-  )
-
-  const updateTab = useCallback(
-    tryToastError(async ({ sessionId, windowId, tabId, options }) => {
-      if (sessionsManager) {
-        const session = getSession(sessionsManager, sessionId)
-        const win = findWindow(session.windows, windowId)
-        const tab = findTab(win.tabs, tabId)
-        _updateTab(tab, options)
-        if (sessionsManager.current.id === sessionId) {
-          setSessionsManager(await updateCurrentSession(sessionsManager))
-        } else {
-          await save(sessionsManager)
-          setSessionsManager(sessionsManager)
-        }
-      }
-    }),
-    [sessionsManager]
-  )
-
-  ////// TODO:
-
-  const removeSessions = useCallback(
-    tryToastError(
-      async (
-        sessions: {
-          sessionId: Session['id']
-          category: SavedSessionCategoryType
-        }[]
-      ) => {
-        if (sessionsManager) {
-          const tasks = sessions.map(async ({ sessionId, category }) =>
-            removeSession(sessionsManager, sessionId, category)
-          )
-          await Promise.all(tasks)
-          await save(sessionsManager)
-          setSessionsManager(sessionsManager)
-        }
-      }
-    ),
-    [sessionsManager]
-  )
-
-  const removeWindows = useCallback(
-    tryToastError(
-      async ({
-        sessionId,
-        windowIds,
-      }: {
-        sessionId: Session['id']
-        windowIds: SessionWindow['id'][]
-      }) => {
-        if (sessionsManager) {
-          const session = getSession(sessionsManager, sessionId)
-          await _removeWindows(session.windows, windowIds)
-          if (sessionsManager.current.id === sessionId) {
-            setSessionsManager(await updateCurrentSession(sessionsManager))
-          } else {
-            await save(sessionsManager)
-            setSessionsManager(sessionsManager)
-          }
-        }
-      }
-    ),
-    [sessionsManager]
-  )
-
-  const removeTabs = useCallback(
-    tryToastError(
-      async ({
-        sessionId,
-        tabs,
-      }: {
-        sessionId: Session['id']
-        tabs: {
-          windowId: SessionWindow['id']
-          tabIds: SessionTab['id'][]
-        }[]
-      }) => {
-        if (sessionsManager) {
-          const session = getSession(sessionsManager, sessionId)
-          const tasks: Promise<unknown> | unknown[] = []
-          tabs.forEach(({ windowId, tabIds }) => {
-            const win = findWindow(session.windows, windowId)
-            tasks.push(_removeTabs(win.tabs, tabIds))
-          })
-          await Promise.all(tasks)
-          if (sessionsManager.current.id === sessionId) {
-            setSessionsManager(await updateCurrentSession(sessionsManager))
-          } else {
-            await save(sessionsManager)
-            setSessionsManager(sessionsManager)
-          }
-        }
-      }
-    ),
-    [sessionsManager]
-  )
-
-  const downloadSessions = useCallback(
-    tryToastError(async ({ sessionIds }: { sessionIds: Session['id'][] }) => {
-      if (sessionsManager) {
-        await downloadSession(sessionsManager, sessionIds)
-      }
-    }),
-    [sessionsManager]
-  )
-
-  const importSessionsFromText = useCallback(
-    tryToastError(async ({ content }: { content: string }) => {
-      if (sessionsManager) {
-        const data = JSON.parse(content) as SessionExport
-
-        if (!data.sessions || !Array.isArray(data.sessions)) {
-          throw Error('Unrecognized data format, sessions not found')
-        }
-
-        if (!data.sessions[0]?.id) {
-          throw Error('No sessions found')
-        }
-
-        let newSessionsManager = sessionsManager
-        for (const session of data.sessions.reverse()) {
-          newSessionsManager = await addSaved(newSessionsManager, session)
-        }
-
-        await save(sessionsManager)
-        setSessionsManager(newSessionsManager)
-      }
-    }),
     [sessionsManager]
   )
 
   return {
-    sessionsManager,
-    saveSession,
-    saveWindow,
     moveWindows,
     moveTabs,
-    openSessions,
-    openWindows,
-    openTabs,
-    updateSession,
-    updateWindow,
-    updateTab,
-    removeSessions,
-    removeWindows,
-    removeTabs,
-    downloadSessions,
-    importSessionsFromText,
   }
 }

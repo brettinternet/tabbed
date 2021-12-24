@@ -2,7 +2,7 @@ import cn, { Argument as ClassNames } from 'classnames'
 
 import { Dropdown } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
-import { useHandlers } from 'components/session/handlers'
+import { useTabHandlers } from 'components/session/handlers'
 import { Session } from 'utils/session'
 import {
   isCurrentSessionTab,
@@ -40,7 +40,7 @@ export const Tab: React.FC<TabProps> = ({
     active,
     // groupId,
   } = tab
-  const { openTabs, updateTab, removeTabs } = useHandlers()
+  const { openTabs, updateTab, removeTabs } = useTabHandlers()
 
   const handleOpen = () => {
     openTabs({ sessionId, tabs: [{ windowId, tabIds: [tabId] }] })

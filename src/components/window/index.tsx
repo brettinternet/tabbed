@@ -2,11 +2,12 @@ import cn, { Argument as ClassNames } from 'classnames'
 
 import { Dropdown, DropdownButtonProps } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
-import { useHandlers } from 'components/session/handlers'
+import { useWindowHandlers } from 'components/session/handlers'
+import { BrandedUuid } from 'utils/generate'
 import { isCurrentSessionWindow, SessionWindow } from 'utils/session-window'
 
 type WindowHeaderProps = {
-  sessionId: string
+  sessionId: BrandedUuid<'session'>
   window: SessionWindow
   className?: ClassNames
 }
@@ -61,7 +62,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
   className,
 }) => {
   const { id: windowId, focused, title, state, tabs, incognito } = win
-  const { openWindows, updateWindow, removeWindows } = useHandlers()
+  const { openWindows, updateWindow, removeWindows } = useWindowHandlers()
 
   const handleOpen = () => {
     if (!focused) {
