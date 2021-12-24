@@ -58,6 +58,7 @@ export const Toast: React.FC<ToastProps> = ({
         },
       }}
       variant={variant}
+      className="w-72"
       title={title}
       body={message}
       onDismiss={() => {

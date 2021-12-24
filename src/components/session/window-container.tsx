@@ -40,7 +40,7 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
   index,
   window: win,
 }) => (
-  <Draggable draggableId={`window-${sessionId}-${win.id}`} index={index}>
+  <Draggable draggableId={`${sessionId}-${win.id}`} index={index}>
     {(
       dragProvided: DraggableProvided,
       dragSnapshot: DraggableStateSnapshot

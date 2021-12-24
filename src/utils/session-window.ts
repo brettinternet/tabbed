@@ -7,6 +7,7 @@ import { isDefined, PartialBy, reorder, XOR } from 'utils/helpers'
 import {
   BrandedUuid,
   createId,
+  fallbackTabId,
   fallbackWindowId,
   generateWindowTitle,
 } from './generate'
@@ -17,7 +18,6 @@ import {
   createCurrent as createCurrentTab,
   createSaved as createSavedTab,
   fromBrowser as fromBrowserTab,
-  toCurrent as toCurrentTab,
   update as updateTab,
   isCurrentSessionTabs,
 } from './session-tab'
@@ -364,20 +364,9 @@ export const removeWindows = async (
 }
 
 /**
- * @usage Reorders list of windows
- * Does not produce side effects since window order is fabricated from session manager lists
- */
-export const reorderWindows = (
-  windows: CurrentSessionWindow[] | SavedSessionWindow[],
-  fromIndex: number,
-  toIndex: number
-) => {
-  return reorder(windows, fromIndex, toIndex)
-}
-
-/**
  * @usage Adds a window to a list of windows
  * @note _SIDE EFFECTS_: opens windows
+ * @note made sync to be compatible with the DND move which works optimistically
  */
 export const addWindow = async (
   _windows: CurrentSessionWindow[] | SavedSessionWindow[],
@@ -420,16 +409,16 @@ export const addWindow = async (
  * @returns moved tabs `CurrentSessionTab[]`
  */
 const move = async (
-  win: CurrentSessionWindow,
   tabs: CurrentSessionTab[],
   index: number,
-  pinned: boolean | undefined
+  pinned: boolean | undefined,
+  assignedWindowId: CurrentSessionWindow['assignedWindowId']
 ): Promise<CurrentSessionTab[]> => {
   const originalTabs = tabs.slice()
   const _move = async (): Promise<CurrentSessionTab[]> => {
     const _tabs = await moveTabs({
       tabIds: originalTabs.map(({ assignedTabId }) => assignedTabId),
-      windowId: win.assignedWindowId,
+      windowId: assignedWindowId,
       index,
     })
     return _tabs.map(fromBrowserTab).filter(isDefined)
@@ -454,36 +443,45 @@ const move = async (
 /**
  * @usage adds tabs, does require window data to know where to add tab in the current session if applicable
  * @note _SIDE EFFECTS_: opens windows if `CurrentSessionTab[]` are added a `CurrentSessionWindow`
+ * @note made sync to be compatible with the DND move which works optimistically
  */
-export const addTabs = async (
+export const addTabs = (
   win: CurrentSessionWindow | SavedSessionWindow,
   _tabs: CurrentSessionTab[] | SavedSessionTab[],
   index: number,
   pinned?: boolean
 ) => {
   const tabs = _tabs.slice() // clone
+  console.log('ADD tabs: ', tabs, win, index)
   const updatedTabs = win.tabs.slice() // clone
   if (isCurrentSessionWindow(win)) {
+    // move tabs to window in current session
     if (isCurrentSessionTabs(tabs)) {
-      const movedTabs = await move(win, tabs, index, pinned)
-      updatedTabs.splice(index, 0, ...movedTabs.map(createCurrentTab))
+      // tab is also in current session
+      console.log('MOVE tabs: ', tabs)
+      void move(tabs, index, pinned, win.assignedWindowId)
+      updatedTabs.splice(index, 0, ...tabs)
     } else {
+      // tab is from saved session
       updatedTabs.splice(
         index,
         0,
-        ...(
-          await Promise.all(
-            tabs.map(async (tab) => {
-              if (isDefined(pinned)) {
-                tab.pinned = pinned
-              }
-              return toCurrentTab(tab, win.assignedWindowId)
-            })
-          )
-        ).filter(isDefined)
+        ...tabs.map((tab) => {
+          if (isDefined(pinned)) {
+            tab.pinned = pinned
+          }
+          return createCurrentTab({
+            ...tab,
+            assignedWindowId: win.assignedWindowId,
+            // assigns fake tabId to make this request synchronous
+            // window/tab listeners will eventually correct this
+            assignedTabId: fallbackTabId(),
+          })
+        })
       )
     }
   } else {
+    // move tabs to window in a saved session
     updatedTabs.splice(index, 0, ...tabs.map(createSavedTab))
   }
   return Object.assign({}, win, { tabs: updatedTabs }) // clone

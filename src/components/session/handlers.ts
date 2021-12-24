@@ -3,7 +3,7 @@ import { useCallback } from 'react'
 import { Tabs } from 'webextension-polyfill'
 
 import { useTryToastError } from 'components/error/handlers'
-import { XOR } from 'utils/helpers'
+import { reorder, XOR } from 'utils/helpers'
 import { isDefined } from 'utils/helpers'
 import {
   Session,
@@ -26,7 +26,6 @@ import {
   addTabs,
   findWindowIndex,
   removeWindows as _removeWindows,
-  reorderWindows,
   filterWindows,
   SessionWindow,
   findWindow,
@@ -51,9 +50,19 @@ import {
 
 import { sessionsManagerAtom } from './store'
 
-export const useSessionHandlers = () => {
+const useHelpers = () => {
   const tryToastError = useTryToastError()
   const [sessionsManager, setSessionsManager] = useAtom(sessionsManagerAtom)
+
+  return {
+    tryToastError,
+    sessionsManager,
+    setSessionsManager,
+  }
+}
+
+export const useSessionHandlers = () => {
+  const { tryToastError, sessionsManager, setSessionsManager } = useHelpers()
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const saveSession = useCallback(
@@ -178,8 +187,7 @@ export const useSessionHandlers = () => {
 }
 
 export const useWindowHandlers = () => {
-  const tryToastError = useTryToastError()
-  const [sessionsManager, setSessionsManager] = useAtom(sessionsManagerAtom)
+  const { tryToastError, sessionsManager, setSessionsManager } = useHelpers()
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const openWindows = useCallback(
@@ -290,8 +298,7 @@ export const useWindowHandlers = () => {
 }
 
 export const useTabHandlers = () => {
-  const tryToastError = useTryToastError()
-  const [sessionsManager, setSessionsManager] = useAtom(sessionsManagerAtom)
+  const { tryToastError, sessionsManager, setSessionsManager } = useHelpers()
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const openTabs = useCallback(
@@ -394,13 +401,12 @@ export const useTabHandlers = () => {
 }
 
 export const useDndHandlers = () => {
-  const tryToastError = useTryToastError()
-  const [sessionsManager, setSessionsManager] = useAtom(sessionsManagerAtom)
+  const { tryToastError, sessionsManager, setSessionsManager } = useHelpers()
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const moveWindows = useCallback(
     tryToastError(
-      async ({
+      ({
         from,
         to,
       }: {
@@ -419,41 +425,41 @@ export const useDndHandlers = () => {
           const toSession = getSession(sessionsManager, to.sessionId)
           let _sessionsManager = sessionsManager
           if (from.sessionId === to.sessionId) {
+            // Move within same session
             const indices = windows.map((win) =>
               findWindowIndex(toSession.windows, win.id)
             )
             indices.forEach((index) => {
-              toSession.windows = reorderWindows(
-                toSession.windows,
-                index,
-                to.index
-              )
+              toSession.windows = reorder(toSession.windows, index, to.index)
             })
             _sessionsManager = updateSessionsManager(
               _sessionsManager,
               toSession
             )
           } else {
-            for (const win of windows) {
-              fromSession.windows = await _removeWindows(fromSession.windows, [
-                win.id,
-              ])
-              toSession.windows = await addWindow(toSession.windows, {
-                window: win,
-                index: to.index,
-              })
-              _sessionsManager = updateSessionsManager(
-                _sessionsManager,
-                fromSession
-              )
-              _sessionsManager = updateSessionsManager(
-                _sessionsManager,
-                toSession
-              )
-            }
+            // Move between sessions
+            // TODO: handle synchronously/optimistically somehow
+            //
+            // for (const win of windows) {
+            //   fromSession.windows = void _removeWindows(fromSession.windows, [
+            //     win.id,
+            //   ])
+            //   toSession.windows = void addWindow(toSession.windows, {
+            //     window: win,
+            //     index: to.index,
+            //   })
+            //   _sessionsManager = updateSessionsManager(
+            //     _sessionsManager,
+            //     fromSession
+            //   )
+            //   _sessionsManager = updateSessionsManager(
+            //     _sessionsManager,
+            //     toSession
+            //   )
+            // }
           }
-          await save(_sessionsManager)
           setSessionsManager(_sessionsManager)
+          void save(_sessionsManager)
         }
       }
     ),
@@ -463,7 +469,7 @@ export const useDndHandlers = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const moveTabs = useCallback(
     tryToastError(
-      async ({
+      ({
         from,
         to,
       }: {
@@ -497,18 +503,28 @@ export const useDndHandlers = () => {
             fromSession.windows[fromWindowIndex].tabs,
             from.tabIds
           )
+          console.log('tabs: ', tabs)
           if (to.windowId) {
+            // move tabs to specific session window
             const toWindowIndex = findWindowIndex(
               toSession.windows,
               to.windowId
             )
-            toSession.windows[toWindowIndex] = await addTabs(
-              toSession.windows[toWindowIndex],
+            toSession.windows[toWindowIndex] = addTabs(
+              toSession.windows.slice()[toWindowIndex],
               tabs,
               to.index,
               to.pinned
             )
+            tabs.forEach((t) => {
+              const index = findTabIndex(
+                fromSession.windows[fromWindowIndex].tabs,
+                t.id
+              )
+              tabs.splice(index, 1)
+            })
           } else {
+            // move tabs to newly created window in a session
             const { incognito, state, height, width, top, left } =
               fromSession.windows[fromWindowIndex]
             // create saved but `addWindow` will coerce window to match windows list
@@ -522,20 +538,13 @@ export const useDndHandlers = () => {
               top,
               left,
             })
-            toSession.windows = await addWindow(toSession.windows, {
-              window: newWindow,
-              index: to.index,
-            })
+            // toSession.windows = addWindow(toSession.windows, {
+            //   window: newWindow,
+            //   index: to.index,
+            // })
           }
           // if (!to.windowId || from.sessionId !== sessionsManager.current.id) {
-          await Promise.all(
-            tabs.map(
-              async (t) =>
-                await _removeTabs(fromSession.windows[fromWindowIndex].tabs, [
-                  t.id,
-                ])
-            )
-          )
+
           // }
           let _sessionsManager = updateSessionsManager(
             sessionsManager,
@@ -543,13 +552,19 @@ export const useDndHandlers = () => {
           )
           _sessionsManager = updateSessionsManager(_sessionsManager, toSession)
 
+          // Set immediately so DND doesn't have to wait
+          setSessionsManager(_sessionsManager)
+          void save(_sessionsManager)
           if (
             [from.sessionId, to.sessionId].includes(sessionsManager.current.id)
           ) {
-            setSessionsManager(await updateCurrentSessionNow(_sessionsManager))
-          } else {
-            await save(_sessionsManager)
-            setSessionsManager(_sessionsManager)
+            const asyncUpdate = async () => {
+              setSessionsManager(
+                await updateCurrentSessionNow(_sessionsManager)
+              )
+            }
+
+            void asyncUpdate()
           }
         }
       }

@@ -30,7 +30,7 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
 }) => (
   <>
     {tabs.map((tab, index) => {
-      const id = `tab-${windowId}-${tab.id}`
+      const id = `${windowId}-${tab.id}`
       return (
         <Draggable key={id} draggableId={id} index={index}>
           {(

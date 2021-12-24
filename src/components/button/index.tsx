@@ -50,13 +50,15 @@ const getShapeClass = (shape: ShapeType) => {
 export const getClass = ({
   variant = Variant.PRIMARY,
   shape = Shape.ROUNDED,
+  inline = variant === Variant.LINK,
 }: {
   variant?: VariantType
   shape?: ShapeType
+  inline?: boolean
 } = {}) =>
   cn(
     'appearance-none flex-row items-center transition-colors duration-100',
-    variant === Variant.LINK ? 'inline-flex' : 'flex',
+    inline ? 'inline-flex' : 'flex',
     getShapeClass(shape),
     getVariantClass(variant)
   )
@@ -67,6 +69,7 @@ export type ButtonProps = {
   iconProps?: IconProps
   text?: string
   shape?: ShapeType
+  inline?: boolean
 } & React.ButtonHTMLAttributes<HTMLButtonElement>
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -77,6 +80,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       className,
       variant,
       shape,
+      inline,
       iconProps,
       ...props
     },
@@ -85,7 +89,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     <button
       ref={ref}
       className={cn(
-        getClass({ variant, shape: shape || (iconProps ? Shape.ICON : shape) }),
+        getClass({
+          variant,
+          shape: shape || (iconProps ? Shape.ICON : shape),
+          inline,
+        }),
         className
       )}
       {...props}

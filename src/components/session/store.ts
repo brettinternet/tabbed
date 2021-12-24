@@ -30,7 +30,6 @@ export const useSessionsManager = (): [
       setSessionsManager(await loadSessionsManager())
     })
 
-    console.log('--------------- LOADING sessions')
     void load()
   }, [setSessionsManager, tryToastError])
 
@@ -47,9 +46,11 @@ export const useSessionsManager = (): [
         }
       )
 
-    console.log('>>>>>>>>>> loading LISTENER')
     startListener()
+    return removeListener
+  }, [port, sessionsManager])
 
+  useEffect(() => {
     const handleUnload = async () => {
       if (sessionsManager) {
         await save(sessionsManager)
@@ -57,10 +58,9 @@ export const useSessionsManager = (): [
     }
     window.addEventListener('unload', handleUnload)
     return () => {
-      removeListener()
       window.removeEventListener('unload', handleUnload)
     }
-  }, [port, sessionsManager])
+  }, [sessionsManager])
 
   return [sessionsManager, setSessionsManager]
 }

@@ -6,11 +6,7 @@ import {
 } from 'react-beautiful-dnd'
 
 import { BrandedUuid, brandUuid } from 'utils/generate'
-import {
-  isDefined, // reorder, spliceSeparate,
-  Valueof,
-} from 'utils/helpers'
-import { SessionTab } from 'utils/session-tab'
+import { isDefined, reorder, spliceSeparate, Valueof } from 'utils/helpers'
 import { SessionWindow } from 'utils/session-window'
 
 import { useDndHandlers } from './handlers'
@@ -32,7 +28,7 @@ const shouldPin = (
   return false
 }
 
-const reorderTabs = async ({
+const _moveTabs = ({
   sessionId,
   windows: _windows,
   source,
@@ -44,7 +40,7 @@ const reorderTabs = async ({
   source: DraggableLocation
   destination: DraggableLocation
   moveTabs: ReturnType<typeof useDndHandlers>['moveTabs']
-}): Promise<SessionWindow[]> => {
+}) => {
   const windows = _windows.slice()
 
   const currentWindowIndex = windows.findIndex(
@@ -55,7 +51,7 @@ const reorderTabs = async ({
   )
 
   if (currentWindowIndex > -1) {
-    let target: SessionTab | undefined
+    const target = windows[currentWindowIndex].tabs[source.index]
     if (nextWindowIndex > -1) {
       const index =
         source.index > destination.index
@@ -68,41 +64,13 @@ const reorderTabs = async ({
           index - 1 - (source.droppableId !== destination.droppableId ? 1 : 0)
         ]
 
-      if (source.droppableId === destination.droppableId) {
-        // moving to same window list
-        // windows[currentWindowIndex].tabs = reorder(
-        //   windows[nextWindowIndex].tabs,
-        //   source.index,
-        //   destination.index
-        // )
-        // target = windows[nextWindowIndex].tabs[destination.index]
-        target = windows[currentWindowIndex].tabs[source.index]
-        target.pinned = shouldPin(target, previousTab, nextTab)
-      } else {
-        // moving to different window list
-        // remove from original window tab list & insert into next window tab list
-        // const [modifiedFrom, modifiedTo] = spliceSeparate(
-        //   windows[currentWindowIndex].tabs,
-        //   windows[nextWindowIndex].tabs,
-        //   source.index,
-        //   destination.index
-        // )
-        // windows[currentWindowIndex].tabs = modifiedFrom
-        // windows[nextWindowIndex].tabs = modifiedTo
-        // console.log('windows: ', windows, nextWindowIndex, destination.index)
-
-        // target = windows[nextWindowIndex].tabs[destination.index]
-        target = windows[currentWindowIndex].tabs[source.index]
-        target.pinned = shouldPin(target, previousTab, nextTab)
-      }
-    } else {
-      target = windows[currentWindowIndex].tabs[source.index]
+      target.pinned = shouldPin(target, previousTab, nextTab)
     }
 
     const windowId: BrandedUuid<'window'> | undefined =
       windows[nextWindowIndex]?.id
 
-    await moveTabs({
+    moveTabs({
       from: {
         sessionId,
         windowId: windows[currentWindowIndex].id,
@@ -123,8 +91,6 @@ const reorderTabs = async ({
           },
     })
   }
-
-  return windows
 }
 
 /**
@@ -158,7 +124,6 @@ export const DroppableType = {
 
 export const useSessions = () => {
   const [sessionsManager] = useSessionsManager()
-  console.log('sessionsManager: ', sessionsManager)
   const { moveWindows, moveTabs } = useDndHandlers()
   const [activeDragKind, setActiveDragKind] =
     useState<ActiveDragKindType>(undefined)
@@ -172,8 +137,12 @@ export const useSessions = () => {
     []
   )
 
+  /**
+   * @note This must be synchronous and update optimistically
+   * https://github.com/atlassian/react-beautiful-dnd/issues/873#issuecomment-435711992
+   */
   const onDragEnd = useCallback(
-    async (result: DropResult) => {
+    (result: DropResult) => {
       if (sessionsManager) {
         const { source, destination } = result
 
@@ -189,7 +158,7 @@ export const useSessions = () => {
           if (result.type === DroppableType.SESSION) {
             const sessionId = sessionsManager.current.id
             const win = sessionsManager.current.windows[source.index]
-            await moveWindows({
+            moveWindows({
               from: {
                 sessionId,
                 windowIds: [win.id],
@@ -199,17 +168,11 @@ export const useSessions = () => {
                 index: destination.index,
               },
             })
-            // const reorderedWindows = reorder(
-            //   sessionsManager.current.windows,
-            //   source.index,
-            //   destination.index
-            // )
-            // sessionsManager.current.windows = reorderedWindows
           } else {
             // reordering tab
             const sessionId = sessionsManager.current.id
             const windows = sessionsManager.current.windows
-            await reorderTabs({
+            _moveTabs({
               sessionId,
               windows,
               source,

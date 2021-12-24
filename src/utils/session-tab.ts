@@ -162,7 +162,8 @@ export const update = async <T extends CurrentSessionTab | SavedSessionTab>(
 
 /**
  * @usage Opens a saved or current tab into the current session
- * Side effect of opening the tab, using the created tab data to return a `CurrentSessionTab`
+ * @note Side effect of opening the tab, using the created tab
+ * data to return a `CurrentSessionTab`
  */
 export const toCurrent = async <
   T extends
@@ -279,7 +280,7 @@ export const removeTabs = async (
     if (isCurrentSessionTabs(tabs)) {
       await closeTab(tabs[index].assignedTabId)
     }
-    tabs.splice(index, ids.length)
+    tabs.splice(index, 1)
   }
   return tabs
 }

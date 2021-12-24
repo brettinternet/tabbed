@@ -55,13 +55,15 @@ export const useBackground = () => {
         <>
           There was an error trying to connect to the app. Please{' '}
           <Button
-            variant="link"
+            className="text-white underline"
+            inline
+            variant="none"
             shape="none"
             onClick={() => {
               browser.runtime.reload()
             }}
           >
-            click to refresh the extension
+            click to reload the extension
           </Button>
         </>
       ),
