@@ -3,7 +3,7 @@ import { useCallback } from 'react'
 import { Tabs } from 'webextension-polyfill'
 
 import { useTryToastError } from 'components/error/handlers'
-import { reorder, XOR } from 'utils/helpers'
+import { reorder, spliceSeparate, XOR } from 'utils/helpers'
 import { isDefined } from 'utils/helpers'
 import {
   Session,
@@ -510,8 +510,12 @@ export const useDndHandlers = () => {
               toSession.windows,
               to.windowId
             )
+            // spliceSeparate(
+            //   fromSession.windows[fromWindowIndex],
+            //   toSession.windows[toWindowIndex],
+            // )
             toSession.windows[toWindowIndex] = addTabs(
-              toSession.windows.slice()[toWindowIndex],
+              toSession.windows[toWindowIndex],
               tabs,
               to.index,
               to.pinned

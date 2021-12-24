@@ -452,13 +452,11 @@ export const addTabs = (
   pinned?: boolean
 ) => {
   const tabs = _tabs.slice() // clone
-  console.log('ADD tabs: ', tabs, win, index)
   const updatedTabs = win.tabs.slice() // clone
   if (isCurrentSessionWindow(win)) {
     // move tabs to window in current session
     if (isCurrentSessionTabs(tabs)) {
       // tab is also in current session
-      console.log('MOVE tabs: ', tabs)
       void move(tabs, index, pinned, win.assignedWindowId)
       updatedTabs.splice(index, 0, ...tabs)
     } else {

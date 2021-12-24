@@ -6,7 +6,7 @@ import {
 } from 'react-beautiful-dnd'
 
 import { BrandedUuid, brandUuid } from 'utils/generate'
-import { isDefined, reorder, spliceSeparate, Valueof } from 'utils/helpers'
+import { isDefined, Valueof } from 'utils/helpers'
 import { SessionWindow } from 'utils/session-window'
 
 import { useDndHandlers } from './handlers'
@@ -50,6 +50,7 @@ const _moveTabs = ({
     (w) => w.id === brandUuid<'window'>(destination.droppableId)
   )
 
+  // based on target, previous and next tabs, should the moved tab be pinned?
   if (currentWindowIndex > -1) {
     const target = windows[currentWindowIndex].tabs[source.index]
     if (nextWindowIndex > -1) {
