@@ -23,7 +23,7 @@ import {
 } from 'utils/session-tab'
 import {
   addWindow,
-  addTabs,
+  addCurrentTabs,
   findWindowIndex,
   removeWindows as _removeWindows,
   filterWindows,
@@ -503,30 +503,31 @@ export const useDndHandlers = () => {
             fromSession.windows[fromWindowIndex].tabs,
             from.tabIds
           )
-          console.log('tabs: ', tabs)
           if (to.windowId) {
             // move tabs to specific session window
             const toWindowIndex = findWindowIndex(
               toSession.windows,
               to.windowId
             )
-            // spliceSeparate(
-            //   fromSession.windows[fromWindowIndex],
-            //   toSession.windows[toWindowIndex],
-            // )
-            toSession.windows[toWindowIndex] = addTabs(
-              toSession.windows[toWindowIndex],
-              tabs,
-              to.index,
-              to.pinned
-            )
-            tabs.forEach((t) => {
-              const index = findTabIndex(
-                fromSession.windows[fromWindowIndex].tabs,
-                t.id
+            const fromTabs = fromSession.windows[fromWindowIndex].tabs
+            const toTabs = toSession.windows[toWindowIndex].tabs
+            from.tabIds.forEach((tabId) => {
+              const fromTabIndex = fromTabs.findIndex((t) => t.id === tabId)
+              const [updatedFromTabs, updatedToTabs] = spliceSeparate(
+                fromTabs,
+                toTabs,
+                fromTabIndex,
+                to.index
               )
-              tabs.splice(index, 1)
+              fromSession.windows[fromWindowIndex].tabs = updatedFromTabs
+              toSession.windows[toWindowIndex].tabs = updatedToTabs
             })
+            // toSession.windows[toWindowIndex] = addTabs(
+            //   toSession.windows[toWindowIndex],
+            //   tabs,
+            //   to.index,
+            //   to.pinned
+            // )
           } else {
             // move tabs to newly created window in a session
             const { incognito, state, height, width, top, left } =
@@ -548,16 +549,17 @@ export const useDndHandlers = () => {
             // })
           }
           // if (!to.windowId || from.sessionId !== sessionsManager.current.id) {
-
+          // tabs.forEach((t) => {
+          //   const index = findTabIndex(
+          //     fromSession.windows[fromWindowIndex].tabs,
+          //     t.id
+          //   )
+          //   tabs.splice(index, 1)
+          // })
           // }
-          let _sessionsManager = updateSessionsManager(
-            sessionsManager,
-            fromSession
-          )
-          _sessionsManager = updateSessionsManager(_sessionsManager, toSession)
 
           // Set immediately so DND doesn't have to wait
-          setSessionsManager(_sessionsManager)
+          setSessionsManager(sessionsManager)
           void save(_sessionsManager)
           if (
             [from.sessionId, to.sessionId].includes(sessionsManager.current.id)

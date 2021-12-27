@@ -445,7 +445,7 @@ const move = async (
  * @note _SIDE EFFECTS_: opens windows if `CurrentSessionTab[]` are added a `CurrentSessionWindow`
  * @note made sync to be compatible with the DND move which works optimistically
  */
-export const addTabs = (
+export const addCurrentTabs = (
   win: CurrentSessionWindow | SavedSessionWindow,
   _tabs: CurrentSessionTab[] | SavedSessionTab[],
   index: number,
@@ -478,9 +478,6 @@ export const addTabs = (
         })
       )
     }
-  } else {
-    // move tabs to window in a saved session
-    updatedTabs.splice(index, 0, ...tabs.map(createSavedTab))
   }
   return Object.assign({}, win, { tabs: updatedTabs }) // clone
 }

@@ -89,13 +89,13 @@ export const reorder = <T>(
 export const spliceSeparate = <T>(
   _from: T[],
   _to: T[],
-  startIndex: number,
-  endIndex: number
+  fromIndex: number,
+  toIndex: number
 ): [T[], T[]] => {
   const from = _from.slice() // clone
   const to = _to.slice() // clone
-  let [target] = from.splice(startIndex, 1)
-  to.splice(endIndex, 0, target)
+  let [target] = from.splice(fromIndex, 1)
+  to.splice(toIndex, 0, target)
   return [from, to]
 }
 
