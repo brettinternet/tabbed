@@ -5,15 +5,15 @@ import { Kbd as Keyboard } from 'components/kbd'
 
 import { Shortcut } from './store'
 
-const Th: React.FC = ({ children }) => (
+const Th: React.FC<React.PropsWithChildren> = ({ children }) => (
   <th className="font-normal px-2 py-1 bg-gray-100 dark:bg-gray-700 text-center">
     {children}
   </th>
 )
-const Td: React.FC = ({ children }) => (
+const Td: React.FC<React.PropsWithChildren> = ({ children }) => (
   <td className="px-2 py-1 text-gray-600 dark:text-gray-300">{children}</td>
 )
-const Kbd: React.FC = ({ children }) => (
+const Kbd: React.FC<React.PropsWithChildren> = ({ children }) => (
   <Keyboard className="bg-white dark:bg-gray-900 dark:border-gray-500 dark:text-gray-50">
     {children}
   </Keyboard>

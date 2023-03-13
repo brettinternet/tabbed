@@ -1,9 +1,9 @@
+import MaterialIcon from '@mdi/react'
 import cn, { Argument as ClassNames } from 'classnames'
 
 import { Valueof } from 'utils/helpers'
 
 import { IconName } from './icons'
-import { useSvg } from './svg'
 
 export { IconName }
 
@@ -35,7 +35,6 @@ export type IconProps = {
   name: IconNameType
   size?: SizeType
   className?: ClassNames
-  // TODO: add tooltip for title
   title?: string
   ariaLabel?: string
 }
@@ -46,25 +45,11 @@ export const Icon: React.FC<IconProps> = ({
   className,
   title,
   ariaLabel,
-}) => {
-  const { Svg, error, isLoading } = useSvg(name)
-
-  if (isLoading || error || !Svg) {
-    return (
-      <span
-        className={cn(
-          getSizeClass(size),
-          'rounded-full bg-gray-200 dark:bg-gray-700',
-          className
-        )}
-      />
-    )
-  }
-
-  return (
-    <Svg
-      className={cn(className, getSizeClass(size))}
-      aria-label={ariaLabel || title}
-    />
-  )
-}
+}) => (
+  <MaterialIcon
+    path={name}
+    title={title}
+    className={cn(className, getSizeClass(size))}
+    aria-label={ariaLabel || title}
+  />
+)

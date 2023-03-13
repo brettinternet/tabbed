@@ -1,8 +1,8 @@
 import cn, { Argument as ClassNames } from 'classnames'
 
-type KbdProps = {
+type KbdProps = React.PropsWithChildren<{
   className?: ClassNames
-}
+}>
 
 export const Kbd: React.FC<KbdProps> = ({ children, className }) => (
   <kbd

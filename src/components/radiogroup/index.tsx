@@ -43,7 +43,7 @@ export const RadioGroup: React.FC<RadioGroupProps> = ({
                   // active &&
                   // 'ring-2 ring-offset-2 ring-offset-blue-300 ring-white ring-opacity-60',
                   checked
-                    ? 'bg-sky-900 bg-opacity-75 text-white bg-green-500 border-transparent'
+                    ? 'bg-opacity-75 text-white bg-green-500 border-transparent'
                     : 'hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-100 dark:border-gray-500',
                   className
                 )

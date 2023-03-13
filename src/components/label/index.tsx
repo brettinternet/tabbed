@@ -1,9 +1,9 @@
 import cn, { Argument as ClassNames } from 'classnames'
 
-type LabelProps = {
+type LabelProps = React.PropsWithChildren<{
   className?: ClassNames
   as?: 'label' | 'legend'
-}
+}>
 
 export const Label: React.FC<LabelProps> = ({
   children,

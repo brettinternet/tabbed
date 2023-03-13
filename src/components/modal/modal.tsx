@@ -14,13 +14,13 @@ const Variant = {
 
 type VariantType = Valueof<typeof Variant>
 
-export type ModalProps = {
+export type ModalProps = React.PropsWithChildren<{
   show: boolean
   close: () => void
   title?: React.ReactNode
   animationEnd?: () => void
   variant: VariantType
-}
+}>
 
 export const Modal: React.FC<ModalProps> = ({
   children,

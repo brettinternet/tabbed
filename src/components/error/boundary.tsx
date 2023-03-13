@@ -3,12 +3,12 @@ import React, { ErrorInfo } from 'react'
 import { Message, MessageVariant } from 'components/message'
 import { log } from 'utils/logger'
 
-interface ErrorBoundaryState {
+type ErrorBoundaryState = {
   hasError: boolean
   errorMessage: string
 }
 
-interface ErrorBoundaryProps {
+type ErrorBoundaryProps = React.PropsWithChildren<{
   /**
    * Error message title (leave empty for no message)
    */
@@ -25,7 +25,7 @@ interface ErrorBoundaryProps {
    * Force error state to show the defaultMessage
    */
   hasError?: boolean
-}
+}>
 
 /**
  * @note https://reactjs.org/docs/hooks-faq.html#do-hooks-cover-all-use-cases-for-classes

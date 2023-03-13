@@ -1,5 +1,5 @@
-import React from 'react'
-import ReactDOM from 'react-dom'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
 import browser from 'webextension-polyfill'
 
 import { AppWithErrorBoundary } from 'components/app'
@@ -14,11 +14,16 @@ if (!isProd) {
   window.browser = browser
 }
 
-ReactDOM.render(
-  <React.StrictMode>
+const container = document.getElementById('root')
+if (!container) {
+  throw Error('Missing React root')
+}
+const root = createRoot(container)
+
+root.render(
+  <StrictMode>
     <AppWithErrorBoundary />
-  </React.StrictMode>,
-  document.getElementById('root')
+  </StrictMode>
 )
 
 reportWebVitals((...args) => {

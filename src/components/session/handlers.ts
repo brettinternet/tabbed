@@ -560,14 +560,12 @@ export const useDndHandlers = () => {
 
           // Set immediately so DND doesn't have to wait
           setSessionsManager(sessionsManager)
-          void save(_sessionsManager)
+          void save(sessionsManager)
           if (
             [from.sessionId, to.sessionId].includes(sessionsManager.current.id)
           ) {
             const asyncUpdate = async () => {
-              setSessionsManager(
-                await updateCurrentSessionNow(_sessionsManager)
-              )
+              setSessionsManager(await updateCurrentSessionNow(sessionsManager))
             }
 
             void asyncUpdate()
