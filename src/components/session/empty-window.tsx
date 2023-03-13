@@ -1,7 +1,7 @@
+import { Droppable } from '@hello-pangea/dnd'
 import cn from 'classnames'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { Droppable } from 'react-beautiful-dnd'
 import browser from 'webextension-polyfill'
 
 import { Button } from 'components/button'

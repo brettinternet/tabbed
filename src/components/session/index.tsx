@@ -1,4 +1,4 @@
-import { DragDropContext } from 'react-beautiful-dnd'
+import { DragDropContext } from '@hello-pangea/dnd'
 
 import { isPopup } from 'components/app/store'
 import { useSettings } from 'components/settings/store'
