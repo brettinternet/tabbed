@@ -1,5 +1,3 @@
-import cn, { Argument as ClassNames } from 'classnames'
-import React, { memo } from 'react'
 import {
   Droppable,
   Draggable,
@@ -7,7 +5,9 @@ import {
   DroppableStateSnapshot,
   DraggableProvided,
   DraggableStateSnapshot,
-} from 'react-beautiful-dnd'
+} from '@hello-pangea/dnd'
+import cn, { Argument as ClassNames } from 'classnames'
+import React, { memo } from 'react'
 
 import { Tab } from 'components/tab'
 import { Session } from 'utils/session'

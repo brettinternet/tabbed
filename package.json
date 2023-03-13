@@ -44,6 +44,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^1.7.13",
+    "@hello-pangea/dnd": "^16.2.0",
     "@mdi/js": "^7.1.96",
     "@mdi/react": "^1.6.1",
     "@popperjs/core": "^2.11.6",
@@ -57,7 +58,6 @@
     "lodash": "^4.17.21",
     "loglevel": "^1.8.1",
     "react": "^18.2.0",
-    "react-beautiful-dnd": "^13.1.1",
     "react-dom": "^18.2.0",
     "react-popper": "^2.3.0",
     "react-scripts": "^5.0.1",

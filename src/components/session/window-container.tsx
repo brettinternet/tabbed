@@ -1,9 +1,9 @@
-import cn from 'classnames'
 import {
   Draggable,
   DraggableProvided,
   DraggableStateSnapshot,
-} from 'react-beautiful-dnd'
+} from '@hello-pangea/dnd'
+import cn from 'classnames'
 
 import { WindowHeader } from 'components/window'
 import { Session } from 'utils/session'

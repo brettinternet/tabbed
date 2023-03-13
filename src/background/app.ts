@@ -34,7 +34,6 @@ export const startApp = (onConnectionChange: (app: App) => void) => {
   }
 
   browser.runtime.onConnect.addListener((port) => {
-    console.log('------------------port: ', port)
     if (port.name.includes(CONNECT_NAME_CLIENT_PREFIX)) {
       app.port = port
       if (isAppWithPort(app)) {

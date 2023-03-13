@@ -1,9 +1,9 @@
-import { useCallback, useState } from 'react'
 import {
   DraggableLocation,
   DropResult,
   OnBeforeCaptureResponder,
-} from 'react-beautiful-dnd'
+} from '@hello-pangea/dnd'
+import { useCallback, useState } from 'react'
 
 import { BrandedUuid, brandUuid } from 'utils/generate'
 import { isDefined, reorder, spliceSeparate, Valueof } from 'utils/helpers'
@@ -145,7 +145,7 @@ export const DroppableId = {
 } as const
 
 /**
- * Defines type on react-beautiful-dnd droppable component
+ * Defines type on the dnd droppable component
  * where dragged elements may be dropped
  */
 export const DroppableType = {
