@@ -46,7 +46,8 @@ type MenuProps = {
   menuItemsClassName?: ClassNames
   portalEnabled?: boolean
   animatedExit?: boolean
-} & (Actions | GroupedActions)
+} & (Actions | GroupedActions) &
+  React.PropsWithChildren
 
 export const Dropdown: React.FC<MenuProps> = (props) => {
   const {

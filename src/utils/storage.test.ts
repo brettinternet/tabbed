@@ -3,15 +3,14 @@ import browser from 'webextension-polyfill'
 
 import { defaultSettings, Settings } from 'utils/settings'
 
-import { readSettings, writeSetting, localStorageKeys } from './storage'
+import { LocalStorage } from './storage'
 
 describe('utils/browser/storage.ts', () => {
   describe('readSettings', () => {
     it('returns default settings when no storage is found', async () => {
-      const settings = await readSettings()
-      expect(browser.storage.local.get).toHaveBeenCalledWith(
-        localStorageKeys.SETTINGS
-      )
+      const settingsKey = LocalStorage.key.SETTINGS
+      const settings = await LocalStorage.get(settingsKey)
+      expect(browser.storage.local.get).toHaveBeenCalledWith(settingsKey)
       expect(settings).toEqual(defaultSettings)
     })
   })
@@ -22,9 +21,10 @@ describe('utils/browser/storage.ts', () => {
         fontSize: 12,
       }
 
-      await writeSetting(newSettings)
+      const settingsKey = LocalStorage.key.SETTINGS
+      await LocalStorage.set(settingsKey, newSettings)
       expect(browser.storage.local.set).toHaveBeenCalledWith({
-        [localStorageKeys.SETTINGS]: {
+        [settingsKey]: {
           ...defaultSettings,
           ...newSettings,
         },

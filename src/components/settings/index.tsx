@@ -17,7 +17,7 @@ import { ExtensionClickActions, Themes } from 'utils/settings'
 
 import { useHandlers } from './handlers'
 
-const Error: React.FC = ({ children }) => (
+const Error: React.FC<React.PropsWithChildren> = ({ children }) => (
   <p className="text-red-600 dark:text-red-500">{children}</p>
 )
 
