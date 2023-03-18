@@ -64,7 +64,7 @@ export const isCurrentSessionTab = (
  */
 export const isCurrentSessionTabs = (
   tabs: CurrentSessionTab[] | SavedSessionTab[]
-): tabs is CurrentSessionTab[] => isCurrentSessionTab(tabs[0])
+): tabs is CurrentSessionTab[] => tabs.every(isCurrentSessionTab)
 
 /**
  * @returns tab, throws if tabId not found

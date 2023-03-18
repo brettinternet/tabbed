@@ -54,6 +54,7 @@ const _moveTabs = ({
   // based on target, previous and next tabs, should the moved tab be pinned?
   if (currentWindowIndex > -1) {
     let target = windows[currentWindowIndex].tabs[source.index]
+    // let createNewWindowForTabs = false
     if (nextWindowIndex > -1) {
       const index =
         source.index > destination.index
@@ -66,6 +67,7 @@ const _moveTabs = ({
           index - 1 - (source.droppableId !== destination.droppableId ? 1 : 0)
         ]
 
+      // optimistically reorder for DND
       if (source.droppableId === destination.droppableId) {
         // moving to same window list
         windows[currentWindowIndex].tabs = reorder(
@@ -95,35 +97,43 @@ const _moveTabs = ({
     const windowId: BrandedUuid<'window'> | undefined =
       windows[nextWindowIndex]?.id
 
-    if (isCurrentSessionWindow(windows[nextWindowIndex])) {
+    console.log('before iscurrent', windows[nextWindowIndex])
+    if (
+      !windows[nextWindowIndex] ||
+      isCurrentSessionWindow(windows[nextWindowIndex])
+    ) {
+      // No existing window or is current
       if (isCurrentSessionTab(target)) {
         // move tabs
+        moveTabs({
+          from: {
+            sessionId,
+            windowId: windows[currentWindowIndex].id,
+            tabIds: [target.id],
+          },
+          to: isDefined(windowId)
+            ? {
+                sessionId,
+                index: destination.index,
+                pinned: target.pinned,
+                windowId,
+              }
+            : {
+                sessionId,
+                pinned: target.pinned,
+                incognito:
+                  destination.droppableId === DroppableId.NEW_INCOGNITO_WINDOW,
+              },
+        })
       } else {
         // open tabs
       }
+    } else {
+      // save changes
     }
-
-    // moveTabs({
-    //   from: {
-    //     sessionId,
-    //     windowId: windows[currentWindowIndex].id,
-    //     tabIds: [target.id],
-    //   },
-    //   to: isDefined(windowId)
-    //     ? {
-    //         sessionId,
-    //         index: destination.index,
-    //         pinned: target.pinned,
-    //         windowId,
-    //       }
-    //     : {
-    //         sessionId,
-    //         pinned: target.pinned,
-    //         incognito:
-    //           destination.droppableId === DroppableId.NEW_INCOGNITO_WINDOW,
-    //       },
-    // })
   }
+
+  return windows
 }
 
 /**
@@ -204,6 +214,7 @@ export const useSessions = () => {
           } else {
             // reordering tab
             const sessionId = sessionsManager.current.id
+            // For now, TODO: support all session types
             const windows = sessionsManager.current.windows
             _moveTabs({
               sessionId,

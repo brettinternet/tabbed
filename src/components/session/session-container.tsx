@@ -33,7 +33,7 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className="scroll overflow-auto md:flex md:flex-row md:align-center"
+          className="relative scroll overflow-auto md:flex md:flex-row md:align-center"
         >
           {session.windows.map((win, index) => (
             <WindowContainer

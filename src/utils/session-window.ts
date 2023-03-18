@@ -2,7 +2,7 @@ import { Tabs, Windows } from 'webextension-polyfill'
 
 import { closeWindow, moveTabs, openWindow, updateWindow } from 'utils/browser'
 import { AppError } from 'utils/error'
-import { isDefined, PartialBy, reorder, XOR } from 'utils/helpers'
+import { isDefined, PartialBy, XOR } from 'utils/helpers'
 
 import {
   BrandedUuid,
@@ -15,8 +15,7 @@ import {
   SessionTab,
   CurrentSessionTab,
   SavedSessionTab,
-  createCurrent as createCurrentTab,
-  createSaved as createSavedTab,
+  createCurrent as createCurrentTab, // createSaved as createSavedTab,
   fromBrowser as fromBrowserTab,
   update as updateTab,
   isCurrentSessionTabs,
@@ -299,7 +298,6 @@ export const filterWindows = (
   windows: SavedSessionWindow[] | CurrentSessionWindow[],
   ids: SavedSessionWindow['id'][] | CurrentSessionWindow['id'][]
 ) =>
-  // @ts-ignore 😢 see linked issues above
   windows.filter((w) => ids.includes(w.id)) as
     | SavedSessionWindow[]
     | CurrentSessionWindow[]
@@ -310,11 +308,8 @@ export const filterWindows = (
 export const filterTabs = (
   tabs: SavedSessionTab[] | CurrentSessionTab[],
   ids: SavedSessionTab['id'][] | CurrentSessionTab['id'][]
-) =>
-  // @ts-ignore 😢 see linked issues above
-  tabs.filter((t) => ids.includes(t.id)) as
-    | SavedSessionTab[]
-    | CurrentSessionTab[]
+): SavedSessionTab[] | CurrentSessionTab[] =>
+  tabs.filter((t) => ids.includes(t.id))
 
 /**
  * @usage focuses `CurrentSessionWindow`
@@ -441,6 +436,7 @@ const move = async (
 }
 
 /**
+ * Handle move side effects for window tabs
  * @usage adds tabs, does require window data to know where to add tab in the current session if applicable
  * @note _SIDE EFFECTS_: opens windows if `CurrentSessionTab[]` are added a `CurrentSessionWindow`
  * @note made sync to be compatible with the DND move which works optimistically
@@ -452,15 +448,15 @@ export const addCurrentTabs = (
   pinned?: boolean
 ) => {
   const tabs = _tabs.slice() // clone
-  const updatedTabs = win.tabs.slice() // clone
   if (isCurrentSessionWindow(win)) {
     // move tabs to window in current session
     if (isCurrentSessionTabs(tabs)) {
       // tab is also in current session
       void move(tabs, index, pinned, win.assignedWindowId)
-      updatedTabs.splice(index, 0, ...tabs)
     } else {
+      // TODO: create tab doesn't appear to work
       // tab is from saved session
+      const updatedTabs = win.tabs.slice() // clone
       updatedTabs.splice(
         index,
         0,
@@ -479,5 +475,4 @@ export const addCurrentTabs = (
       )
     }
   }
-  return Object.assign({}, win, { tabs: updatedTabs }) // clone
 }
