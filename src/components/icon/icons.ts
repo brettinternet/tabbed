@@ -23,6 +23,7 @@ import {
   mdiIncognito,
   mdiHelp,
   mdiChevronDown,
+  mdiCircleSmall,
 } from '@mdi/js'
 
 /**
@@ -55,4 +56,5 @@ export const IconName = {
   INCOGNITO: mdiIncognito, // incognito/private browsing
   HELP: mdiHelp, // FAQ and resources
   EXPAND: mdiChevronDown, // dropdown down caret
+  INDICATOR: mdiCircleSmall, // active tab indicator
 } as const

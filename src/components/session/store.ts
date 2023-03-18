@@ -1,8 +1,10 @@
 import { atom, SetStateAction, useAtom } from 'jotai'
+import { cloneDeep } from 'lodash'
 import { useEffect } from 'react'
 
 import { useBackground } from 'components/app/store'
 import { useTryToastError } from 'components/error/handlers'
+import { log } from 'utils/logger'
 import {
   createMessageListener,
   CurrentSessionChangeMessage,
@@ -14,6 +16,8 @@ import {
   SessionsManager, // updateCurrentSession,
 } from 'utils/sessions-manager'
 
+const logContext = 'components/session/store'
+
 export const sessionsManagerAtom = atom<SessionsManager | undefined>(undefined)
 
 export const useSessionsManager = (): [
@@ -23,7 +27,6 @@ export const useSessionsManager = (): [
   const port = useBackground()
   const tryToastError = useTryToastError()
   const [sessionsManager, setSessionsManager] = useAtom(sessionsManagerAtom)
-  console.log('SESSIONS/STORE: sessionsManager: ', sessionsManager)
 
   useEffect(() => {
     const load = tryToastError(async () => {
@@ -62,5 +65,8 @@ export const useSessionsManager = (): [
     }
   }, [sessionsManager])
 
-  return [sessionsManager, setSessionsManager]
+  // Prevent mutations with clone
+  const _sessionsManager = cloneDeep(sessionsManager)
+  log.debug(logContext, 'useSessionsManager()', _sessionsManager)
+  return [_sessionsManager, setSessionsManager]
 }

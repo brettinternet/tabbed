@@ -469,7 +469,7 @@ export const useDndHandlers = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const moveTabs = useCallback(
     tryToastError(
-      ({
+      async ({
         from,
         to,
       }: {
@@ -492,6 +492,7 @@ export const useDndHandlers = () => {
           }
         >
       }) => {
+        console.log('move', sessionsManager, from, to)
         if (sessionsManager) {
           const fromSession = getSession(sessionsManager, from.sessionId)
           const fromWindowIndex = findWindowIndex(
@@ -500,8 +501,8 @@ export const useDndHandlers = () => {
           )
           const toSession = getSession(sessionsManager, to.sessionId)
           const tabs = filterTabs(
-            fromSession.windows[fromWindowIndex].tabs,
-            from.tabIds
+            fromSession.windows[fromWindowIndex].tabs.slice(),
+            from.tabIds.slice()
           )
           if (to.windowId) {
             // move tabs to specific session window
@@ -510,25 +511,46 @@ export const useDndHandlers = () => {
               to.windowId
             )
             const fromTabs = fromSession.windows[fromWindowIndex].tabs
-            const toTabs = toSession.windows[toWindowIndex].tabs
-            from.tabIds.forEach((tabId) => {
-              const fromTabIndex = fromTabs.findIndex((t) => t.id === tabId)
-              const [updatedFromTabs, updatedToTabs] = spliceSeparate(
-                fromTabs,
-                toTabs,
-                fromTabIndex,
-                to.index
-              )
-              fromSession.windows[fromWindowIndex].tabs = updatedFromTabs
-              toSession.windows[toWindowIndex].tabs = updatedToTabs
-            })
-            // toSession.windows[toWindowIndex] = addTabs(
-            //   toSession.windows[toWindowIndex],
-            //   tabs,
-            //   to.index,
-            //   to.pinned
-            // )
+            if (
+              from.sessionId === to.sessionId &&
+              from.windowId === to.windowId
+            ) {
+              from.tabIds.forEach((tabId) => {
+                const fromTabIndex = fromTabs.findIndex((t) => t.id === tabId)
+                fromSession.windows[fromWindowIndex].tabs = reorder(
+                  fromTabs,
+                  fromTabIndex,
+                  to.index
+                )
+              })
+            } else {
+              // move tabs to separate window
+              const toTabs = toSession.windows[toWindowIndex].tabs
+              from.tabIds.forEach((tabId) => {
+                const fromTabIndex = fromTabs.findIndex((t) => t.id === tabId)
+                const [updatedFromTabs, updatedToTabs] = spliceSeparate(
+                  fromTabs,
+                  toTabs,
+                  fromTabIndex,
+                  to.index
+                )
+                if (updatedFromTabs.length > 0) {
+                  fromSession.windows[fromWindowIndex].tabs = updatedFromTabs
+                } else {
+                  fromSession.windows.splice(fromWindowIndex, 1)
+                }
+                toSession.windows[toWindowIndex].tabs = updatedToTabs
+              })
+            }
+            // side effects in browser
+            addCurrentTabs(
+              toSession.windows[toWindowIndex],
+              tabs,
+              to.index,
+              to.pinned
+            )
           } else {
+            // TODO:
             // move tabs to newly created window in a session
             const { incognito, state, height, width, top, left } =
               fromSession.windows[fromWindowIndex]
@@ -543,22 +565,23 @@ export const useDndHandlers = () => {
               top,
               left,
             })
-            // toSession.windows = addWindow(toSession.windows, {
-            //   window: newWindow,
-            //   index: to.index,
-            // })
+            console.log('new window', newWindow, to)
+            toSession.windows = await addWindow(toSession.windows, {
+              window: newWindow,
+              index: to.index,
+            })
           }
           // if (!to.windowId || from.sessionId !== sessionsManager.current.id) {
-          // tabs.forEach((t) => {
-          //   const index = findTabIndex(
-          //     fromSession.windows[fromWindowIndex].tabs,
-          //     t.id
-          //   )
-          //   tabs.splice(index, 1)
-          // })
+          //   tabs.forEach((t) => {
+          //     const index = findTabIndex(
+          //       fromSession.windows[fromWindowIndex].tabs,
+          //       t.id
+          //     )
+          //     tabs.splice(index, 1)
+          //   })
           // }
 
-          // Set immediately so DND doesn't have to wait
+          // Set optimistically so DND doesn't have to wait
           setSessionsManager(sessionsManager)
           void save(sessionsManager)
           if (
@@ -570,6 +593,10 @@ export const useDndHandlers = () => {
 
             void asyncUpdate()
           }
+        } else {
+          throw Error(
+            'Unable to save changes, please refresh the extension and try again.'
+          )
         }
       }
     ),
