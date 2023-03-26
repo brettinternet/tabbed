@@ -1,5 +1,6 @@
 import cn from 'classnames'
 import { useRef, useState } from 'react'
+import browser from 'webextension-polyfill'
 
 import { Button } from 'components/button'
 import { openOptions } from 'components/help/handlers'
@@ -308,6 +309,22 @@ export const Settings: React.FC = () => {
           Enables verbose logging in the console.
         </Description>
       </div>
+
+      {settings.debugMode && (
+        <div className="space-y-3">
+          <Button
+            onClick={() => {
+              browser.runtime.reload()
+            }}
+            aria-describedby="reload-extension-description"
+          >
+            Reload extension
+          </Button>
+          <Description id="reload-extension-description">
+            Reloads the browser extension runtime.
+          </Description>
+        </div>
+      )}
 
       <div className="space-y-3">
         <Button

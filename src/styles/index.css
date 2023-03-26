@@ -12,11 +12,6 @@ html.dark {
   @apply bg-gray-900 text-white transition-colors duration-100;
 }
 
-html,
-body {
-  @apply md:overflow-hidden;
-}
-
 /* https://github.com/atlassian/react-beautiful-dnd/blob/d77908e2c31a081aef766c0f624994bbbc7edb9c/docs/guides/preset-styles.md */
 [data-rbd-drag-handle-context-id='*'] {
   cursor: move !important;

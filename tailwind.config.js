@@ -31,6 +31,7 @@ module.exports = {
       height: {
         header: '3.2rem',
         'window-header': '5.5rem',
+        'window-column': 'calc(100vh - 3.2rem - .4rem)', // screen - header - scrollbar width (x-axis)
         tab: '5.5rem',
         'tab-list': 'calc(100vh - 9.1rem)', // screen - header - window-header - scrollbar width (x-axis)
         'modal-header': '5.2rem',
@@ -39,6 +40,10 @@ module.exports = {
       maxHeight: {
         modal: 'calc(100vh - 10rem)',
         'import-textarea': 'calc(100vh - 30rem)',
+        'tab-list': 'calc(100vh - 9.1rem)', // screen - header - window-header - scrollbar width (x-axis)
+      },
+      minHeight: {
+        'tab-list': 'calc(100vh - 9.1rem)', // screen - header - window-header - scrollbar width (x-axis)
       },
       minWidth: {
         32: '8rem' /* 128px */, // dropdown menu item

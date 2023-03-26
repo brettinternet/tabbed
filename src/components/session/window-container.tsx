@@ -3,6 +3,7 @@ import {
   DraggableProvided,
   DraggableStateSnapshot,
 } from '@hello-pangea/dnd'
+import classNames from 'classnames'
 import cn from 'classnames'
 
 import { WindowHeader } from 'components/window'
@@ -11,19 +12,24 @@ import { SessionWindow } from 'utils/session-window'
 
 import { TabsList } from './tabs-list'
 
-type SessionWindowProps = {
-  sessionId: Session['id']
-  index: number
-  window: SessionWindow
-}
-
-const getContainerBackground = ({
-  isDragging,
-  incognito,
-}: {
+type ColorOptions = {
   isDragging: boolean
   incognito: boolean
-}) => {
+}
+
+const getContainerBackground = ({ isDragging, incognito }: ColorOptions) => {
+  if (isDragging) {
+    return 'bg-blue-100 dark:bg-blue-900'
+  }
+
+  if (incognito) {
+    return 'bg-indigo-100 dark:bg-indigo-900'
+  }
+
+  return 'bg-gray-100 dark:bg-gray-900'
+}
+
+const getHeaderBackground = ({ isDragging, incognito }: ColorOptions) => {
   if (isDragging) {
     return 'bg-blue-200 dark:bg-blue-900'
   }
@@ -35,6 +41,12 @@ const getContainerBackground = ({
   return 'bg-gray-100 dark:bg-gray-900'
 }
 
+type SessionWindowProps = {
+  sessionId: Session['id']
+  index: number
+  window: SessionWindow
+}
+
 export const WindowContainer: React.FC<SessionWindowProps> = ({
   sessionId,
   index,
@@ -43,19 +55,21 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
   <Draggable draggableId={`${sessionId}-${win.id}`} index={index}>
     {(
       dragProvided: DraggableProvided,
-      dragSnapshot: DraggableStateSnapshot
+      { isDragging }: DraggableStateSnapshot
     ) => (
       <div
-        style={{ height: dragSnapshot.isDragging ? '40px' : undefined }}
+        style={{ height: isDragging ? '40px' : undefined }}
         className={cn(
           // TODO: change based on scroll direction
-          // !dragSnapshot.isDragging && (index === 0 ? 'snap-start' : 'snap-end'),
-          'transition-colors duration-150 pb-3 md:pb-0 md:w-80 lg:w-96 md:min-w-[20rem] lg:min-w-[24rem]',
+          // !isDragging && (index === 0 ? 'snap-start' : 'snap-end'),
+          'flex flex-col',
+          // 'md:h-window-column md:pb-0 md:w-80 lg:w-96 md:min-w-[20rem] lg:min-w-[24rem]',
+          'transition-colors duration-150',
           getContainerBackground({
-            isDragging: dragSnapshot.isDragging,
+            isDragging: isDragging,
             incognito: win.incognito,
           }),
-          dragSnapshot.isDragging && 'rounded shadow-lg'
+          isDragging && 'rounded shadow-lg'
         )}
         ref={dragProvided.innerRef}
         {...dragProvided.draggableProps}
@@ -64,14 +78,17 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
         <WindowHeader
           sessionId={sessionId}
           window={win}
-          className="md:h-window-header overflow-hidden"
+          className={classNames(
+            'md:h-window-header overflow-hidden',
+            'transition-colors duration-150',
+            getHeaderBackground({ isDragging, incognito: win.incognito })
+          )}
         />
         <TabsList
           sessionId={sessionId}
           windowId={win.id}
           window={win}
-          className="md:h-tab-list md:overflow-y-scroll md:scroll md:overflow-x-hidden"
-          isWindowDragging={dragSnapshot.isDragging}
+          isWindowDragging={isDragging}
         />
       </div>
     )}

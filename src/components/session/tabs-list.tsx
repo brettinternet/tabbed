@@ -98,17 +98,15 @@ export const TabsList: React.FC<TabsListProps> = ({
   <Droppable
     droppableId={`${windowId}`}
     type={DroppableType.WINDOW}
-    ignoreContainerClipping={false}
-    isDropDisabled={false}
+    direction="vertical"
   >
     {(
       dropProvided: DroppableProvided,
       dropSnapshot: DroppableStateSnapshot
     ) => (
       <div
-        ref={dropProvided.innerRef}
         className={cn(
-          'relative p-2',
+          'flex flex-col md:w-80 lg:w-96',
           className,
           getWrapperBackground(
             dropSnapshot.isDraggingOver,
@@ -117,13 +115,17 @@ export const TabsList: React.FC<TabsListProps> = ({
         )}
         {...dropProvided.droppableProps}
       >
-        <MemoizedInnerTabList
-          tabs={win.tabs}
-          sessionId={sessionId}
-          windowId={windowId}
-          isWindowDragging={isWindowDragging}
-        />
-        {dropProvided.placeholder}
+        <div className="md:max-h-tab-list md:scroll overflow-y-auto overflow-x-hidden">
+          <div ref={dropProvided.innerRef} className="p-2 md:min-h-tab-list">
+            <MemoizedInnerTabList
+              tabs={win.tabs}
+              sessionId={sessionId}
+              windowId={windowId}
+              isWindowDragging={isWindowDragging}
+            />
+            {dropProvided.placeholder}
+          </div>
+        </div>
       </div>
     )}
   </Droppable>

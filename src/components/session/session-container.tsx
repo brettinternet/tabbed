@@ -1,4 +1,5 @@
 import { Droppable } from '@hello-pangea/dnd'
+import cn from 'classnames'
 
 import { Session } from 'utils/session'
 import { useMedia } from 'utils/window'
@@ -33,7 +34,10 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className="relative scroll overflow-auto md:flex md:flex-row md:align-center"
+          className={cn(
+            'flex',
+            direction === 'vertical' ? 'flex-col' : 'flex-row'
+          )}
         >
           {session.windows.map((win, index) => (
             <WindowContainer
