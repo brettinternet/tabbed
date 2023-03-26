@@ -24,6 +24,7 @@ import {
   mdiHelp,
   mdiChevronDown,
   mdiCircleSmall,
+  mdiPlus,
 } from '@mdi/js'
 
 /**
@@ -33,7 +34,7 @@ import {
 export const IconName = {
   SAVE: mdiContentSaveOutline,
   SEARCH: mdiMagnify,
-  CHECK: mdiCheck,
+  CHECK: mdiCheck, // settings theme selection
   SETTINGS: mdiCog, // options
   MORE: mdiDotsVertical, // ellipsis menu
   CLOSE: mdiClose,
@@ -44,9 +45,10 @@ export const IconName = {
   FULLSCREEN: mdiFullscreen, // window state
   MINIMIZE: mdiWindowMinimize, // window state
   WINDOW_OPEN: mdiOpenInApp, // open window
-  WINDOW: mdiApplicationOutline,
+  WINDOW: mdiApplicationOutline, // browser window
   WINDOW_REMOVE: mdiClose, // close window/tab
-  TAB: mdiTab,
+  NEW_WINDOW: mdiPlus, // create window
+  TAB: mdiTab, // window tab
   TAB_SELECT: mdiTabUnselected,
   PIN: mdiPinOutline, // tab pinned
   MUTE: mdiVolumeVariantOff, // tab muted

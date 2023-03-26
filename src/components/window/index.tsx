@@ -3,11 +3,11 @@ import cn, { Argument as ClassNames } from 'classnames'
 import { Dropdown, DropdownButtonProps } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
 import { useWindowHandlers } from 'components/session/handlers'
-import { BrandedUuid } from 'utils/generate'
+import { Session } from 'utils/session'
 import { isCurrentSessionWindow, SessionWindow } from 'utils/session-window'
 
 type WindowHeaderProps = {
-  sessionId: BrandedUuid<'session'>
+  sessionId: Session['id']
   window: SessionWindow
   className?: ClassNames
 }

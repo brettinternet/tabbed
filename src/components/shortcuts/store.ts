@@ -1,11 +1,12 @@
-import { noop } from 'lodash'
+// import { noop } from 'lodash'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import { isPopup } from 'components/app/store'
 import { useModal } from 'components/modal/store'
-import { log } from 'utils/logger'
 
-const logContext = 'components/shortcuts/store'
+// import { log } from 'utils/logger'
+
+// const logContext = 'components/shortcuts/store'
 
 // import { useToasts } from 'components/toast/store'
 // import { parseNum, isDefined } from 'utils/helpers'

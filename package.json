@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "run-s clean copy-public manifest build:tailwind && run-p start:*",
-    "start:app": "ts-node -P scripts/tsconfig.json scripts/start-cra",
+    "start:app": "BROWSER=none ts-node -P scripts/tsconfig.json scripts/start-cra",
     "start:tailwind": "npx tailwindcss --postcss -i ./src/styles/index.css -o ./src/index.css --watch",
     "start:background": "esbuild src/background/index.ts --bundle --sourcemap --outdir=build/background --inject:env-proxy.js --watch",
     "build": "run-s clean build:tailwind build:app build:background build:manifest",
@@ -43,6 +43,8 @@
     ]
   },
   "dependencies": {
+    "@dnd-kit/modifiers": "^6.0.1",
+    "@dnd-kit/sortable": "^7.0.2",
     "@headlessui/react": "^1.7.13",
     "@hello-pangea/dnd": "^16.2.0",
     "@mdi/js": "^7.1.96",

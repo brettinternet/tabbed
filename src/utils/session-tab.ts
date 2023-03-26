@@ -4,19 +4,20 @@ import { closeTab, openTab, updateTab, updateWindow } from 'utils/browser'
 import { PartialBy } from 'utils/helpers'
 
 import { AppError } from './error'
-import { BrandedUuid, createId, fallbackTabId } from './generate'
+import { createId, fallbackTabId } from './generate'
 
 const logContext = 'utils/session-tab'
 
-/**
- * Tab types
- */
+type TabId = string
 
+/**
+ * Tab type
+ */
 export type SessionTab = {
   /**
    * Generated ID to more uniquely identify the entity
    */
-  id: BrandedUuid<'tab'>
+  id: TabId
   url: string
   favIconUrl?: string
   title?: string
@@ -283,4 +284,24 @@ export const removeTabs = async (
     tabs.splice(index, 1)
   }
   return tabs
+}
+
+/**
+ * Helper with moving a tab to determine if the
+ * move tabbed should be pinned
+ */
+export const shouldPin = (
+  target: SessionTab,
+  previous: SessionTab | undefined,
+  next: SessionTab | undefined
+) => {
+  if (
+    next?.pinned ||
+    (target.pinned && previous?.pinned) ||
+    (target.pinned && !previous)
+  ) {
+    return true
+  }
+
+  return false
 }

@@ -1,5 +1,5 @@
 import { getAllWindows } from './browser'
-import { BrandedUuid, createId, generateSessionTitle } from './generate'
+import { createId, generateSessionTitle } from './generate'
 import { isDefined, PartialBy, Valueof } from './helpers'
 import {
   SessionWindow,
@@ -9,6 +9,8 @@ import {
   open as openWindow,
   isCurrentSessionWindows,
 } from './session-window'
+
+type SessionId = string
 
 /**
  * Session categories, group together in session manager
@@ -25,7 +27,7 @@ export type SavedSessionCategoryType = Valueof<typeof SavedSessionCategory>
  */
 
 export type Session<T extends SessionWindow = SessionWindow> = {
-  id: BrandedUuid<'session'>
+  id: SessionId
   title?: string
   windows: T[]
   /**

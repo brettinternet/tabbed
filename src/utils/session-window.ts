@@ -5,7 +5,6 @@ import { AppError } from 'utils/error'
 import { isDefined, PartialBy, XOR } from 'utils/helpers'
 
 import {
-  BrandedUuid,
   createId,
   fallbackTabId,
   fallbackWindowId,
@@ -23,6 +22,8 @@ import {
 
 const logContext = 'utils/session-window'
 
+type WindowId = string
+
 /**
  * Window data
  */
@@ -30,7 +31,7 @@ export type SessionWindow<T extends SessionTab = SessionTab> = {
   /**
    * Generated ID to more uniquely identify the entity
    */
-  id: BrandedUuid<'window'>
+  id: WindowId
   tabs: T[]
   /**
    * Title is generated from tab content
@@ -256,7 +257,7 @@ export const toCurrent = async <
  */
 export const fromBrowser = (
   win: Windows.Window,
-  id?: BrandedUuid<'window'>
+  id?: WindowId
 ): CurrentSessionWindow => {
   const {
     id: maybeAssignedWindowId,

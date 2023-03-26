@@ -32,6 +32,7 @@ module.exports = {
         header: '3.2rem',
         'window-header': '5.5rem',
         tab: '5.5rem',
+        'window-column': 'calc(100vh - 3.2rem - .4rem)', // screen - header - scrollbar width (x-axis)
         'tab-list': 'calc(100vh - 9.1rem)', // screen - header - window-header - scrollbar width (x-axis)
         'modal-header': '5.2rem',
         'modal-drawer-body': 'calc(100vh - 5.2rem)', // screen - modal-header
