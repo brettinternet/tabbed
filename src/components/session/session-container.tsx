@@ -37,10 +37,8 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className={cn(
-            'flex',
-            direction === 'vertical' ? 'flex-col' : 'flex-row'
-          )}
+          // inline flex extends x-axis past body, modeled after board.tsx link above
+          className="md:inline-flex"
         >
           {session.windows.map((win, index) => (
             <WindowContainer
