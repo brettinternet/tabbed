@@ -9,18 +9,18 @@ import { Valueof } from './helpers'
 /**
  * const map of different UUID brands
  */
-export const Uuid = {
+export const UuidKind = {
   TAB: 'tab',
   WINDOW: 'window',
   SESSION: 'session',
 } as const
-export type UuidType = Valueof<typeof Uuid>
+export type UuidKindValue = Valueof<typeof UuidKind>
 
 /**
  * @note Branded type to increase type safety and prevent abuse
  * https://gist.github.com/brettinternet/b32a63f057eb58f1a2de3765141097a7
  */
-export type BrandedUuid<T extends UuidType> = {
+export type BrandedUuid<T extends UuidKindValue> = {
   __uuid: T
 }
 
@@ -28,22 +28,26 @@ export type BrandedUuid<T extends UuidType> = {
  * @usage Generates UUID with a entity prefix
  * @returns prefix + "-" + UUID with a branded type
  */
-export const createId = <T extends UuidType>(prefix: T): BrandedUuid<T> =>
+export const createId = <T extends UuidKindValue>(prefix: T): BrandedUuid<T> =>
   `${prefix}-${uuidv4()}` as unknown as BrandedUuid<T>
 
 /**
  * @usage Cast a value to the UUID brand type
  * @returns the same value with a branded type
  */
-export const brandUuid = <T extends UuidType>(str: string) =>
+export const brandUuid = <T extends UuidKindValue>(str: string) =>
   str as unknown as BrandedUuid<T>
+
+export const getBrandKind = (uuid: string): UuidKindValue | undefined =>
+  Object.values(UuidKind).find((kind) => uuid.startsWith(kind))
 
 /**
  * @usage Cast a branded UUID back to a string
  * @returns the same value with type string
  */
-export const unbrandUuid = <T extends UuidType>(uuid: BrandedUuid<T>): string =>
-  uuid as unknown as string
+export const unbrandUuid = <T extends UuidKindValue>(
+  uuid: BrandedUuid<T>
+): string => uuid as unknown as string
 
 /**
  * @usage Unlikely to be used, but since browser windows and tabs are optional,

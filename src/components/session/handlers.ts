@@ -3,7 +3,7 @@ import { useCallback } from 'react'
 import { Tabs } from 'webextension-polyfill'
 
 import { useTryToastError } from 'components/error/handlers'
-import { reorder, spliceSeparate, XOR } from 'utils/helpers'
+import { reorder, spliceSeparate } from 'utils/helpers'
 import { isDefined } from 'utils/helpers'
 import {
   Session,
@@ -400,6 +400,36 @@ export const useTabHandlers = () => {
   }
 }
 
+const shouldPin = (
+  target: SessionWindow['tabs'][number],
+  previous: SessionWindow['tabs'][number] | undefined,
+  next: SessionWindow['tabs'][number] | undefined
+) => {
+  if (
+    next?.pinned ||
+    (target.pinned && previous?.pinned) ||
+    (target.pinned && !previous)
+  ) {
+    return true
+  }
+
+  return false
+}
+
+type MoveTabArgs = {
+  from: {
+    sessionId: Session['id']
+    windowId: SessionWindow['id']
+    index: Tabs.MoveMovePropertiesType['index']
+  }
+  to: {
+    sessionId: Session['id']
+    windowId?: SessionWindow['id']
+    index?: Tabs.MoveMovePropertiesType['index']
+    incognito?: boolean
+  }
+}
+
 export const useDndHandlers = () => {
   const { tryToastError, sessionsManager, setSessionsManager } = useHelpers()
 
@@ -468,138 +498,118 @@ export const useDndHandlers = () => {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const moveTabs = useCallback(
-    tryToastError(
-      async ({
-        from,
-        to,
-      }: {
-        from: {
-          sessionId: Session['id']
-          windowId: SessionWindow['id']
-          tabIds: SessionTab['id'][]
-        }
-        to: {
-          sessionId: Session['id']
-          pinned?: boolean
-        } & XOR<
-          {
-            windowId: SessionWindow['id'] // when undefined, create new window
-            index: Tabs.MoveMovePropertiesType['index']
-          },
-          {
-            windowId?: undefined
-            incognito?: boolean // when no windowId is defined, otherwise incognito state depends on existing window
-          }
-        >
-      }) => {
-        console.log('move', sessionsManager, from, to)
-        if (sessionsManager) {
-          const fromSession = getSession(sessionsManager, from.sessionId)
-          const fromWindowIndex = findWindowIndex(
-            fromSession.windows,
-            from.windowId
-          )
-          const toSession = getSession(sessionsManager, to.sessionId)
-          const tabs = filterTabs(
-            fromSession.windows[fromWindowIndex].tabs.slice(),
-            from.tabIds.slice()
-          )
-          if (to.windowId) {
-            // move tabs to specific session window
-            const toWindowIndex = findWindowIndex(
-              toSession.windows,
-              to.windowId
-            )
-            const fromTabs = fromSession.windows[fromWindowIndex].tabs
-            if (
-              from.sessionId === to.sessionId &&
-              from.windowId === to.windowId
-            ) {
-              from.tabIds.forEach((tabId) => {
-                const fromTabIndex = fromTabs.findIndex((t) => t.id === tabId)
-                fromSession.windows[fromWindowIndex].tabs = reorder(
-                  fromTabs,
-                  fromTabIndex,
-                  to.index
-                )
-              })
-            } else {
-              // move tabs to separate window
-              const toTabs = toSession.windows[toWindowIndex].tabs
-              from.tabIds.forEach((tabId) => {
-                const fromTabIndex = fromTabs.findIndex((t) => t.id === tabId)
-                const [updatedFromTabs, updatedToTabs] = spliceSeparate(
-                  fromTabs,
-                  toTabs,
-                  fromTabIndex,
-                  to.index
-                )
-                if (updatedFromTabs.length > 0) {
-                  fromSession.windows[fromWindowIndex].tabs = updatedFromTabs
-                } else {
-                  fromSession.windows.splice(fromWindowIndex, 1)
-                }
-                toSession.windows[toWindowIndex].tabs = updatedToTabs
-              })
-            }
-            // side effects in browser
-            addCurrentTabs(
-              toSession.windows[toWindowIndex],
-              tabs,
-              to.index,
-              to.pinned
+    tryToastError(async ({ from, to }: MoveTabArgs) => {
+      if (sessionsManager) {
+        const fromSession = getSession(sessionsManager, from.sessionId)
+        const fromWindowIndex = findWindowIndex(
+          fromSession.windows,
+          from.windowId
+        )
+        const toSession = getSession(sessionsManager, to.sessionId)
+
+        if (to.windowId && isDefined(to.index)) {
+          // move tabs to specific session window
+          const toWindowIndex = findWindowIndex(toSession.windows, to.windowId)
+          const fromTabs = fromSession.windows[fromWindowIndex].tabs
+
+          // based on target, previous and next tabs, should the moved tab be pinned?
+          let target = fromSession.windows[fromWindowIndex].tabs[from.index]
+          const indexModifier = from.index > to.index ? 0 : 1
+          const index = to.index + indexModifier
+          const nextTab: SessionWindow['tabs'][number] | undefined =
+            toSession.windows[toWindowIndex].tabs[index]
+          const previousTab: SessionWindow['tabs'][number] | undefined =
+            toSession.windows[toWindowIndex].tabs[
+              index - 1 - (from.windowId !== to.windowId ? 1 : 0)
+            ]
+
+          if (
+            from.sessionId === to.sessionId &&
+            from.windowId === to.windowId
+          ) {
+            // move within same window
+            fromSession.windows[fromWindowIndex].tabs = reorder(
+              fromTabs,
+              from.index,
+              to.index
             )
           } else {
-            // TODO:
-            // move tabs to newly created window in a session
-            const { incognito, state, height, width, top, left } =
-              fromSession.windows[fromWindowIndex]
-            // create saved but `addWindow` will coerce window to match windows list
-            const newWindow = createSaved({
-              tabs,
-              incognito: isDefined(to.incognito) ? to.incognito : incognito,
-              focused: false,
-              state,
-              height,
-              width,
-              top,
-              left,
-            })
-            console.log('new window', newWindow, to)
-            toSession.windows = await addWindow(toSession.windows, {
-              window: newWindow,
-              index: to.index,
-            })
-          }
-          // if (!to.windowId || from.sessionId !== sessionsManager.current.id) {
-          //   tabs.forEach((t) => {
-          //     const index = findTabIndex(
-          //       fromSession.windows[fromWindowIndex].tabs,
-          //       t.id
-          //     )
-          //     tabs.splice(index, 1)
-          //   })
-          // }
-
-          // Set optimistically so DND doesn't have to wait
-          setSessionsManager(sessionsManager)
-          void save(sessionsManager)
-          if (
-            [from.sessionId, to.sessionId].includes(sessionsManager.current.id)
-          ) {
-            const asyncUpdate = async () => {
-              setSessionsManager(await updateCurrentSessionNow(sessionsManager))
+            // move tabs to separate window
+            const toTabs = toSession.windows[toWindowIndex].tabs
+            const [updatedFromTabs, updatedToTabs] = spliceSeparate(
+              fromTabs,
+              toTabs,
+              from.index,
+              to.index
+            )
+            if (updatedFromTabs.length > 0) {
+              fromSession.windows[fromWindowIndex].tabs = updatedFromTabs
+            } else {
+              fromSession.windows.splice(fromWindowIndex, 1)
             }
-
-            void asyncUpdate()
+            toSession.windows[toWindowIndex].tabs = updatedToTabs
           }
-        } else {
-          throw Error(
-            'Unable to save changes, please refresh the extension and try again.'
+          target = toSession.windows[toWindowIndex].tabs[to.index]
+          target.pinned = shouldPin(target, previousTab, nextTab)
+          toSession.windows[toWindowIndex].tabs[to.index] = target
+          // side effects in browser
+          addCurrentTabs(
+            toSession.windows[toWindowIndex],
+            [target],
+            to.index,
+            target.pinned
           )
+        } else {
+          // TODO: incomplete? remove tabs in fromWindow
+          // move tabs to newly created window in a session
+          const { incognito, state, height, width, top, left } =
+            fromSession.windows[fromWindowIndex]
+          const tab = fromSession.windows[fromWindowIndex].tabs[from.index]
+          // create saved but `addWindow` will coerce window to match windows list
+          const newWindow = createSaved({
+            tabs: [tab],
+            incognito: isDefined(to.incognito) ? to.incognito : incognito,
+            focused: false,
+            state,
+            height,
+            width,
+            top,
+            left,
+          })
+          console.log('new window', newWindow, to)
+          toSession.windows = await addWindow(toSession.windows, {
+            window: newWindow,
+            index: to.index,
+          })
         }
+        // if (!to.windowId || from.sessionId !== sessionsManager.current.id) {
+        //   tabs.forEach((t) => {
+        //     const index = findTabIndex(
+        //       fromSession.windows[fromWindowIndex].tabs,
+        //       t.id
+        //     )
+        //     tabs.splice(index, 1)
+        //   })
+        // }
+
+        // Set optimistically so DND doesn't have to wait
+        setSessionsManager(sessionsManager)
+        void save(sessionsManager)
+        if (
+          [from.sessionId, to.sessionId].includes(sessionsManager.current.id)
+        ) {
+          const asyncUpdate = async () => {
+            setSessionsManager(await updateCurrentSessionNow(sessionsManager))
+          }
+
+          void asyncUpdate()
+        }
+      } else {
+        throw Error(
+          'Unable to save changes, please refresh the extension and try again.'
+        )
       }
-    ),
+    }),
     [sessionsManager]
   )
 

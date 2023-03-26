@@ -1,140 +1,11 @@
-import {
-  DraggableLocation,
-  DropResult,
-  OnBeforeCaptureResponder,
-} from '@hello-pangea/dnd'
+import { DropResult, OnBeforeCaptureResponder } from '@hello-pangea/dnd'
 import { useCallback, useState } from 'react'
 
-import { BrandedUuid, brandUuid } from 'utils/generate'
-import { isDefined, reorder, spliceSeparate, Valueof } from 'utils/helpers'
-import { isCurrentSessionTab } from 'utils/session-tab'
-import { isCurrentSessionWindow, SessionWindow } from 'utils/session-window'
+import { brandUuid, getBrandKind, UuidKind } from 'utils/generate'
+import { Valueof } from 'utils/helpers'
 
 import { useDndHandlers } from './handlers'
 import { useSessionsManager } from './store'
-
-const shouldPin = (
-  target: SessionWindow['tabs'][number],
-  previous: SessionWindow['tabs'][number] | undefined,
-  next: SessionWindow['tabs'][number] | undefined
-) => {
-  if (
-    next?.pinned ||
-    (target.pinned && previous?.pinned) ||
-    (target.pinned && !previous)
-  ) {
-    return true
-  }
-
-  return false
-}
-
-const _moveTabs = ({
-  sessionId,
-  windows: _windows,
-  source,
-  destination,
-  moveTabs,
-}: {
-  sessionId: BrandedUuid<'session'>
-  windows: SessionWindow[]
-  source: DraggableLocation
-  destination: DraggableLocation
-  moveTabs: ReturnType<typeof useDndHandlers>['moveTabs']
-}) => {
-  const windows = _windows.slice()
-
-  const currentWindowIndex = windows.findIndex(
-    (w) => w.id === brandUuid<'window'>(source.droppableId)
-  )
-  const nextWindowIndex = windows.findIndex(
-    (w) => w.id === brandUuid<'window'>(destination.droppableId)
-  )
-
-  // based on target, previous and next tabs, should the moved tab be pinned?
-  if (currentWindowIndex > -1) {
-    let target = windows[currentWindowIndex].tabs[source.index]
-    // let createNewWindowForTabs = false
-    if (nextWindowIndex > -1) {
-      const index =
-        source.index > destination.index
-          ? destination.index
-          : destination.index + 1
-      const nextTab: SessionWindow['tabs'][number] | undefined =
-        windows[nextWindowIndex].tabs[index]
-      const previousTab: SessionWindow['tabs'][number] | undefined =
-        windows[nextWindowIndex].tabs[
-          index - 1 - (source.droppableId !== destination.droppableId ? 1 : 0)
-        ]
-
-      // optimistically reorder for DND
-      if (source.droppableId === destination.droppableId) {
-        // moving to same window list
-        windows[currentWindowIndex].tabs = reorder(
-          windows[nextWindowIndex].tabs,
-          source.index,
-          destination.index
-        )
-        target = windows[nextWindowIndex].tabs[destination.index]
-        target.pinned = shouldPin(target, previousTab, nextTab)
-      } else {
-        // moving to different window list
-        // remove from original window tab list & insert into next window tab list
-        const [modifiedFrom, modifiedTo] = spliceSeparate(
-          windows[currentWindowIndex].tabs,
-          windows[nextWindowIndex].tabs,
-          source.index,
-          destination.index
-        )
-        windows[currentWindowIndex].tabs = modifiedFrom
-        windows[nextWindowIndex].tabs = modifiedTo
-
-        target = windows[nextWindowIndex].tabs[destination.index]
-        target.pinned = shouldPin(target, previousTab, nextTab)
-      }
-    }
-
-    const windowId: BrandedUuid<'window'> | undefined =
-      windows[nextWindowIndex]?.id
-
-    console.log('before iscurrent', windows[nextWindowIndex])
-    if (
-      !windows[nextWindowIndex] ||
-      isCurrentSessionWindow(windows[nextWindowIndex])
-    ) {
-      // No existing window or is current
-      if (isCurrentSessionTab(target)) {
-        // move tabs
-        moveTabs({
-          from: {
-            sessionId,
-            windowId: windows[currentWindowIndex].id,
-            tabIds: [target.id],
-          },
-          to: isDefined(windowId)
-            ? {
-                sessionId,
-                index: destination.index,
-                pinned: target.pinned,
-                windowId,
-              }
-            : {
-                sessionId,
-                pinned: target.pinned,
-                incognito:
-                  destination.droppableId === DroppableId.NEW_INCOGNITO_WINDOW,
-              },
-        })
-      } else {
-        // open tabs
-      }
-    } else {
-      // save changes
-    }
-  }
-
-  return windows
-}
 
 /**
  * Dragging element type, or undefined when not dragged
@@ -213,16 +84,35 @@ export const useSessions = () => {
             })
           } else {
             // reordering tab
-            const sessionId = sessionsManager.current.id
             // For now, TODO: support all session types
-            const windows = sessionsManager.current.windows
-            _moveTabs({
-              sessionId,
-              windows,
-              source,
-              destination,
-              moveTabs,
-            })
+            const sessionId = sessionsManager.current.id
+            const fromWindowId =
+              getBrandKind(source.droppableId) === UuidKind.WINDOW
+                ? brandUuid<'window'>(source.droppableId)
+                : undefined
+            const toWindowId =
+              !Object.keys(DroppableId).includes(destination.droppableId) &&
+              getBrandKind(destination.droppableId) === UuidKind.WINDOW
+                ? brandUuid<'window'>(destination.droppableId)
+                : undefined
+
+            if (fromWindowId) {
+              moveTabs({
+                from: {
+                  sessionId,
+                  windowId: fromWindowId,
+                  index: source.index,
+                },
+                to: {
+                  sessionId,
+                  windowId: toWindowId,
+                  index: destination.index,
+                  incognito:
+                    destination.droppableId ===
+                    DroppableId.NEW_INCOGNITO_WINDOW,
+                },
+              })
+            }
           }
         }
 
