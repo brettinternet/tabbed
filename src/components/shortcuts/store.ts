@@ -110,10 +110,10 @@ export const useShortcuts = (enabled: boolean) => {
   const { modal, ...updateModal } = useModal()
   useHotkeys(
     hotkeyShortcuts,
-    (event, handler) => {
+    (event, _handler) => {
       switch (event.key) {
         case Shortcut.question.eventKey:
-          updateModal.shortcuts.toggle()
+          updateModal.help.toggle()
           break
         case Shortcut.escape.eventKey:
           if (!!modal) {

@@ -55,6 +55,9 @@ module.exports = {
         selected: ['2px solid #000', '-2px'],
         'selected-white': ['2px solid #fff', '-2px'],
       },
+      padding: {
+        header: '3.2rem',
+      },
     },
   },
   variants: {

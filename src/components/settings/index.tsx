@@ -124,13 +124,15 @@ export const Settings: React.FC = () => {
         />
         <Description>
           Enables extension shortcuts. Use <Kbd>?</Kbd> when enabled to{' '}
-          <button
-            onClick={handleOpenShortcuts}
-            className="appearance-none text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-500"
-          >
-            view shortcuts
-          </button>
-          .
+          <span className="whitespace-nowrap">
+            <button
+              onClick={handleOpenShortcuts}
+              className="appearance-none text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-500"
+            >
+              view shortcuts
+            </button>
+            .
+          </span>
         </Description>
       </div>
 

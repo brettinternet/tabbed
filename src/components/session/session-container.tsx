@@ -13,6 +13,9 @@ type SessionContainerProps = {
   activeDragKind: ActiveDragKindType
 }
 
+/**
+ * Modeled after https://github.com/hello-pangea/dnd/blob/00d2fd24ef9db1c62274d89da213b711efbacdde/stories/src/board/board.tsx
+ */
 export const SessionContainer: React.FC<SessionContainerProps> = ({
   session,
   activeDragKind,

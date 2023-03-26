@@ -24,16 +24,6 @@ export const ModalDropdown: React.FC<ModalDropdownProps> = ({
         [
           {
             onClick: () => {
-              shortcuts.set(true)
-            },
-            text: 'Shortcuts',
-            iconProps: {
-              name: IconName.KEYBOARD,
-              size: 'sm',
-            },
-          },
-          {
-            onClick: () => {
               help.set(true)
             },
             text: 'Help',

@@ -88,6 +88,9 @@ const getWrapperBackground = (
   }
 }
 
+/**
+ * Modeled after https://github.com/hello-pangea/dnd/blob/00d2fd24ef9db1c62274d89da213b711efbacdde/stories/src/primatives/quote-list.tsx
+ */
 export const TabsList: React.FC<TabsListProps> = ({
   sessionId,
   windowId,
