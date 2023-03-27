@@ -20,6 +20,7 @@ import {
   findTab,
   update as _updateTab,
   findTabIndex,
+  shouldPin,
 } from 'utils/session-tab'
 import {
   addWindow,
@@ -43,10 +44,10 @@ import {
   downloadSession,
   SessionExport,
   save,
-  updateCurrentSessionNow,
   updateSessionsManager,
 } from 'utils/sessions-manager'
 
+import { ApiControllerRef, programmticallyMoveTab } from './dnd-store'
 import { sessionsManagerAtom } from './store'
 
 const useHelpers = () => {
@@ -296,7 +297,7 @@ export const useWindowHandlers = () => {
   }
 }
 
-export const useTabHandlers = () => {
+export const useTabHandlers = (apiControllerRef: ApiControllerRef) => {
   const { tryToastError, sessionsManager, setSessionsManager } = useHelpers()
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -354,20 +355,37 @@ export const useTabHandlers = () => {
           const session = getSession(sessionsManager, sessionId)
           const winIndex = findWindowIndex(session.windows, windowId)
           const tabIndex = findTabIndex(session.windows[winIndex].tabs, tabId)
+          const originalTabs = session.windows[winIndex].tabs.slice()
           session.windows[winIndex].tabs[tabIndex] = await _updateTab(
-            session.windows[winIndex].tabs[tabIndex],
+            originalTabs[tabIndex],
             options
           )
+
+          if (isDefined(options.pinned)) {
+            // DnD programmatically move tab to last pinned position / first non-pinned position
+            void programmticallyMoveTab(
+              apiControllerRef,
+              windowId,
+              {
+                index: tabIndex,
+                tabId,
+              },
+              {
+                index: originalTabs.findIndex((t) => !t.pinned) ?? 0,
+              }
+            )
+          }
+
           if (sessionsManager.current.id === sessionId) {
             setSessionsManager(await updateCurrentSession(sessionsManager))
           } else {
-            await save(sessionsManager)
+            void save(sessionsManager)
             setSessionsManager(sessionsManager)
           }
         }
       }
     ),
-    [sessionsManager]
+    [sessionsManager, apiControllerRef.current]
   )
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -391,6 +409,9 @@ export const useTabHandlers = () => {
               session.windows[index].tabs,
               tabIds
             )
+            if (!session.windows[index].tabs.length) {
+              _removeWindows(session.windows, [session.windows[index].id])
+            }
           }
           if (sessionsManager.current.id === sessionId) {
             setSessionsManager(await updateCurrentSession(sessionsManager))
@@ -409,22 +430,6 @@ export const useTabHandlers = () => {
     updateTab,
     removeTabs,
   }
-}
-
-const shouldPin = (
-  target: SessionWindow['tabs'][number],
-  previous: SessionWindow['tabs'][number] | undefined,
-  next: SessionWindow['tabs'][number] | undefined
-) => {
-  if (
-    next?.pinned ||
-    (target.pinned && previous?.pinned) ||
-    (target.pinned && !previous)
-  ) {
-    return true
-  }
-
-  return false
 }
 
 type MoveTabArgs = {
@@ -610,7 +615,7 @@ export const useDndHandlers = () => {
           [from.sessionId, to.sessionId].includes(sessionsManager.current.id)
         ) {
           const asyncUpdate = async () => {
-            setSessionsManager(await updateCurrentSessionNow(sessionsManager))
+            setSessionsManager(await updateCurrentSession(sessionsManager))
           }
 
           void asyncUpdate()

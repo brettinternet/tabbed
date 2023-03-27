@@ -291,3 +291,22 @@ export const removeTabs = async (
   }
   return tabs
 }
+
+/**
+ * Whether tab should be pinned based on neighbor status
+ */
+export const shouldPin = (
+  target: SessionTab,
+  previous: SessionTab | undefined,
+  next: SessionTab | undefined
+) => {
+  if (
+    next?.pinned ||
+    (target.pinned && previous?.pinned) ||
+    (target.pinned && !previous)
+  ) {
+    return true
+  }
+
+  return false
+}

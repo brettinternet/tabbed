@@ -134,3 +134,22 @@ export const tryParse = (str: unknown) => {
     return str
   }
 }
+
+export const stopPropagation = (
+  event: { stopPropagation?: () => void } = {}
+) => {
+  event.stopPropagation?.()
+}
+
+/**
+ * Tween function
+ */
+export const easeOutCirc = (
+  i: number,
+  start: number,
+  end: number,
+  steps: number
+): number => {
+  const distance = end - start
+  return distance * Math.sqrt(1 - (i = i / steps - 1) * i) + start
+}

@@ -7,6 +7,7 @@ import { Icon, IconName } from 'components/icon'
 import { Active } from 'components/indicators'
 import { useWindowHandlers } from 'components/session/handlers'
 import { BrandedUuid } from 'utils/generate'
+import { stopPropagation } from 'utils/helpers'
 import {
   CurrentSessionWindow,
   isCurrentSessionWindow,
@@ -148,6 +149,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
               shape="none"
               className="text-xxs px-1 border rounded h-5"
               onClick={stateAction.onClick}
+              onDoubleClick={stopPropagation}
               aria-label={stateActionTitle}
               title={stateActionTitle}
             >
@@ -167,6 +169,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
                 size: 'sm',
               }}
               onClick={handleNewTab}
+              onDoubleClick={stopPropagation}
             />
           )}
           {incognito && (

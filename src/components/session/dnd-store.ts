@@ -1,14 +1,23 @@
-import { DropResult, OnBeforeCaptureResponder } from '@hello-pangea/dnd'
-import { atom, SetStateAction, useAtom } from 'jotai'
-import { useCallback, useState } from 'react'
+// `FluidDragActions` not exported, issue: https://github.com/hello-pangea/dnd/issues/509
+import type { PreDragActions } from '@hello-pangea/dnd'
+import {
+  DropResult,
+  OnBeforeCaptureResponder,
+  SensorAPI,
+} from '@hello-pangea/dnd'
+import { atom, useAtom } from 'jotai'
+import { useCallback, useRef } from 'react'
 
 import { brandUuid, getBrandKind, UuidKind } from 'utils/generate'
-import { isDefined, Valueof } from 'utils/helpers'
+import { easeOutCirc, isDefined, Valueof } from 'utils/helpers'
 import { SessionTab } from 'utils/session-tab'
 import { SessionWindow } from 'utils/session-window'
+import { getAbsoluteHeight } from 'utils/window'
 
 import { useDndHandlers } from './handlers'
 import { useSessionsManager } from './store'
+
+type FluidDragActions = ReturnType<PreDragActions['fluidLift']>
 
 /**
  * Dragging element type, or undefined when not dragged
@@ -72,7 +81,25 @@ export const activeDragKindAtom = atom<ActiveDragKindType | undefined>(
 
 export const useActiveDragKind = () => useAtom(activeDragKindAtom)
 
-export const useSessions = () => {
+export type ApiControllerRef = React.MutableRefObject<SensorAPI | undefined>
+
+/**
+ * Modeled after https://github.com/hello-pangea/dnd/blob/00d2fd24ef9db1c62274d89da213b711efbacdde/stories/src/programmatic/with-controls.tsx#L239-L243
+ */
+export const useApiController = () => {
+  const apiControllerRef = useRef<SensorAPI>()
+
+  const apiControllerSensor = (api: SensorAPI) => {
+    apiControllerRef.current = api
+  }
+
+  return {
+    apiControllerSensor,
+    apiControllerRef,
+  }
+}
+
+export const useDndSessions = () => {
   const [sessionsManager] = useSessionsManager()
   const { moveWindows, moveTabs } = useDndHandlers()
   const [, setActiveDragKind] = useActiveDragKind()
@@ -174,5 +201,94 @@ export const useSessions = () => {
     onBeforeCapture,
     onDragEnd,
     sessionsManager,
+  }
+}
+
+const moveStepByStep = (
+  actions: FluidDragActions,
+  values: Parameters<FluidDragActions['move']>[0][]
+) => {
+  requestAnimationFrame(() => {
+    const newPosition = values.shift()
+    if (newPosition) {
+      actions.move(newPosition)
+    }
+
+    if (values.length) {
+      moveStepByStep(actions, values)
+    } else {
+      actions.drop()
+    }
+  })
+}
+
+const delay = (fn: Function, time = 150) => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      fn()
+      resolve(undefined)
+    }, time)
+  })
+}
+
+/**
+ * Move within a window column, between windows not supported yet
+ */
+export const programmticallyMoveTab = async (
+  apiControllerRef: ApiControllerRef,
+  windowId: SessionWindow['id'],
+  from: {
+    index: number
+    tabId: SessionTab['id']
+  },
+  to: {
+    index: number
+  }
+) => {
+  const draggableId = getWindowTabDraggableId(windowId, from.tabId)
+  const preDrag = apiControllerRef.current?.tryGetLock(draggableId)
+  const tabCard: HTMLElement | null = document.querySelector(
+    `[data-rfd-draggable-id="${draggableId}"]`
+  )
+  if (preDrag && tabCard) {
+    const indexModifier = from.index < to.index ? -1 : 0
+    const indexDifference = to.index - from.index + indexModifier
+
+    if (indexDifference) {
+      const { moveDown, moveUp, drop } = preDrag.snapLift()
+      const action = indexDifference > 0 ? moveDown : moveUp
+      for (const _ of [...new Array(indexDifference)].entries()) {
+        console.log('performing action')
+        await delay(action)
+      }
+      console.log('performing drop')
+      await delay(drop)
+    }
+
+    // 0 - indexDifference ?
+    // for (let i = 0; i < steps; i++) {
+    //   points.push({
+    //     x: easeOutCirc(i, start.x, end.x, steps),
+    //     y: easeOutCirc(i, start.y, end.y, steps),
+    //   })
+    // }
+    // moveStepByStep(actions, points)
+
+    // const tabCardHeight = getAbsoluteHeight(tabCard) || tabCard.offsetHeight
+    // const start = { x: tabCard.clientLeft, y: tabCard.clientTop }
+    // const end = {
+    //   x: start.x,
+    //   y: start.y + tabCardHeight * indexDifference,
+    // }
+    // const actions = preDrag.fluidLift(start)
+    // const points = []
+    // const steps = Math.abs(indexDifference) * 5
+    // for (let i = 0; i < steps; i++) {
+    //   points.push({
+    //     x: easeOutCirc(i, start.x, end.x, steps),
+    //     y: easeOutCirc(i, start.y, end.y, steps),
+    //   })
+    // }
+    // moveStepByStep(actions, points)
   }
 }

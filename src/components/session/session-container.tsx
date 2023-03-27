@@ -1,12 +1,11 @@
 import { Droppable } from '@hello-pangea/dnd'
-import cn from 'classnames'
 
 import { Session } from 'utils/session'
 import { useMedia } from 'utils/window'
 
 import {
   ActiveDragKind,
-  ActiveDragKindType,
+  ApiControllerRef,
   DroppableType,
   useActiveDragKind,
 } from './dnd-store'
@@ -15,6 +14,7 @@ import { WindowContainer } from './window-container'
 
 type SessionContainerProps = {
   session: Session
+  apiControllerRef: ApiControllerRef
 }
 
 /**
@@ -22,6 +22,7 @@ type SessionContainerProps = {
  */
 export const SessionContainer: React.FC<SessionContainerProps> = ({
   session,
+  apiControllerRef,
 }) => {
   const [activeDragKind] = useActiveDragKind()
   const direction = useMedia<'vertical' | 'horizontal'>([
@@ -50,6 +51,7 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
               index={index}
               sessionId={session.id}
               window={win}
+              apiControllerRef={apiControllerRef}
             />
           ))}
           {provided.placeholder}

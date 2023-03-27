@@ -4,7 +4,9 @@ import { Button } from 'components/button'
 import { Dropdown } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
 import { Active } from 'components/indicators'
+import { ApiControllerRef } from 'components/session/dnd-store'
 import { useTabHandlers } from 'components/session/handlers'
+import { stopPropagation } from 'utils/helpers'
 import { Session } from 'utils/session'
 import {
   isCurrentSessionTab,
@@ -22,6 +24,7 @@ export type TabProps = {
   className?: ClassNames
   isDragging: boolean
   isWindowFocused?: boolean
+  apiControllerRef: ApiControllerRef
 }
 
 export const Tab: React.FC<TabProps> = ({
@@ -31,6 +34,7 @@ export const Tab: React.FC<TabProps> = ({
   isDragging,
   className,
   isWindowFocused,
+  apiControllerRef,
 }) => {
   const {
     id: tabId,
@@ -45,7 +49,7 @@ export const Tab: React.FC<TabProps> = ({
     active,
     // groupId,
   } = tab
-  const { openTabs, updateTab, removeTabs } = useTabHandlers()
+  const { openTabs, updateTab, removeTabs } = useTabHandlers(apiControllerRef)
   const isCurrentSession = isCurrentSessionTab(tab)
 
   const handleOpen = () => {
@@ -120,6 +124,29 @@ export const Tab: React.FC<TabProps> = ({
           </div>
         </div>
         <div className="flex flex-row justify-start items-center overflow-hidden w-full max-w-full space-x-2">
+          {(audible || muted) && (
+            <Button
+              iconProps={{
+                name: muted ? IconName.MUTE : IconName.AUDIBLE,
+                size: 'xs',
+              }}
+              variant="card-action"
+              shape="outline"
+              onClick={handleMuteToggle}
+              onDoubleClick={stopPropagation}
+              aria-label={muted ? 'Mute tab' : 'Unmute tab'}
+              title={muted ? 'Mute tab' : 'Unmute tab'}
+            />
+          )}
+          {attention && (
+            <Icon
+              name={IconName.ALERT}
+              title="Tab has notification"
+              aria-label="Tab has notification"
+              size="xs"
+              className="text-red-500"
+            />
+          )}
           <Button
             iconProps={{ name: IconName.PIN, size: 'xs' }}
             className={cn(
@@ -130,32 +157,10 @@ export const Tab: React.FC<TabProps> = ({
             variant={pinned ? 'none' : 'card-action'}
             shape="outline"
             onClick={handlePinToggle}
+            onDoubleClick={stopPropagation}
             aria-label={pinned ? 'Unpin tab' : 'Pin tab'}
             title={pinned ? 'Unpin tab' : 'Pin tab'}
           />
-          {audible ||
-            (muted && (
-              <Button
-                iconProps={{
-                  name: muted ? IconName.MUTE : IconName.AUDIBLE,
-                  size: 'xs',
-                }}
-                variant="card-action"
-                shape="outline"
-                onClick={handleMuteToggle}
-                aria-label={muted ? 'Mute tab' : 'Unmute tab'}
-                title={muted ? 'Mute tab' : 'Unmute tab'}
-              />
-            ))}
-          {attention && (
-            <Icon
-              name={IconName.ALERT}
-              title="Tab has notification"
-              aria-label="Tab has notification"
-              size="xs"
-              className="text-red-500"
-            />
-          )}
         </div>
       </div>
       <div className="absolute opacity-0 group-hover:opacity-100 h-full right-0 bottom-0 top-0 flex flex-col items-center justify-between p-3">
@@ -169,6 +174,7 @@ export const Tab: React.FC<TabProps> = ({
               : 'bg-gray-50 dark:bg-gray-700'
           )}
           onClick={handleRemove}
+          onDoubleClick={stopPropagation}
           aria-label={isCurrentSession ? 'Close' : 'Remove'}
           title={isCurrentSession ? 'Close' : 'Remove'}
         />

@@ -10,6 +10,7 @@ import { WindowHeader } from 'components/window'
 import { Session } from 'utils/session'
 import { SessionWindow } from 'utils/session-window'
 
+import { ApiControllerRef } from './dnd-store'
 import { TabsList } from './tabs-list'
 
 type ColorOptions = {
@@ -45,12 +46,14 @@ type SessionWindowProps = {
   sessionId: Session['id']
   index: number
   window: SessionWindow
+  apiControllerRef: ApiControllerRef
 }
 
 export const WindowContainer: React.FC<SessionWindowProps> = ({
   sessionId,
   index,
   window: win,
+  apiControllerRef,
 }) => (
   <Draggable draggableId={`${sessionId}-${win.id}`} index={index}>
     {(
@@ -90,6 +93,7 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
           window={win}
           isWindowDragging={isDragging}
           className="cursor-default"
+          apiControllerRef={apiControllerRef}
         />
       </div>
     )}

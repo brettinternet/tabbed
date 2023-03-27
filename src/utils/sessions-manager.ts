@@ -1,5 +1,5 @@
 import { lightFormat } from 'date-fns'
-import { uniqBy, debounce } from 'lodash'
+import { uniqBy } from 'lodash'
 import log from 'loglevel'
 
 import { appName } from 'utils/env'
@@ -65,17 +65,12 @@ export const getCurrent = async (
  * @usage Updates the current session with the latest windows/tabs snapshot from browser
  * @returns a new sessions manager reference with current field updated
  */
-export const updateCurrentSessionNow = async (
+export const updateCurrentSession = async (
   sessionsManager: SessionsManager
 ) => {
   const current = await sessionFromBrowser(sessionsManager.current)
   return Object.assign({}, sessionsManager, { current })
 }
-
-const updateCurrentSessionDebounced = debounce(updateCurrentSessionNow, 250)
-
-export const updateCurrentSession = async (sessionsManager: SessionsManager) =>
-  (await updateCurrentSessionDebounced(sessionsManager)) || sessionsManager
 
 /**
  * @usage loads the session manager from local storage
@@ -335,7 +330,7 @@ export const downloadSession = async (
   sessionsManager: SessionsManager,
   sessionIds: Session['id'][]
 ) => {
-  sessionsManager = await updateCurrentSessionNow(sessionsManager)
+  sessionsManager = await updateCurrentSession(sessionsManager)
   const storedSessions = [
     createSavedSession(sessionsManager.current),
     ...sessionsManager.saved,

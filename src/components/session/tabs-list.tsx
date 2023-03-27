@@ -15,6 +15,7 @@ import { SessionWindow } from 'utils/session-window'
 
 import {
   ActiveDragKind,
+  ApiControllerRef,
   DroppableType,
   getWindowTabDraggableId,
   useActiveDragKind,
@@ -26,6 +27,7 @@ type InnerTabListProps = {
   tabs: SessionWindow['tabs']
   isWindowDragging: boolean
   isWindowFocused: boolean
+  apiControllerRef: ApiControllerRef
 }
 
 const InnerTabList: React.FC<InnerTabListProps> = ({
@@ -34,6 +36,7 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
   windowId,
   // isWindowDragging,
   isWindowFocused,
+  apiControllerRef,
 }) => (
   <>
     {tabs.map((tab, index) => {
@@ -62,6 +65,7 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
                 windowId={windowId}
                 isDragging={dragSnapshot.isDragging}
                 isWindowFocused={isWindowFocused}
+                apiControllerRef={apiControllerRef}
               />
             </div>
           )}
@@ -72,14 +76,6 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
 )
 
 const MemoizedInnerTabList = memo(InnerTabList)
-
-type TabsListProps = {
-  window: SessionWindow
-  windowId: SessionWindow['id']
-  sessionId: Session['id']
-  className?: ClassNames
-  isWindowDragging: boolean
-}
 
 /**
  * Colors when tab card is dragging
@@ -100,6 +96,15 @@ const getWrapperBackground = (
   }
 }
 
+type TabsListProps = {
+  window: SessionWindow
+  windowId: SessionWindow['id']
+  sessionId: Session['id']
+  className?: ClassNames
+  isWindowDragging: boolean
+  apiControllerRef: ApiControllerRef
+}
+
 /**
  * Modeled after https://github.com/hello-pangea/dnd/blob/00d2fd24ef9db1c62274d89da213b711efbacdde/stories/src/primatives/quote-list.tsx
  */
@@ -109,6 +114,7 @@ export const TabsList: React.FC<TabsListProps> = ({
   window: win,
   className,
   isWindowDragging,
+  apiControllerRef,
 }) => {
   const [activeDragKind] = useActiveDragKind()
   const isDropDisabled =
@@ -145,6 +151,7 @@ export const TabsList: React.FC<TabsListProps> = ({
                 windowId={windowId}
                 isWindowDragging={isWindowDragging}
                 isWindowFocused={win.focused}
+                apiControllerRef={apiControllerRef}
               />
               {dropProvided.placeholder}
             </div>
