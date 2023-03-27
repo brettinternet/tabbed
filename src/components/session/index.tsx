@@ -19,8 +19,7 @@ if (isPopup) {
  */
 export const SessionLayout = () => {
   const [settings] = useSettings()
-  const { onBeforeCapture, onDragEnd, activeDragKind, sessionsManager } =
-    useSessions()
+  const { onBeforeCapture, onDragEnd, sessionsManager } = useSessions()
 
   if (sessionsManager) {
     const session = sessionsManager.current
@@ -36,7 +35,7 @@ export const SessionLayout = () => {
           onBeforeCapture={onBeforeCapture}
           onDragEnd={onDragEnd}
         >
-          <SessionContainer session={session} activeDragKind={activeDragKind} />
+          <SessionContainer session={session} />
         </DragDropContext>
       </div>
     )

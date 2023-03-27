@@ -9,21 +9,24 @@ const Variant = {
   SECONDARY: 'secondary',
   TRANSPARENT: 'transparent',
   LINK: 'link',
+  CARD_ACTION: 'card-action',
+  ITEM: 'item',
   NONE: 'none',
 } as const
 
-type VariantType = Valueof<typeof Variant>
+type VariantValue = Valueof<typeof Variant>
 
 const Shape = {
   ROUNDED: 'rounded',
   ICON: 'icon',
   ITEM: 'item',
+  OUTLINE: 'outline',
   NONE: 'none',
 } as const
 
-type ShapeType = Valueof<typeof Shape>
+type ShapeValue = Valueof<typeof Shape>
 
-const getVariantClass = (variant: VariantType) => {
+const getVariantClass = (variant: VariantValue) => {
   switch (variant) {
     case Variant.PRIMARY:
       return 'bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-300 dark:text-black'
@@ -33,17 +36,23 @@ const getVariantClass = (variant: VariantType) => {
       return 'hover:bg-gray-100 dark:hover:bg-gray-700 disabled:text-gray-600'
     case Variant.LINK:
       return 'text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-500'
+    case Variant.CARD_ACTION:
+      return 'text-gray-500 border-gray-300 hover:text-gray-500 hover:border-gray-400 dark:text-gray-400 dark:hover:text-gray-300 dark:border-gray-500 dark:hover:border-gray-500'
+    case Variant.ITEM:
+      return 'text-gray-600 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
   }
 }
 
-const getShapeClass = (shape: ShapeType) => {
+const getShapeClass = (shape: ShapeValue) => {
   switch (shape) {
     case Shape.ROUNDED:
       return 'px-4 py-1 rounded-full'
     case Shape.ICON:
-      return 'p-2 rounded-full'
+      return 'p-1 rounded-full'
     case Shape.ITEM:
-      return 'p-2 w-full rounded'
+      return 'p-1 w-full rounded'
+    case Shape.OUTLINE:
+      return 'p-1 border rounded'
   }
 }
 
@@ -52,8 +61,8 @@ export const getClass = ({
   shape = Shape.ROUNDED,
   inline = variant === Variant.LINK,
 }: {
-  variant?: VariantType
-  shape?: ShapeType
+  variant?: VariantValue
+  shape?: ShapeValue
   inline?: boolean
 } = {}) =>
   cn(
@@ -65,10 +74,10 @@ export const getClass = ({
 
 export type ButtonProps = {
   className?: ClassNames
-  variant?: VariantType
+  variant?: VariantValue
   iconProps?: IconProps
   text?: string
-  shape?: ShapeType
+  shape?: ShapeValue
   inline?: boolean
 } & React.ButtonHTMLAttributes<HTMLButtonElement>
 

@@ -1,8 +1,11 @@
 import { DropResult, OnBeforeCaptureResponder } from '@hello-pangea/dnd'
+import { atom, SetStateAction, useAtom } from 'jotai'
 import { useCallback, useState } from 'react'
 
 import { brandUuid, getBrandKind, UuidKind } from 'utils/generate'
-import { Valueof } from 'utils/helpers'
+import { isDefined, Valueof } from 'utils/helpers'
+import { SessionTab } from 'utils/session-tab'
+import { SessionWindow } from 'utils/session-window'
 
 import { useDndHandlers } from './handlers'
 import { useSessionsManager } from './store'
@@ -12,10 +15,37 @@ import { useSessionsManager } from './store'
  */
 export const ActiveDragKind = {
   TAB: 'tab',
+  INCOGNITO_TAB: 'incognito-tab',
   WINDOW: 'window',
+  INCOGNITO_WINDOW: 'incognito-window',
 } as const
 
 export type ActiveDragKindType = Valueof<typeof ActiveDragKind> | undefined
+
+const windowTabSeparator = '|'
+
+export const getWindowTabDraggableId = (
+  windowId: SessionWindow['id'],
+  tabId: SessionTab['id']
+) => `${windowId}${windowTabSeparator}${tabId}`
+
+const parseDraggableIdWindowTab = (draggableId: string) => {
+  let [windowIdStr, tabIdStr] = draggableId.split(windowTabSeparator)
+  if (windowIdStr.startsWith(UuidKind.WINDOW)) {
+    const windowId = brandUuid<'window'>(windowIdStr)
+    if (tabIdStr && tabIdStr.startsWith(UuidKind.TAB)) {
+      const tabId = brandUuid<'tab'>(tabIdStr)
+      return {
+        windowId,
+        tabId,
+      }
+    }
+    return {
+      windowId,
+    }
+  }
+  return {}
+}
 
 /**
  * For tabs, this is the window ID, otherwise for special areas these are defined
@@ -36,19 +66,37 @@ export const DroppableType = {
   SESSION: 'session',
 } as const
 
+export const activeDragKindAtom = atom<ActiveDragKindType | undefined>(
+  undefined
+)
+
+export const useActiveDragKind = () => useAtom(activeDragKindAtom)
+
 export const useSessions = () => {
   const [sessionsManager] = useSessionsManager()
   const { moveWindows, moveTabs } = useDndHandlers()
-  const [activeDragKind, setActiveDragKind] =
-    useState<ActiveDragKindType>(undefined)
+  const [, setActiveDragKind] = useActiveDragKind()
 
   const onBeforeCapture: OnBeforeCaptureResponder = useCallback(
     ({ draggableId }) => {
-      setActiveDragKind(
-        draggableId.includes('tab') ? ActiveDragKind.TAB : ActiveDragKind.WINDOW
-      )
+      const windows = sessionsManager?.current.windows
+      const { windowId, tabId } = parseDraggableIdWindowTab(draggableId)
+      if (isDefined(windowId)) {
+        const win = windows?.find((w) => w.id === windowId)
+        if (win?.incognito) {
+          setActiveDragKind(
+            isDefined(tabId)
+              ? ActiveDragKind.INCOGNITO_TAB
+              : ActiveDragKind.INCOGNITO_WINDOW
+          )
+        } else {
+          setActiveDragKind(
+            isDefined(tabId) ? ActiveDragKind.TAB : ActiveDragKind.WINDOW
+          )
+        }
+      }
     },
-    []
+    [sessionsManager]
   )
 
   /**
@@ -125,7 +173,6 @@ export const useSessions = () => {
   return {
     onBeforeCapture,
     onDragEnd,
-    activeDragKind,
     sessionsManager,
   }
 }

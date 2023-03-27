@@ -4,13 +4,17 @@ import cn from 'classnames'
 import { Session } from 'utils/session'
 import { useMedia } from 'utils/window'
 
-import { ActiveDragKind, ActiveDragKindType, DroppableType } from './dnd-store'
+import {
+  ActiveDragKind,
+  ActiveDragKindType,
+  DroppableType,
+  useActiveDragKind,
+} from './dnd-store'
 import { EmptyWindow } from './empty-window'
 import { WindowContainer } from './window-container'
 
 type SessionContainerProps = {
   session: Session
-  activeDragKind: ActiveDragKindType
 }
 
 /**
@@ -18,8 +22,8 @@ type SessionContainerProps = {
  */
 export const SessionContainer: React.FC<SessionContainerProps> = ({
   session,
-  activeDragKind,
 }) => {
+  const [activeDragKind] = useActiveDragKind()
   const direction = useMedia<'vertical' | 'horizontal'>([
     'vertical',
     'vertical',
@@ -49,7 +53,12 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
             />
           ))}
           {provided.placeholder}
-          <EmptyWindow isTabDragging={activeDragKind === ActiveDragKind.TAB} />
+          <EmptyWindow
+            isTabDragging={
+              activeDragKind === ActiveDragKind.TAB ||
+              activeDragKind === ActiveDragKind.INCOGNITO_TAB
+            }
+          />
         </div>
       )}
     </Droppable>

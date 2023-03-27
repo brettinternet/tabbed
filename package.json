@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "run-s clean copy-public manifest build:tailwind && run-p start:*",
-    "start:app": "ts-node -P scripts/tsconfig.json scripts/start-cra",
+    "start:app": "BROWSER=none ts-node -P scripts/tsconfig.json scripts/start-cra",
     "start:tailwind": "npx tailwindcss --postcss -i ./src/styles/index.css -o ./src/index.css --watch",
     "start:background": "esbuild src/background/index.ts --bundle --sourcemap --outdir=build/background --inject:env-proxy.js --watch",
     "build": "run-s clean build:tailwind build:app build:background build:manifest",

@@ -83,7 +83,10 @@ export const Settings: React.FC = () => {
           value={settings.theme}
           optionsListClassName="flex flex-row flex-wrap items-center"
         />
-        <Description>Changes extension color theme.</Description>
+        <Description>
+          Changes extension color theme. "System" is recommended for favicon
+          visibility.
+        </Description>
       </div>
 
       <div className="space-y-3">

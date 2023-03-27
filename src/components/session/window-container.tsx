@@ -23,7 +23,7 @@ const getContainerBackground = ({ isDragging, incognito }: ColorOptions) => {
   }
 
   if (incognito) {
-    return 'bg-indigo-100 dark:bg-indigo-900'
+    return 'bg-indigo-100 dark:bg-gray-800'
   }
 
   return 'bg-gray-100 dark:bg-gray-900'
@@ -35,7 +35,7 @@ const getHeaderBackground = ({ isDragging, incognito }: ColorOptions) => {
   }
 
   if (incognito) {
-    return 'bg-indigo-100 dark:bg-indigo-900'
+    return 'bg-indigo-100 dark:bg-purple-900'
   }
 
   return 'bg-gray-100 dark:bg-gray-900'
@@ -79,7 +79,7 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
           sessionId={sessionId}
           window={win}
           className={classNames(
-            'md:h-window-header overflow-hidden',
+            'md:h-window-header overflow-hidden cursor-grab',
             'transition-colors duration-150',
             getHeaderBackground({ isDragging, incognito: win.incognito })
           )}
@@ -89,6 +89,7 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
           windowId={win.id}
           window={win}
           isWindowDragging={isDragging}
+          className="cursor-default"
         />
       </div>
     )}

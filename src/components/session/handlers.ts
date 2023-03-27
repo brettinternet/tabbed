@@ -29,7 +29,6 @@ import {
   filterWindows,
   SessionWindow,
   findWindow,
-  filterTabs,
   createSaved,
   isCurrentSessionWindow,
   focus as focusWindow,
@@ -339,23 +338,35 @@ export const useTabHandlers = () => {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const updateTab = useCallback(
-    tryToastError(async ({ sessionId, windowId, tabId, options }) => {
-      if (sessionsManager) {
-        const session = getSession(sessionsManager, sessionId)
-        const winIndex = findWindowIndex(session.windows, windowId)
-        const tabIndex = findTabIndex(session.windows[winIndex].tabs, tabId)
-        session.windows[winIndex].tabs[tabIndex] = await _updateTab(
-          session.windows[winIndex].tabs[tabIndex],
-          options
-        )
-        if (sessionsManager.current.id === sessionId) {
-          setSessionsManager(await updateCurrentSession(sessionsManager))
-        } else {
-          await save(sessionsManager)
-          setSessionsManager(sessionsManager)
+    tryToastError(
+      async ({
+        sessionId,
+        windowId,
+        tabId,
+        options,
+      }: {
+        sessionId: Session['id']
+        windowId: SessionWindow['id']
+        tabId: SessionTab['id']
+        options: Parameters<typeof _updateTab>[1]
+      }) => {
+        if (sessionsManager) {
+          const session = getSession(sessionsManager, sessionId)
+          const winIndex = findWindowIndex(session.windows, windowId)
+          const tabIndex = findTabIndex(session.windows[winIndex].tabs, tabId)
+          session.windows[winIndex].tabs[tabIndex] = await _updateTab(
+            session.windows[winIndex].tabs[tabIndex],
+            options
+          )
+          if (sessionsManager.current.id === sessionId) {
+            setSessionsManager(await updateCurrentSession(sessionsManager))
+          } else {
+            await save(sessionsManager)
+            setSessionsManager(sessionsManager)
+          }
         }
       }
-    }),
+    ),
     [sessionsManager]
   )
 

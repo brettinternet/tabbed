@@ -13,13 +13,19 @@ import { Tab } from 'components/tab'
 import { Session } from 'utils/session'
 import { SessionWindow } from 'utils/session-window'
 
-import { DroppableType } from './dnd-store'
+import {
+  ActiveDragKind,
+  DroppableType,
+  getWindowTabDraggableId,
+  useActiveDragKind,
+} from './dnd-store'
 
 type InnerTabListProps = {
   windowId: SessionWindow['id']
   sessionId: Session['id']
   tabs: SessionWindow['tabs']
   isWindowDragging: boolean
+  isWindowFocused: boolean
 }
 
 const InnerTabList: React.FC<InnerTabListProps> = ({
@@ -27,10 +33,11 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
   sessionId,
   windowId,
   // isWindowDragging,
+  isWindowFocused,
 }) => (
   <>
     {tabs.map((tab, index) => {
-      const id = `${windowId}-${tab.id}`
+      const id = getWindowTabDraggableId(windowId, tab.id)
       return (
         <Draggable key={id} draggableId={id} index={index}>
           {(
@@ -54,6 +61,7 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
                 sessionId={sessionId}
                 windowId={windowId}
                 isDragging={dragSnapshot.isDragging}
+                isWindowFocused={isWindowFocused}
               />
             </div>
           )}
@@ -78,13 +86,17 @@ type TabsListProps = {
  */
 const getWrapperBackground = (
   isDraggingOver: boolean,
-  isDraggingFrom: boolean
+  isDraggingFrom: boolean,
+  incognito: boolean
 ) => {
   if (isDraggingOver) {
-    return 'bg-blue-200 dark:bg-green-900'
+    return incognito
+      ? 'bg-indigo-100 dark:bg-gray-700'
+      : 'bg-blue-100 dark:bg-gray-700'
   }
-  if (isDraggingFrom) {
-    return 'bg-gray-200 dark:bg-gray-800'
+
+  if (isDraggingFrom && !incognito) {
+    return 'bg-gray-50 dark:bg-gray-900'
   }
 }
 
@@ -97,39 +109,48 @@ export const TabsList: React.FC<TabsListProps> = ({
   window: win,
   className,
   isWindowDragging,
-}) => (
-  <Droppable
-    droppableId={`${windowId}`}
-    type={DroppableType.WINDOW}
-    direction="vertical"
-  >
-    {(
-      dropProvided: DroppableProvided,
-      dropSnapshot: DroppableStateSnapshot
-    ) => (
-      <div
-        className={cn(
-          'flex flex-col md:w-80 lg:w-96',
-          className,
-          getWrapperBackground(
-            dropSnapshot.isDraggingOver,
-            Boolean(dropSnapshot.draggingFromThisWith)
-          )
-        )}
-        {...dropProvided.droppableProps}
-      >
-        <div className="md:max-h-tab-list md:scroll overflow-y-auto overflow-x-hidden">
-          <div ref={dropProvided.innerRef} className="p-2 md:min-h-tab-list">
-            <MemoizedInnerTabList
-              tabs={win.tabs}
-              sessionId={sessionId}
-              windowId={windowId}
-              isWindowDragging={isWindowDragging}
-            />
-            {dropProvided.placeholder}
+}) => {
+  const [activeDragKind] = useActiveDragKind()
+  const isDropDisabled =
+    (activeDragKind === ActiveDragKind.INCOGNITO_TAB && !win.incognito) ||
+    (activeDragKind === ActiveDragKind.TAB && win.incognito)
+  return (
+    <Droppable
+      droppableId={`${windowId}`}
+      type={DroppableType.WINDOW}
+      direction="vertical"
+      isDropDisabled={isDropDisabled}
+    >
+      {(
+        dropProvided: DroppableProvided,
+        dropSnapshot: DroppableStateSnapshot
+      ) => (
+        <div
+          className={cn(
+            'flex flex-col md:w-80 lg:w-96',
+            className,
+            getWrapperBackground(
+              dropSnapshot.isDraggingOver,
+              Boolean(dropSnapshot.draggingFromThisWith),
+              win.incognito
+            )
+          )}
+          {...dropProvided.droppableProps}
+        >
+          <div className="md:max-h-tab-list md:scroll overflow-y-auto overflow-x-hidden">
+            <div ref={dropProvided.innerRef} className="p-2 md:min-h-tab-list">
+              <MemoizedInnerTabList
+                tabs={win.tabs}
+                sessionId={sessionId}
+                windowId={windowId}
+                isWindowDragging={isWindowDragging}
+                isWindowFocused={win.focused}
+              />
+              {dropProvided.placeholder}
+            </div>
           </div>
         </div>
-      </div>
-    )}
-  </Droppable>
-)
+      )}
+    </Droppable>
+  )
+}

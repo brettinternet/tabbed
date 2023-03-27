@@ -78,21 +78,22 @@ export const useHandlers = () => {
     })
   }
 
-  const handleChangePopupDimension: React.ChangeEventHandler<HTMLInputElement> =
-    async (ev) => {
-      const value = parseInt(ev.currentTarget.value)
-      const name = ev.currentTarget.name
-      await updateSettings({
-        popupDimensions: {
-          ...settings.popupDimensions,
-          [ev.currentTarget.name]: clamp(
-            value,
-            300,
-            name === 'width' ? 800 : 600
-          ),
-        },
-      })
-    }
+  const handleChangePopupDimension: React.ChangeEventHandler<
+    HTMLInputElement
+  > = async (ev) => {
+    const value = parseInt(ev.currentTarget.value)
+    const name = ev.currentTarget.name
+    await updateSettings({
+      popupDimensions: {
+        ...settings.popupDimensions,
+        [ev.currentTarget.name]: clamp(
+          value,
+          300,
+          name === 'width' ? 800 : 600
+        ),
+      },
+    })
+  }
 
   const handleChangeTheme: (options: unknown) => void = async (option) => {
     await updateSettings({
@@ -106,10 +107,11 @@ export const useHandlers = () => {
     })
   }
 
-  const handleClickReset: React.MouseEventHandler<HTMLButtonElement> =
-    async () => {
-      await updateSettings(defaultSettings)
-    }
+  const handleClickReset: React.MouseEventHandler<
+    HTMLButtonElement
+  > = async () => {
+    await updateSettings(defaultSettings)
+  }
 
   const handleChangeSortFocusedWindowFirst = async (checked: boolean) => {
     await updateSettings({
@@ -117,10 +119,11 @@ export const useHandlers = () => {
     })
   }
 
-  const handleOpenShortcuts: React.MouseEventHandler<HTMLButtonElement> =
-    () => {
-      modal.shortcuts.set(true)
-    }
+  const handleOpenShortcuts: React.MouseEventHandler<
+    HTMLButtonElement
+  > = () => {
+    modal.help.set(true)
+  }
 
   const handleChangeExcludedUrls = async (value: string) => {
     const excludedUrls: Settings['excludedUrls'] = {

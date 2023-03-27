@@ -26,7 +26,7 @@ const getShapeClass = (shape?: ShapeType) => {
 
 export const getClass = (shape: ShapeType = Shape.ROUNDED) =>
   cn(
-    'border border-gray-800 dark:bg-gray-900 dark:border-gray-500 dark:text-white',
+    'border border-gray-400 dark:bg-gray-800 dark:border-gray-500 dark:text-white',
     getShapeClass(shape)
   )
 

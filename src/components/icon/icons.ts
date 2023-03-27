@@ -1,4 +1,5 @@
 import {
+  mdiPlus,
   mdiMagnify,
   mdiContentSaveOutline,
   mdiCheck,
@@ -16,6 +17,7 @@ import {
   mdiTab,
   mdiTabUnselected,
   mdiPinOutline,
+  mdiVolumeHigh,
   mdiVolumeVariantOff,
   mdiBellRingOutline,
   mdiTabMinus,
@@ -31,6 +33,7 @@ import {
  * https://pictogrammers.com/library/mdi/
  */
 export const IconName = {
+  ADD: mdiPlus,
   SAVE: mdiContentSaveOutline,
   SEARCH: mdiMagnify,
   CHECK: mdiCheck,
@@ -49,6 +52,7 @@ export const IconName = {
   TAB: mdiTab,
   TAB_SELECT: mdiTabUnselected,
   PIN: mdiPinOutline, // tab pinned
+  AUDIBLE: mdiVolumeHigh, // tab audible
   MUTE: mdiVolumeVariantOff, // tab muted
   ALERT: mdiBellRingOutline, // tab attention
   TAB_DISCARD: mdiTabMinus, // discard tab - free memory

@@ -23,6 +23,7 @@ export type SessionTab = {
   active: boolean
   pinned: boolean
   muted: boolean
+  audible: boolean
   discarded: boolean
   attention: boolean
   groupId?: number
@@ -103,6 +104,7 @@ export const createCurrent = ({
   active,
   pinned,
   muted,
+  audible,
   discarded,
   attention,
   groupId,
@@ -114,6 +116,7 @@ export const createCurrent = ({
   active,
   pinned,
   muted,
+  audible,
   discarded,
   attention,
   groupId,
@@ -128,6 +131,7 @@ export const createSaved = ({
   title,
   active,
   pinned,
+  audible,
   muted,
   discarded,
   attention,
@@ -140,6 +144,7 @@ export const createSaved = ({
   active,
   pinned,
   muted,
+  audible,
   discarded,
   attention,
   groupId,
@@ -201,6 +206,7 @@ export const fromBrowser = (
     active,
     pinned,
     mutedInfo,
+    audible,
     discarded,
     attention,
     groupId,
@@ -216,6 +222,7 @@ export const fromBrowser = (
       active,
       pinned,
       muted: mutedInfo?.muted ?? false,
+      audible: audible ?? false,
       discarded: discarded ?? false,
       attention: attention ?? false,
       groupId,
