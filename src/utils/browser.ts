@@ -105,6 +105,9 @@ export const getActiveTabCurrentWindow = async () => {
  */
 export const getExtensionId = () => browser.i18n.getMessage('@@extension_id')
 
+export const isExtensionUrl = (url: string) =>
+  url.includes(`chrome-extension://${getExtensionId()}`)
+
 export const getWindowAndTabs = (windowId: number) =>
   browser.windows.get(windowId, { populate: true })
 

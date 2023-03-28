@@ -12,11 +12,10 @@ import { CONNECT_NAME_CLIENT_PREFIX, sendConnect } from 'utils/connect'
 import { isProd } from 'utils/env'
 
 import { Mounted } from './mounted'
-import { usePort, useSetAppDetails } from './store'
+import { usePort } from './store'
 
 const App: React.FC = () => {
   const [port, setPort] = usePort()
-  useSetAppDetails()
 
   useEffect(() => {
     const clientId = uuidv4()

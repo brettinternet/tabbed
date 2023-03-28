@@ -6,6 +6,7 @@ import { Icon, IconName } from 'components/icon'
 import { Active } from 'components/indicators'
 import { ApiControllerRef } from 'components/session/dnd-store'
 import { useTabHandlers } from 'components/session/handlers'
+import { isExtensionUrl } from 'utils/browser'
 import { stopPropagation } from 'utils/helpers'
 import { Session } from 'utils/session'
 import {
@@ -153,14 +154,21 @@ export const Tab: React.FC<TabProps> = ({
           )}
           {tabOrder < 9 ? (
             <Shortcut
-              number={tabOrder}
+              value={tabOrder}
               onClick={handleOpen}
               ariaLabel="focus tab"
             />
           ) : (
             isLastTab && (
-              <Shortcut number={9} onClick={handleOpen} ariaLabel="focus tab" />
+              <Shortcut value={9} onClick={handleOpen} ariaLabel="focus tab" />
             )
+          )}
+          {isExtensionUrl(url) && (
+            <Shortcut
+              value={'+Shift+S'}
+              onClick={handleOpen}
+              ariaLabel="focus tab"
+            />
           )}
           <Button
             iconProps={{ name: IconName.PIN, size: 'xs' }}

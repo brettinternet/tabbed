@@ -1,5 +1,4 @@
 import { atom, useAtom } from 'jotai'
-import { useEffect } from 'react'
 import browser, { Runtime } from 'webextension-polyfill'
 
 import { Button } from 'components/button'
@@ -75,29 +74,3 @@ export const useBackground = () => {
 
   return port
 }
-
-type AppDetails = {
-  os: browser.Runtime.PlatformOs
-}
-
-const appDetailsAtom = atom<AppDetails | undefined>(undefined)
-
-export const useSetAppDetails = () => {
-  const [details, setDetails] = useAtom(appDetailsAtom)
-
-  useEffect(() => {
-    const getDetails = async () => {
-      const { os } = await browser.runtime.getPlatformInfo()
-      const details = {
-        os,
-      }
-      setDetails(details)
-    }
-
-    void getDetails()
-  }, [setDetails])
-
-  return [details, setDetails]
-}
-
-export const useAppDetails = () => useAtom(appDetailsAtom)
