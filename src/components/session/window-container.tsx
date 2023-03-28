@@ -61,13 +61,8 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
       { isDragging }: DraggableStateSnapshot
     ) => (
       <div
-        style={{ height: isDragging ? '40px' : undefined }}
         className={cn(
-          // TODO: change based on scroll direction
-          // !isDragging && (index === 0 ? 'snap-start' : 'snap-end'),
-          'flex flex-col',
-          // 'md:h-window-column md:pb-0 md:w-80 lg:w-96 md:min-w-[20rem] lg:min-w-[24rem]',
-          'transition-colors duration-150',
+          'flex flex-col transition-colors duration-150',
           getContainerBackground({
             isDragging: isDragging,
             incognito: win.incognito,

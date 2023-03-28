@@ -1,5 +1,5 @@
 // `FluidDragActions` not exported, issue: https://github.com/hello-pangea/dnd/issues/509
-import type { PreDragActions } from '@hello-pangea/dnd'
+import type { PreDragActions, SnapDragActions } from '@hello-pangea/dnd'
 import {
   DropResult,
   OnBeforeCaptureResponder,
@@ -201,94 +201,5 @@ export const useDndSessions = () => {
     onBeforeCapture,
     onDragEnd,
     sessionsManager,
-  }
-}
-
-const moveStepByStep = (
-  actions: FluidDragActions,
-  values: Parameters<FluidDragActions['move']>[0][]
-) => {
-  requestAnimationFrame(() => {
-    const newPosition = values.shift()
-    if (newPosition) {
-      actions.move(newPosition)
-    }
-
-    if (values.length) {
-      moveStepByStep(actions, values)
-    } else {
-      actions.drop()
-    }
-  })
-}
-
-const delay = (fn: Function, time = 150) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      fn()
-      resolve(undefined)
-    }, time)
-  })
-}
-
-/**
- * Move within a window column, between windows not supported yet
- */
-export const programmticallyMoveTab = async (
-  apiControllerRef: ApiControllerRef,
-  windowId: SessionWindow['id'],
-  from: {
-    index: number
-    tabId: SessionTab['id']
-  },
-  to: {
-    index: number
-  }
-) => {
-  const draggableId = getWindowTabDraggableId(windowId, from.tabId)
-  const preDrag = apiControllerRef.current?.tryGetLock(draggableId)
-  const tabCard: HTMLElement | null = document.querySelector(
-    `[data-rfd-draggable-id="${draggableId}"]`
-  )
-  if (preDrag && tabCard) {
-    const indexModifier = from.index < to.index ? -1 : 0
-    const indexDifference = to.index - from.index + indexModifier
-
-    if (indexDifference) {
-      const { moveDown, moveUp, drop } = preDrag.snapLift()
-      const action = indexDifference > 0 ? moveDown : moveUp
-      for (const _ of [...new Array(indexDifference)].entries()) {
-        console.log('performing action')
-        await delay(action)
-      }
-      console.log('performing drop')
-      await delay(drop)
-    }
-
-    // 0 - indexDifference ?
-    // for (let i = 0; i < steps; i++) {
-    //   points.push({
-    //     x: easeOutCirc(i, start.x, end.x, steps),
-    //     y: easeOutCirc(i, start.y, end.y, steps),
-    //   })
-    // }
-    // moveStepByStep(actions, points)
-
-    // const tabCardHeight = getAbsoluteHeight(tabCard) || tabCard.offsetHeight
-    // const start = { x: tabCard.clientLeft, y: tabCard.clientTop }
-    // const end = {
-    //   x: start.x,
-    //   y: start.y + tabCardHeight * indexDifference,
-    // }
-    // const actions = preDrag.fluidLift(start)
-    // const points = []
-    // const steps = Math.abs(indexDifference) * 5
-    // for (let i = 0; i < steps; i++) {
-    //   points.push({
-    //     x: easeOutCirc(i, start.x, end.x, steps),
-    //     y: easeOutCirc(i, start.y, end.y, steps),
-    //   })
-    // }
-    // moveStepByStep(actions, points)
   }
 }

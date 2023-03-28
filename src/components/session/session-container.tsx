@@ -1,4 +1,5 @@
 import { Droppable } from '@hello-pangea/dnd'
+import { AnimatePresence, motion } from 'framer-motion'
 
 import { Session } from 'utils/session'
 import { useMedia } from 'utils/window'
@@ -45,15 +46,31 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
           // inline flex extends x-axis past body, modeled after board.tsx link above
           className="md:inline-flex"
         >
-          {session.windows.map((win, index) => (
-            <WindowContainer
-              key={`${session.id}-${win.id}`}
-              index={index}
-              sessionId={session.id}
-              window={win}
-              apiControllerRef={apiControllerRef}
-            />
-          ))}
+          <AnimatePresence>
+            {session.windows.map((win, index) => (
+              <motion.div
+                key={`${session.id}-${win.id}`}
+                initial={false}
+                animate={{
+                  width: 'auto',
+                  opacity: 1,
+                  transition: {
+                    type: 'tween',
+                    duration: 0.15,
+                    ease: 'circOut',
+                  },
+                }}
+                exit={{ width: 0, opacity: 0 }}
+              >
+                <WindowContainer
+                  index={index}
+                  sessionId={session.id}
+                  window={win}
+                  apiControllerRef={apiControllerRef}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
           {provided.placeholder}
           <EmptyWindow
             isTabDragging={

@@ -7,6 +7,7 @@ import {
   DraggableStateSnapshot,
 } from '@hello-pangea/dnd'
 import cn, { Argument as ClassNames } from 'classnames'
+import { AnimatePresence, motion } from 'framer-motion'
 import React, { memo } from 'react'
 
 import { Tab } from 'components/tab'
@@ -28,17 +29,32 @@ type InnerTabListProps = {
   isWindowDragging: boolean
   isWindowFocused: boolean
   apiControllerRef: ApiControllerRef
+  isDraggingTab: boolean
 }
+
+/**
+ * Prevent presence exit animation while dragging
+ * Note, doing so with `isDragging` in motion.div child below doesn't work
+ */
+const Wrapper: React.FC<React.PropsWithChildren<{ animate: boolean }>> = ({
+  animate,
+  children,
+}) =>
+  animate ? (
+    <AnimatePresence initial={false}>{children}</AnimatePresence>
+  ) : (
+    <div>{children}</div>
+  )
 
 const InnerTabList: React.FC<InnerTabListProps> = ({
   tabs,
   sessionId,
   windowId,
-  // isWindowDragging,
   isWindowFocused,
   apiControllerRef,
+  isDraggingTab,
 }) => (
-  <>
+  <Wrapper animate={!isDraggingTab}>
     {tabs.map((tab, index) => {
       const id = getWindowTabDraggableId(windowId, tab.id)
       return (
@@ -51,28 +67,48 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
               ref={dragProvided.innerRef}
               {...dragProvided.draggableProps}
               {...dragProvided.dragHandleProps}
-              className={cn(
-                'mb-2'
-                // index != 0 &&
-                //   isWindowDragging &&
-                //   `absolute transition-all duration-200 top-[${index * 2}px]`
-              )}
+              className="mb-2"
             >
-              <Tab
-                key={id}
-                tab={tab}
-                sessionId={sessionId}
-                windowId={windowId}
-                isDragging={dragSnapshot.isDragging}
-                isWindowFocused={isWindowFocused}
-                apiControllerRef={apiControllerRef}
-              />
+              <motion.div
+                layout={
+                  !dragSnapshot.isDragging && !dragSnapshot.isDropAnimating
+                }
+                transition={{
+                  type: 'spring',
+                  duration: Math.max(0.1 * (Math.min(index, 20) / 2), 0.3),
+                }}
+                initial={false}
+                animate={{
+                  height: 'auto',
+                  opacity: 1,
+                  transition: {
+                    type: 'tween',
+                    duration: 0.15,
+                    ease: 'circOut',
+                  },
+                }}
+                exit={{
+                  height: 0,
+                  opacity: 0,
+                }}
+              >
+                <Tab
+                  tab={tab}
+                  sessionId={sessionId}
+                  windowId={windowId}
+                  isDragging={dragSnapshot.isDragging}
+                  isWindowFocused={isWindowFocused}
+                  apiControllerRef={apiControllerRef}
+                  index={index}
+                  isLastTab={index === tabs.length - 1}
+                />
+              </motion.div>
             </div>
           )}
         </Draggable>
       )
     })}
-  </>
+  </Wrapper>
 )
 
 const MemoizedInnerTabList = memo(InnerTabList)
@@ -152,6 +188,10 @@ export const TabsList: React.FC<TabsListProps> = ({
                 isWindowDragging={isWindowDragging}
                 isWindowFocused={win.focused}
                 apiControllerRef={apiControllerRef}
+                isDraggingTab={
+                  activeDragKind === ActiveDragKind.TAB ||
+                  activeDragKind === ActiveDragKind.INCOGNITO_TAB
+                }
               />
               {dropProvided.placeholder}
             </div>

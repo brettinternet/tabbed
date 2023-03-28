@@ -1,4 +1,5 @@
 import { useAtom } from 'jotai'
+import { merge } from 'lodash'
 import { useCallback } from 'react'
 import { Tabs } from 'webextension-polyfill'
 
@@ -47,7 +48,7 @@ import {
   updateSessionsManager,
 } from 'utils/sessions-manager'
 
-import { ApiControllerRef, programmticallyMoveTab } from './dnd-store'
+import { ApiControllerRef } from './dnd-store'
 import { sessionsManagerAtom } from './store'
 
 const useHelpers = () => {
@@ -362,22 +363,18 @@ export const useTabHandlers = (apiControllerRef: ApiControllerRef) => {
           )
 
           if (isDefined(options.pinned)) {
-            // DnD programmatically move tab to last pinned position / first non-pinned position
-            void programmticallyMoveTab(
-              apiControllerRef,
-              windowId,
-              {
-                index: tabIndex,
-                tabId,
-              },
-              {
-                index: originalTabs.findIndex((t) => !t.pinned) ?? 0,
-              }
+            let toIndex = originalTabs.findIndex((t) => !t.pinned) ?? 0
+            const indexModifier = tabIndex < toIndex ? -1 : 0
+            toIndex += indexModifier
+            session.windows[winIndex].tabs = reorder(
+              session.windows[winIndex].tabs,
+              tabIndex,
+              toIndex
             )
           }
 
           if (sessionsManager.current.id === sessionId) {
-            setSessionsManager(await updateCurrentSession(sessionsManager))
+            setSessionsManager(updateSessionsManager(sessionsManager, session))
           } else {
             void save(sessionsManager)
             setSessionsManager(sessionsManager)
@@ -410,11 +407,13 @@ export const useTabHandlers = (apiControllerRef: ApiControllerRef) => {
               tabIds
             )
             if (!session.windows[index].tabs.length) {
-              _removeWindows(session.windows, [session.windows[index].id])
+              session.windows = await _removeWindows(session.windows, [
+                session.windows[index].id,
+              ])
             }
           }
           if (sessionsManager.current.id === sessionId) {
-            setSessionsManager(await updateCurrentSession(sessionsManager))
+            setSessionsManager(updateSessionsManager(sessionsManager, session))
           } else {
             await save(sessionsManager)
             setSessionsManager(sessionsManager)
@@ -516,12 +515,15 @@ export const useDndHandlers = () => {
   const moveTabs = useCallback(
     tryToastError(async ({ from, to }: MoveTabArgs) => {
       if (sessionsManager) {
-        const fromSession = getSession(sessionsManager, from.sessionId)
+        const isSameSessionMove = from.sessionId === to.sessionId
+        const toSession = getSession(sessionsManager, to.sessionId)
+        const fromSession = isSameSessionMove
+          ? toSession
+          : getSession(sessionsManager, from.sessionId)
         const fromWindowIndex = findWindowIndex(
           fromSession.windows,
           from.windowId
         )
-        const toSession = getSession(sessionsManager, to.sessionId)
 
         if (to.windowId && isDefined(to.index)) {
           // move tabs to specific session window
@@ -581,6 +583,7 @@ export const useDndHandlers = () => {
           const { incognito, state, height, width, top, left } =
             fromSession.windows[fromWindowIndex]
           const tab = fromSession.windows[fromWindowIndex].tabs[from.index]
+          console.log('tab: ', tab)
           // create saved but `addWindow` will coerce window to match windows list
           const newWindow = createSaved({
             tabs: [tab],
@@ -592,33 +595,35 @@ export const useDndHandlers = () => {
             top,
             left,
           })
-          console.log('new window', newWindow, to)
           toSession.windows = await addWindow(toSession.windows, {
             window: newWindow,
-            index: to.index,
+            index: toSession.windows.length,
           })
+          fromSession.windows[fromWindowIndex].tabs.splice(from.index, 1)
         }
-        // if (!to.windowId || from.sessionId !== sessionsManager.current.id) {
-        //   tabs.forEach((t) => {
-        //     const index = findTabIndex(
-        //       fromSession.windows[fromWindowIndex].tabs,
-        //       t.id
-        //     )
-        //     tabs.splice(index, 1)
-        //   })
-        // }
 
-        // Set optimistically so DND doesn't have to wait
-        setSessionsManager(sessionsManager)
-        void save(sessionsManager)
+        let updatedSession = toSession
+        if (!isSameSessionMove) {
+          updatedSession = merge(fromSession, toSession)
+        }
+        const updatedSessionsManager = updateSessionsManager(
+          sessionsManager,
+          updatedSession
+        )
+        setSessionsManager(updatedSessionsManager)
         if (
-          [from.sessionId, to.sessionId].includes(sessionsManager.current.id)
+          [from.sessionId, to.sessionId].includes(
+            updatedSessionsManager.current.id
+          )
         ) {
           const asyncUpdate = async () => {
-            setSessionsManager(await updateCurrentSession(sessionsManager))
+            setSessionsManager(
+              await updateCurrentSession(updatedSessionsManager)
+            )
           }
-
           void asyncUpdate()
+        } else {
+          void save(updatedSessionsManager)
         }
       } else {
         throw Error(
