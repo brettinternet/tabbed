@@ -1,5 +1,5 @@
 import { lightFormat } from 'date-fns'
-import { uniqBy } from 'lodash'
+import { assign, cloneDeep, merge, uniqBy } from 'lodash'
 import log from 'loglevel'
 
 import { appName } from 'utils/env'
@@ -17,6 +17,7 @@ import {
   StoredCurrentSession,
   createSaved as createSavedSession,
   fromBrowser as sessionFromBrowser,
+  isCurrentSession,
 } from './session'
 import { loadSettings } from './settings'
 import { LocalStorage } from './storage'
@@ -66,10 +67,12 @@ export const getCurrent = async (
  * @returns a new sessions manager reference with current field updated
  */
 export const updateCurrentSession = async (
-  sessionsManager: SessionsManager
+  _sessionsManager: SessionsManager
 ) => {
-  const current = await sessionFromBrowser(sessionsManager.current)
-  return Object.assign({}, sessionsManager, { current })
+  const current = await sessionFromBrowser(_sessionsManager.current)
+  const sessionsManager = cloneDeep(_sessionsManager)
+  sessionsManager.current = current
+  return sessionsManager
 }
 
 /**
@@ -139,7 +142,7 @@ const filterWindowTabs = async (session: SavedSession) => {
     return win
   })
 
-  return session
+  return cloneDeep(session)
 }
 
 /**
@@ -151,11 +154,11 @@ const addSession = async <T extends PartialBy<Session, 'id'>>(
   session: T,
   category: SavedSessionCategoryType
 ) => {
-  const sessions = sessionsManager[category].slice() // clone
+  const sessions = cloneDeep(sessionsManager[category])
   let savedSession = createSavedSession(session)
   savedSession = await filterWindowTabs(savedSession)
   sessionsManager[category].unshift(savedSession)
-  return Object.assign({}, sessionsManager, { [category]: sessions })
+  return assign(cloneDeep(sessionsManager), { [category]: sessions })
 }
 
 /**
@@ -204,7 +207,7 @@ export const findSession = (
     throw new AppError(logContext, `Unable to find session by ID ${sessionId}`)
   }
 
-  return session
+  return cloneDeep(session)
 }
 
 /**
@@ -237,10 +240,10 @@ export const getSession = (
   category?: SavedSessionCategoryType
 ): CurrentSession | SavedSession => {
   if (sessionId === sessionsManager.current.id) {
-    return Object.assign({}, sessionsManager.current)
+    return cloneDeep(sessionsManager.current)
   } else {
     const session = findSession(sessionsManager, sessionId, category)
-    return Object.assign({}, session)
+    return cloneDeep(session)
   }
 }
 
@@ -279,22 +282,29 @@ const findSessionCategory = (
   } catch {}
 }
 
+// const mergeSessions = (
+//   sessions: Session[],
+//   updateSessions: Session[]
+// ): Session[] =>
+//   values(merge(keyBy(sessions, 'id'), keyBy(updateSessions, 'id')))
+
 /**
  * @usage patch a session on the sessions manager
  */
 export const updateSessionsManager = (
-  sessionsManager: SessionsManager,
+  _sessionsManager: SessionsManager,
   session: CurrentSession | SavedSession
 ) => {
-  if (session.id === sessionsManager.current.id) {
-    return Object.assign({}, sessionsManager, { current: session })
+  const sessionsManager = cloneDeep(_sessionsManager)
+  if (isCurrentSession(session)) {
+    sessionsManager.current = cloneDeep(session)
+    return sessionsManager
   } else {
     const { category, index } =
       findSessionCategory(sessionsManager, session.id) || {}
     if (category && isDefined(index)) {
-      return Object.assign({}, sessionsManager, {
-        [category]: sessionsManager[category][index],
-      })
+      sessionsManager[category][index] = cloneDeep(session)
+      return sessionsManager
     } else {
       log.warn(
         logContext,
@@ -302,7 +312,7 @@ export const updateSessionsManager = (
         'Unable to find session to update sessions manager',
         session
       )
-      return Object.assign({}, sessionsManager)
+      return sessionsManager
     }
   }
 }
@@ -317,9 +327,9 @@ export const removeSession = async (
   category: SavedSessionCategoryType
 ) => {
   const index = findSessionIndex(sessionsManager, sessionId, category)
-  const sessions = sessionsManager[category].slice() // clone
+  const sessions = cloneDeep(sessionsManager[category])
   sessions.splice(index, 1)
-  return Object.assign({}, sessionsManager, { [category]: sessions })
+  return merge(sessionsManager, { [category]: sessions })
 }
 
 /**

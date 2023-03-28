@@ -1,3 +1,4 @@
+import { cloneDeep, merge } from 'lodash'
 import { Tabs, Windows } from 'webextension-polyfill'
 
 import { closeWindow, moveTabs, openWindow, updateWindow } from 'utils/browser'
@@ -95,7 +96,7 @@ export const findWindow = (
     throw new AppError(logContext, `Unable to find window by ID ${id}`)
   }
 
-  return win
+  return cloneDeep(win)
 }
 
 /**
@@ -155,7 +156,7 @@ export const createCurrent = ({
     win.title = maybeGetTitle(win)
   }
 
-  return win
+  return cloneDeep(win)
 }
 
 export const createSaved = ({
@@ -187,7 +188,7 @@ export const createSaved = ({
     win.title = maybeGetTitle(win)
   }
 
-  return win
+  return cloneDeep(win)
 }
 
 export const update = async (
@@ -197,7 +198,7 @@ export const update = async (
   if (isCurrentSessionWindow(win)) {
     await updateWindow(win.assignedWindowId, values)
   }
-  return Object.assign({}, win, values, {
+  return merge(win, values, {
     title: maybeGetTitle(win, values.title),
   })
 }
@@ -345,9 +346,10 @@ export const close = async ({ assignedWindowId }: CurrentSessionWindow) => {
  * Side effect of closing windows if `CurrentSessionWindow[]` is provided
  */
 export const removeWindows = async (
-  windows: CurrentSessionWindow[] | SavedSessionWindow[],
+  _windows: CurrentSessionWindow[] | SavedSessionWindow[],
   ids: SessionWindow['id'][]
 ) => {
+  const windows = cloneDeep(_windows)
   for (const id of ids) {
     const index = findWindowIndex(windows, id)
     if (isCurrentSessionWindows(windows)) {
@@ -373,7 +375,7 @@ export const addWindow = async (
     window: CurrentSessionWindow | SavedSessionWindow
   } & XOR<{ focused?: boolean }, { index?: number }>
 ) => {
-  const windows = _windows.slice() // clone
+  const windows = cloneDeep(_windows)
   let insertWindow: CurrentSessionWindow | SavedSessionWindow | undefined
   if (isCurrentSessionWindows(windows)) {
     const { window: openedBrowserWin, tabs: openedBrowserTabs } = await open(
@@ -389,10 +391,14 @@ export const addWindow = async (
   } else {
     insertWindow = createSaved(win)
   }
-  if (insertWindow) {
+  if (
+    insertWindow &&
+    isCurrentSessionWindows(windows) === isCurrentSessionWindow(insertWindow)
+  ) {
     if (isDefined(index)) {
       windows.splice(index, 0, insertWindow)
     } else {
+      // @ts-expect-error
       windows.push(insertWindow)
     }
   }
@@ -409,7 +415,7 @@ const move = async (
   pinned: boolean | undefined,
   assignedWindowId: CurrentSessionWindow['assignedWindowId']
 ): Promise<CurrentSessionTab[]> => {
-  const originalTabs = tabs.slice()
+  const originalTabs = cloneDeep(tabs)
   const _move = async (): Promise<CurrentSessionTab[]> => {
     const _tabs = await moveTabs({
       tabIds: originalTabs.map(({ assignedTabId }) => assignedTabId),
@@ -447,7 +453,7 @@ export const addCurrentTabs = (
   index: number,
   pinned?: boolean
 ) => {
-  const tabs = _tabs.slice() // clone
+  const tabs = cloneDeep(_tabs)
   if (isCurrentSessionWindow(win)) {
     // move tabs to window in current session
     if (isCurrentSessionTabs(tabs)) {

@@ -1,3 +1,5 @@
+import { cloneDeep, merge } from 'lodash'
+
 import { getAllWindows } from './browser'
 import { BrandedUuid, createId, generateSessionTitle } from './generate'
 import { isDefined, PartialBy, Valueof } from './helpers'
@@ -85,7 +87,7 @@ export const createCurrent = ({
     session.title = maybeGetTitle(session)
   }
 
-  return session
+  return cloneDeep(session)
 }
 
 export const createSaved = ({
@@ -110,7 +112,7 @@ export const createSaved = ({
     session.title = maybeGetTitle(session)
   }
 
-  return session
+  return cloneDeep(session)
 }
 
 /**
@@ -121,7 +123,7 @@ export const update = <T extends CurrentSession | SavedSession>(
   session: T,
   values: UpdateSession
 ): T =>
-  Object.assign({}, session, values, {
+  merge(session, values, {
     title: maybeGetTitle(session, values.title),
   })
 
@@ -160,6 +162,9 @@ const searchWindowByAssignedId = (
   assignedWindowId: CurrentSessionWindow['assignedWindowId']
 ) => session.windows.find((w) => w.assignedWindowId === assignedWindowId)
 
+/**
+ * @usage Generate current session from browser API
+ */
 export const fromBrowser = async ({
   windowOrder,
   ...options
@@ -187,7 +192,7 @@ export const fromBrowser = async ({
  * @returns a new session reference but same ID
  */
 export const updateFromBrowser = async (_session: CurrentSession) => {
-  const session = Object.assign({}, _session) // clone
+  const session = cloneDeep(_session)
   const windows = await getAllWindows({ populate: true }, true)
   const updatedWindows = windows.map((win) => {
     return fromBrowserWindow(
