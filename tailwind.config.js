@@ -27,6 +27,7 @@ module.exports = {
       },
       fontSize: {
         xxs: '.7rem',
+        '3xs': '.6rem',
       },
       height: {
         header: '3.2rem',

@@ -140,7 +140,9 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
         className="flex-1 flex flex-col justify-between h-full w-full max-w-full"
       >
         {title && (
-          <div className="line-clamp-2 max-w-full inline-block">{title}</div>
+          <div className="line-clamp-2 max-w-full inline-block font-semibold text-gray-700 dark:text-gray-400">
+            {title}
+          </div>
         )}
         <div className="flex flex-row justify-start items-center overflow-hidden w-full max-w-full space-x-2">
           {stateAction && (

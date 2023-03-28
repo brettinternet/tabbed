@@ -38,7 +38,9 @@ type ShortcutEntry = {
   display: string
   description?: string
 }
+
 type ShortcutType = Record<string, ShortcutEntry>
+
 export const Shortcut: ShortcutType = {
   question: {
     hotkey: 'shift+?',

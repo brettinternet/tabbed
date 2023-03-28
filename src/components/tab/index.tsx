@@ -16,6 +16,7 @@ import {
 import { SessionWindow } from 'utils/session-window'
 
 import { Img } from './img'
+import { Shortcut } from './shortcut'
 
 export type TabProps = {
   windowId: SessionWindow['id']
@@ -25,6 +26,8 @@ export type TabProps = {
   isDragging: boolean
   isWindowFocused?: boolean
   apiControllerRef: ApiControllerRef
+  index: number
+  isLastTab: boolean
 }
 
 export const Tab: React.FC<TabProps> = ({
@@ -35,6 +38,8 @@ export const Tab: React.FC<TabProps> = ({
   className,
   isWindowFocused,
   apiControllerRef,
+  index,
+  isLastTab,
 }) => {
   const {
     id: tabId,
@@ -81,22 +86,21 @@ export const Tab: React.FC<TabProps> = ({
     })
   }
 
-  // TODO: animate presence (delete) https://www.framer.com/docs/animate-presence/
+  const tabOrder = index + 1
+
   return (
     <div
       className={cn(
-        'relative overflow-hidden group',
-        isDragging ? 'shadow-xl' : 'shadow'
+        'relative overflow-hidden group rounded border border-gray-100 dark:border-gray-700 transition-color duration-100',
+        isDragging ? 'shadow-xl' : 'shadow',
+        active
+          ? 'bg-green-50 dark:bg-teal-900'
+          : 'bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700',
+        className
       )}
     >
       <div
-        className={cn(
-          'relative p-3 transition-color transition-opacity duration-100 flex flex-col justify-between rounded h-tab',
-          active
-            ? 'bg-green-50 dark:bg-teal-900'
-            : 'bg-white group-hover:bg-gray-50 dark:bg-gray-800 dark:group-hover:bg-gray-700',
-          className
-        )}
+        className={cn('h-tab relative p-3 flex flex-col justify-between')}
         onDoubleClick={handleOpen}
       >
         {isWindowFocused && active && (
@@ -114,11 +118,11 @@ export const Tab: React.FC<TabProps> = ({
           {/* width is full width - image width (w-8) - padding right (p-3) */}
           <div className="w-[calc(100%-2.75rem)]">
             {title && (
-              <div className="line-clamp-2 leading-3 font-semibold mb-1">
+              <div className="line-clamp-2 leading-3 font-semibold text-gray-700 dark:text-gray-400 mb-1">
                 {title}
               </div>
             )}
-            <div className="truncate max-w-full leading-3 inline-block text-blue-500 text-xxs">
+            <div className="truncate max-w-full leading-3 inline-block text-blue-500 text-xxs font-light">
               {url}
             </div>
           </div>
@@ -147,11 +151,23 @@ export const Tab: React.FC<TabProps> = ({
               className="text-red-500"
             />
           )}
+          {tabOrder < 9 ? (
+            <Shortcut
+              number={tabOrder}
+              onClick={handleOpen}
+              ariaLabel="focus tab"
+            />
+          ) : (
+            isLastTab && (
+              <Shortcut number={9} onClick={handleOpen} ariaLabel="focus tab" />
+            )
+          )}
           <Button
             iconProps={{ name: IconName.PIN, size: 'xs' }}
             className={cn(
+              'transition-opacity duration-100',
               pinned
-                ? 'text-orange-600 hover:bg-gray-100'
+                ? 'text-orange-600 hover:bg-gray-100 dark:border-gray-600'
                 : 'opacity-0 group-hover:opacity-100'
             )}
             variant={pinned ? 'none' : 'card-action'}
@@ -163,7 +179,7 @@ export const Tab: React.FC<TabProps> = ({
           />
         </div>
       </div>
-      <div className="absolute opacity-0 group-hover:opacity-100 h-full right-0 bottom-0 top-0 flex flex-col items-center justify-between p-3">
+      <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-100 h-full right-0 bottom-0 top-0 flex flex-col items-center justify-between p-3">
         <Button
           iconProps={{ name: IconName.CLOSE, size: 'xs' }}
           variant="card-action"

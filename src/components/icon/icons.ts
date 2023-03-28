@@ -26,6 +26,7 @@ import {
   mdiHelp,
   mdiChevronDown,
   mdiCircleSmall,
+  mdiAppleKeyboardCommand,
 } from '@mdi/js'
 
 /**
@@ -61,4 +62,5 @@ export const IconName = {
   HELP: mdiHelp, // FAQ and resources
   EXPAND: mdiChevronDown, // dropdown down caret
   INDICATOR: mdiCircleSmall, // active tab indicator
+  KEYBOARD_COMMAND: mdiAppleKeyboardCommand, // apple shortcut
 } as const
