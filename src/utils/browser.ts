@@ -323,7 +323,7 @@ type WindowOptions = {
   top?: number
   left?: number
   incognito?: boolean
-  tabs: TabOptions[]
+  tabs?: TabOptions[]
   focused?: boolean
 }
 
@@ -332,7 +332,6 @@ type WindowOptions = {
  * @returns newly opened window ID
  */
 export const openWindow = async (w: WindowOptions) => {
-  console.log('w: ', w)
   const options: Windows.CreateCreateDataType = {
     state: w.state,
     focused: w.focused,
@@ -347,7 +346,7 @@ export const openWindow = async (w: WindowOptions) => {
 
   const createdWindow = await browser.windows.create(options)
 
-  if (w.tabs.length > 0 && createdWindow.id) {
+  if (w.tabs && w.tabs.length > 0 && createdWindow.id) {
     const emptyStartupTabIds = createdWindow.tabs?.map(({ id }) => id) || []
     // If the window should explicitly not be focused, then make sure none of the tabs are active
     // otherwise, an active tab will cause the window to be focused
@@ -370,7 +369,7 @@ export const openWindow = async (w: WindowOptions) => {
     return { window: createdWindow, tabs: createdTabs }
   }
 
-  return {}
+  return { window: createdWindow, tabs: [] }
 }
 
 /**

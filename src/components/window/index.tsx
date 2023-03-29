@@ -137,7 +137,10 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
     >
       <div
         onDoubleClick={handleOpen}
-        className="flex-1 flex flex-col justify-between h-full w-full max-w-full"
+        className={cn(
+          'flex-1 flex flex-col h-full w-full max-w-full',
+          title ? 'justify-between' : 'justify-end'
+        )}
       >
         {title && (
           <div className="line-clamp-2 max-w-full inline-block font-semibold text-gray-700 dark:text-gray-400">

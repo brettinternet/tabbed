@@ -1,7 +1,13 @@
 import { cloneDeep, merge } from 'lodash'
 import { Tabs, Windows } from 'webextension-polyfill'
 
-import { closeWindow, moveTabs, openWindow, updateWindow } from 'utils/browser'
+import {
+  closeTab,
+  closeWindow,
+  moveTabs,
+  openWindow,
+  updateWindow,
+} from 'utils/browser'
 import { AppError } from 'utils/error'
 import { isDefined, PartialBy, XOR } from 'utils/helpers'
 
@@ -328,10 +334,33 @@ export const open = async (
   win: CurrentSessionWindow | SavedSessionWindow,
   focused?: boolean
 ) => {
-  return await openWindow({
+  const { window: newWindow, tabs } = await openWindow({
     ...win,
     focused: focused ?? win.focused,
   })
+  // For delayed removal of startup tabs
+  const startupTabs = cloneDeep(newWindow.tabs)
+  if (!win.tabs.length && startupTabs) {
+    const closeStartupTabs = async () => {
+      if (startupTabs) {
+        const closeTabs = startupTabs.map(async (tab) => {
+          if (tab.id) {
+            return await closeTab(tab.id)
+          }
+        })
+        await Promise.all(closeTabs)
+      }
+    }
+    return {
+      window: newWindow,
+      tabs,
+      closeStartupTabs,
+    }
+  }
+  return {
+    window: newWindow,
+    tabs,
+  }
 }
 
 /**
@@ -365,44 +394,21 @@ export const removeWindows = async (
  * @note _SIDE EFFECTS_: opens windows
  * @note made sync to be compatible with the DND move which works optimistically
  */
-export const addWindow = async (
-  _windows: CurrentSessionWindow[] | SavedSessionWindow[],
-  {
-    window: win,
-    focused,
-    index,
-  }: {
-    window: CurrentSessionWindow | SavedSessionWindow
-  } & XOR<{ focused?: boolean }, { index?: number }>
-) => {
-  const windows = cloneDeep(_windows)
-  let insertWindow: CurrentSessionWindow | SavedSessionWindow | undefined
-  if (isCurrentSessionWindows(windows)) {
-    const { window: openedBrowserWin, tabs: openedBrowserTabs } = await open(
-      win,
-      focused
-    )
-    if (openedBrowserWin) {
-      insertWindow = fromBrowser({
-        ...openedBrowserWin,
-        tabs: openedBrowserTabs,
-      })
-    }
-  } else {
-    insertWindow = createSaved(win)
+export const addCurrentWindow = async ({
+  window: win,
+}: {
+  window: CurrentSessionWindow
+}) => {
+  const { window: openedBrowserWin, tabs: openedBrowserTabs } = await open(
+    win,
+    win.focused
+  )
+  if (openedBrowserWin) {
+    return fromBrowser({
+      ...openedBrowserWin,
+      tabs: openedBrowserTabs,
+    })
   }
-  if (
-    insertWindow &&
-    isCurrentSessionWindows(windows) === isCurrentSessionWindow(insertWindow)
-  ) {
-    if (isDefined(index)) {
-      windows.splice(index, 0, insertWindow)
-    } else {
-      // @ts-expect-error
-      windows.push(insertWindow)
-    }
-  }
-  return windows
 }
 
 /**
@@ -430,12 +436,10 @@ const move = async (
   // update pinned if defined
   if (isDefined(pinned)) {
     movedTabs = await Promise.all(
-      tabs.map(async (t) => await updateTab(t, { pinned }))
+      originalTabs.map(async (t) => await updateTab(t, { pinned }))
     )
-    // pinning moves the tab to last pin, so moving again is necessary
-    if (pinned) {
-      movedTabs = await _move()
-    }
+    // toggling pin status moves the tab to after last pin, so moving again is necessary
+    movedTabs = await _move()
   }
 
   return movedTabs

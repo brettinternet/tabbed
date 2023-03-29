@@ -7,8 +7,8 @@ import {
   DraggableStateSnapshot,
 } from '@hello-pangea/dnd'
 import cn, { Argument as ClassNames } from 'classnames'
-import { AnimatePresence, motion } from 'framer-motion'
-import React, { memo } from 'react'
+import { motion } from 'framer-motion'
+import { memo } from 'react'
 
 import { Tab } from 'components/tab'
 import { Session } from 'utils/session'
@@ -29,22 +29,7 @@ type InnerTabListProps = {
   isWindowDragging: boolean
   isWindowFocused: boolean
   apiControllerRef: ApiControllerRef
-  isDraggingTab: boolean
 }
-
-/**
- * Prevent presence exit animation while dragging
- * Note, doing so with `isDragging` in motion.div child below doesn't work
- */
-const Wrapper: React.FC<React.PropsWithChildren<{ animate: boolean }>> = ({
-  animate,
-  children,
-}) =>
-  animate ? (
-    <AnimatePresence initial={false}>{children}</AnimatePresence>
-  ) : (
-    <div>{children}</div>
-  )
 
 const InnerTabList: React.FC<InnerTabListProps> = ({
   tabs,
@@ -52,9 +37,8 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
   windowId,
   isWindowFocused,
   apiControllerRef,
-  isDraggingTab,
 }) => (
-  <Wrapper animate={!isDraggingTab}>
+  <>
     {tabs.map((tab, index) => {
       const id = getWindowTabDraggableId(windowId, tab.id)
       return (
@@ -108,7 +92,7 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
         </Draggable>
       )
     })}
-  </Wrapper>
+  </>
 )
 
 const MemoizedInnerTabList = memo(InnerTabList)
@@ -188,10 +172,6 @@ export const TabsList: React.FC<TabsListProps> = ({
                 isWindowDragging={isWindowDragging}
                 isWindowFocused={win.focused}
                 apiControllerRef={apiControllerRef}
-                isDraggingTab={
-                  activeDragKind === ActiveDragKind.TAB ||
-                  activeDragKind === ActiveDragKind.INCOGNITO_TAB
-                }
               />
               {dropProvided.placeholder}
             </div>

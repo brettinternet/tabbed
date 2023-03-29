@@ -4,6 +4,7 @@ import { useCallback } from 'react'
 import { Tabs } from 'webextension-polyfill'
 
 import { useTryToastError } from 'components/error/handlers'
+import { closeTab } from 'utils/browser'
 import { reorder, spliceSeparate } from 'utils/helpers'
 import { isDefined } from 'utils/helpers'
 import {
@@ -11,6 +12,7 @@ import {
   open as openSession,
   update as _updateSession,
   SavedSessionCategoryType,
+  isCurrentSession,
 } from 'utils/session'
 import {
   SessionTab,
@@ -24,18 +26,19 @@ import {
   shouldPin,
 } from 'utils/session-tab'
 import {
-  addWindow,
   addCurrentTabs,
   findWindowIndex,
   removeWindows as _removeWindows,
   filterWindows,
   SessionWindow,
   findWindow,
-  createSaved,
+  createSaved as createSavedWindow,
+  createCurrent as createCurrentWindow,
   isCurrentSessionWindow,
   focus as focusWindow,
   open as openWindow,
   update as _updateWindow,
+  fromBrowser as windowFromBrowser,
 } from 'utils/session-window'
 import {
   updateCurrentSession,
@@ -525,7 +528,55 @@ export const useDndHandlers = () => {
           from.windowId
         )
 
-        if (to.windowId && isDefined(to.index)) {
+        console.log('MOVE ... to: before ', to)
+
+        let openWindowCallback: (() => Promise<void>) | undefined
+        if (!to.windowId) {
+          const {
+            incognito,
+            state,
+            height,
+            width,
+            top,
+            left,
+            focused: fromWindowFocused,
+          } = fromSession.windows[fromWindowIndex]
+          const tab = fromSession.windows[fromWindowIndex].tabs[from.index]
+          const focused = fromWindowFocused && tab.active
+          // create saved but `addWindow` will coerce window to match windows list
+          const newWindow = createSavedWindow({
+            tabs: [],
+            incognito: isDefined(to.incognito) ? to.incognito : incognito,
+            focused,
+            state,
+            height,
+            width,
+            top,
+            left,
+          })
+          if (isCurrentSession(toSession)) {
+            const { window: openedBrowserWin, closeStartupTabs } =
+              await openWindow(newWindow, focused)
+            if (openedBrowserWin) {
+              // ignore startup tabs
+              openedBrowserWin.tabs = []
+              const createdWindow = windowFromBrowser(openedBrowserWin)
+              toSession.windows.push(createdWindow)
+              // will close startup tabs after move below
+              openWindowCallback = closeStartupTabs
+              to.windowId = createdWindow.id
+            }
+          } else {
+            toSession.windows.push(newWindow)
+            to.windowId = newWindow.id
+          }
+        }
+
+        console.log('MOVE ... to: after ', to)
+        if (to.windowId) {
+          if (!isDefined(to.index)) {
+            to.index = 0
+          }
           // move tabs to specific session window
           const toWindowIndex = findWindowIndex(toSession.windows, to.windowId)
           const fromTabs = fromSession.windows[fromWindowIndex].tabs
@@ -561,14 +612,37 @@ export const useDndHandlers = () => {
               to.index
             )
             if (updatedFromTabs.length > 0) {
+              // assign tabs with target tab removed
               fromSession.windows[fromWindowIndex].tabs = updatedFromTabs
+              if (updatedFromTabs.length === 1) {
+                // remaining tab is active
+                fromSession.windows[fromWindowIndex].tabs[0].active = true
+              }
             } else {
+              // remove empty window
               fromSession.windows.splice(fromWindowIndex, 1)
             }
             toSession.windows[toWindowIndex].tabs = updatedToTabs
           }
+          // Update moved tab for side effects/value changes
           target = toSession.windows[toWindowIndex].tabs[to.index]
           target.pinned = shouldPin(target, previousTab, nextTab)
+          target.active = false
+          const targetWindow = toSession.windows[toWindowIndex]
+          if (
+            isCurrentSessionTab(target) &&
+            isCurrentSessionWindow(targetWindow)
+          ) {
+            target.assignedWindowId = targetWindow.assignedWindowId
+          }
+          // generate title if missing (missing on newly created windows)
+          if (!toSession.windows[toWindowIndex].title) {
+            toSession.windows[toWindowIndex] = isCurrentSessionWindow(
+              targetWindow
+            )
+              ? createCurrentWindow(targetWindow)
+              : createSavedWindow(targetWindow)
+          }
           toSession.windows[toWindowIndex].tabs[to.index] = target
           // side effects in browser
           addCurrentTabs(
@@ -577,29 +651,9 @@ export const useDndHandlers = () => {
             to.index,
             target.pinned
           )
-        } else {
-          // TODO: incomplete? remove tabs in fromWindow
-          // move tabs to newly created window in a session
-          const { incognito, state, height, width, top, left } =
-            fromSession.windows[fromWindowIndex]
-          const tab = fromSession.windows[fromWindowIndex].tabs[from.index]
-          console.log('tab: ', tab)
-          // create saved but `addWindow` will coerce window to match windows list
-          const newWindow = createSaved({
-            tabs: [tab],
-            incognito: isDefined(to.incognito) ? to.incognito : incognito,
-            focused: false,
-            state,
-            height,
-            width,
-            top,
-            left,
-          })
-          toSession.windows = await addWindow(toSession.windows, {
-            window: newWindow,
-            index: toSession.windows.length,
-          })
-          fromSession.windows[fromWindowIndex].tabs.splice(from.index, 1)
+          if (openWindowCallback) {
+            openWindowCallback()
+          }
         }
 
         let updatedSession = toSession
