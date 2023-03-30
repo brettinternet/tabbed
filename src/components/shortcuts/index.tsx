@@ -7,15 +7,15 @@ import { Kbd as Keyboard } from 'components/kbd'
 import { Shortcut } from './store'
 
 const Th: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <th className="flex items-center justify-center font-normal px-2 py-1 bg-gray-100 dark:bg-gray-700 text-center">
+  <th className="flex items-center justify-center font-normal px-2 py-1 text-center">
     {children}
   </th>
 )
 const Td: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <td className="px-2 py-1 text-gray-600 dark:text-gray-300">{children}</td>
+  <td className="px-2 py-1 text-gray-700 dark:text-gray-300">{children}</td>
 )
 const Kbd: React.FC<React.PropsWithChildren> = ({ children }) => (
-  <Keyboard className="bg-white dark:bg-gray-900 dark:border-gray-500 dark:text-gray-50 pt-1">
+  <Keyboard className="bg-white dark:bg-gray-900 dark:border-gray-500 dark:text-gray-50">
     {children}
   </Keyboard>
 )
@@ -27,19 +27,18 @@ export const Shortcuts: React.FC = () => (
       icon, or right clicking over different elements on the page.
     </p> */}
 
-    <table className="mx-auto table-auto">
+    <table className="mx-auto table-auto bg-gray-100 dark:bg-gray-700 rounded">
       <tbody>
         <tr>
           <Th>
             {isMac ? (
-              <Keyboard className="bg-white dark:bg-gray-900 dark:border-gray-500 dark:text-gray-50">
+              <Kbd>
                 <Icon
                   name={IconName.KEYBOARD_COMMAND}
                   ariaLabel="Command"
                   size="xs"
-                  className="my-1"
                 />
-              </Keyboard>
+              </Kbd>
             ) : (
               <Kbd>Ctrl</Kbd>
             )}{' '}

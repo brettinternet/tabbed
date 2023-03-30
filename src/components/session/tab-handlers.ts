@@ -28,10 +28,9 @@ import {
   updateSessionsManager,
 } from 'utils/sessions-manager'
 
-import { ApiControllerRef } from './dnd-store'
 import { useHelpers } from './helpers'
 
-export const useTabHandlers = (apiControllerRef: ApiControllerRef) => {
+export const useTabHandlers = () => {
   const { tryToastError, sessionsManager, setSessionsManager } = useHelpers()
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -118,7 +117,7 @@ export const useTabHandlers = (apiControllerRef: ApiControllerRef) => {
         }
       }
     ),
-    [sessionsManager, apiControllerRef.current]
+    [sessionsManager]
   )
 
   // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -9,14 +9,15 @@ import {
 import cn, { Argument as ClassNames } from 'classnames'
 import { motion } from 'framer-motion'
 import { memo } from 'react'
+import { focusRingClass } from 'styles'
 
 import { Tab } from 'components/tab'
 import { Session } from 'utils/session'
 import { SessionWindow } from 'utils/session-window'
 
+import { handleFocusDraggable } from './dnd-handlers'
 import {
   ActiveDragKind,
-  ApiControllerRef,
   DroppableType,
   getWindowTabDraggableId,
   useActiveDragKind,
@@ -28,7 +29,6 @@ type InnerTabListProps = {
   tabs: SessionWindow['tabs']
   isWindowDragging: boolean
   isWindowFocused: boolean
-  apiControllerRef: ApiControllerRef
 }
 
 const InnerTabList: React.FC<InnerTabListProps> = ({
@@ -36,7 +36,6 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
   sessionId,
   windowId,
   isWindowFocused,
-  apiControllerRef,
 }) => (
   <>
     {tabs.map((tab, index) => {
@@ -51,7 +50,8 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
               ref={dragProvided.innerRef}
               {...dragProvided.draggableProps}
               {...dragProvided.dragHandleProps}
-              className="mb-2"
+              className={cn('mb-2 rounded', focusRingClass)}
+              onClick={handleFocusDraggable}
             >
               <motion.div
                 layout={!(isDragging || isDropAnimating)}
@@ -80,7 +80,6 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
                   windowId={windowId}
                   isDragging={isDragging}
                   isWindowFocused={isWindowFocused}
-                  apiControllerRef={apiControllerRef}
                   index={index}
                   isLastTab={index === tabs.length - 1}
                 />
@@ -120,7 +119,6 @@ type TabsListProps = {
   sessionId: Session['id']
   className?: ClassNames
   isWindowDragging: boolean
-  apiControllerRef: ApiControllerRef
 }
 
 /**
@@ -132,7 +130,6 @@ export const TabsList: React.FC<TabsListProps> = ({
   window: win,
   className,
   isWindowDragging,
-  apiControllerRef,
 }) => {
   const [activeDragKind] = useActiveDragKind()
   const isDropDisabled =
@@ -169,7 +166,6 @@ export const TabsList: React.FC<TabsListProps> = ({
                 windowId={windowId}
                 isWindowDragging={isWindowDragging}
                 isWindowFocused={win.focused}
-                apiControllerRef={apiControllerRef}
               />
               {dropProvided.placeholder}
             </div>

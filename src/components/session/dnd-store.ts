@@ -79,6 +79,7 @@ export const useActiveDragKind = () => useAtom(activeDragKindAtom)
 export type ApiControllerRef = React.MutableRefObject<SensorAPI | undefined>
 
 /**
+ * @usage for programmatic changes to the table
  * Modeled after https://github.com/hello-pangea/dnd/blob/00d2fd24ef9db1c62274d89da213b711efbacdde/stories/src/programmatic/with-controls.tsx#L239-L243
  */
 export const useApiController = () => {

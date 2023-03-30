@@ -11,7 +11,7 @@ import { WindowHeader } from 'components/window'
 import { Session } from 'utils/session'
 import { SessionWindow } from 'utils/session-window'
 
-import { ApiControllerRef } from './dnd-store'
+import { handleFocusDraggable } from './dnd-handlers'
 import { TabsList } from './tabs-list'
 
 type ColorOptions = {
@@ -47,7 +47,6 @@ type SessionWindowProps = {
   sessionId: Session['id']
   index: number
   window: SessionWindow
-  apiControllerRef: ApiControllerRef
 }
 
 /**
@@ -57,7 +56,6 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
   sessionId,
   index,
   window: win,
-  apiControllerRef,
 }) => (
   <Draggable draggableId={`${sessionId}-${win.id}`} index={index}>
     {(
@@ -72,10 +70,13 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
             incognito: win.incognito,
           }),
           isDragging && 'rounded shadow-lg'
+          // TODO: make space around element for focus ring to show through
+          // focusRingClass
         )}
         ref={dragProvided.innerRef}
         {...dragProvided.draggableProps}
         {...dragProvided.dragHandleProps}
+        onClick={handleFocusDraggable}
       >
         <motion.div
           layout={!(isDragging || isDropAnimating)}
@@ -110,7 +111,6 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
             window={win}
             isWindowDragging={isDragging}
             className="cursor-default"
-            apiControllerRef={apiControllerRef}
           />
         </motion.div>
       </div>

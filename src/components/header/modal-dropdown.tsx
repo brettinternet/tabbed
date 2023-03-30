@@ -33,6 +33,7 @@ export const ModalDropdown: React.FC<ModalDropdownProps> = ({
               name: IconName.HELP,
               size: 'sm',
             },
+            shortcut: '?',
           },
           {
             onClick: () => {
@@ -55,6 +56,7 @@ export const ModalDropdown: React.FC<ModalDropdownProps> = ({
               name: IconName.SETTINGS,
               size: 'sm',
             },
+            shortcut: '`',
           },
         ],
       ]}

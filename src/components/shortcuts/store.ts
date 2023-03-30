@@ -1,11 +1,13 @@
-import { noop } from 'lodash'
+// import { noop } from 'lodash'
 import { useHotkeys } from 'react-hotkeys-hook'
+import { focusClassIndicator } from 'styles'
 
 import { isPopup } from 'components/app/store'
 import { useModal } from 'components/modal/store'
-import { log } from 'utils/logger'
 
-const logContext = 'components/shortcuts/store'
+// import { log } from 'utils/logger'
+
+// const logContext = 'components/shortcuts/store'
 
 // import { useToasts } from 'components/toast/store'
 // import { parseNum, isDefined } from 'utils/helpers'
@@ -57,7 +59,7 @@ export const Shortcut: ShortcutType = {
   backtick: {
     hotkey: '`',
     eventKey: '`',
-    display: '`',
+    display: 'Backtick',
     description: 'Toggle settings display',
   },
   // slash: {
@@ -120,6 +122,11 @@ export const useShortcuts = (enabled: boolean) => {
         case Shortcut.escape.eventKey:
           if (!!modal) {
             updateModal.off()
+          } else if (
+            document.activeElement instanceof HTMLElement &&
+            document.activeElement.classList.contains(focusClassIndicator)
+          ) {
+            document.activeElement.blur()
           } else if (isPopup) {
             window.close()
           }

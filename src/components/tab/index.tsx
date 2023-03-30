@@ -4,7 +4,6 @@ import { Button } from 'components/button'
 import { Dropdown } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
 import { Active } from 'components/indicators'
-import { ApiControllerRef } from 'components/session/dnd-store'
 import { useTabHandlers } from 'components/session/tab-handlers'
 import { isExtensionUrl } from 'utils/browser'
 import { stopPropagation } from 'utils/helpers'
@@ -26,7 +25,6 @@ export type TabProps = {
   className?: ClassNames
   isDragging: boolean
   isWindowFocused?: boolean
-  apiControllerRef: ApiControllerRef
   index: number
   isLastTab: boolean
 }
@@ -38,7 +36,6 @@ export const Tab: React.FC<TabProps> = ({
   isDragging,
   className,
   isWindowFocused,
-  apiControllerRef,
   index,
   isLastTab,
 }) => {
@@ -55,7 +52,7 @@ export const Tab: React.FC<TabProps> = ({
     active,
     // groupId,
   } = tab
-  const { openTabs, updateTab, removeTabs } = useTabHandlers(apiControllerRef)
+  const { openTabs, updateTab, removeTabs } = useTabHandlers()
   const isCurrentSession = isCurrentSessionTab(tab)
 
   const handleOpen = () => {

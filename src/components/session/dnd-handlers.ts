@@ -27,14 +27,20 @@ import {
   createCurrentDraft as createCurrentDraftWindow,
   move as moveWindowTab,
 } from 'utils/session-window'
-import {
-  updateCurrentSession,
-  getSession,
-  save,
-  updateSessionsManager,
-} from 'utils/sessions-manager'
+import { getSession, save, updateSessionsManager } from 'utils/sessions-manager'
 
 import { useHelpers } from './helpers'
+
+export const handleFocusDraggable: React.MouseEventHandler<HTMLElement> = (
+  event
+) => {
+  if (event.target instanceof HTMLElement) {
+    const draggable = event.target.closest('[data-rfd-draggable-id]')
+    if (draggable instanceof HTMLElement) {
+      draggable.focus()
+    }
+  }
+}
 
 type MoveTabArgs = {
   from: {

@@ -2,6 +2,7 @@ import cn, { Argument as ClassNames } from 'classnames'
 import { forwardRef } from 'react'
 
 import { Icon, IconProps } from 'components/icon'
+import { Kbd } from 'components/kbd'
 import { Valueof } from 'utils/helpers'
 
 const Variant = {
@@ -60,14 +61,17 @@ export const getClass = ({
   variant = Variant.PRIMARY,
   shape = Shape.ROUNDED,
   inline = variant === Variant.LINK,
+  between = false,
 }: {
   variant?: VariantValue
   shape?: ShapeValue
   inline?: boolean
+  between?: boolean
 } = {}) =>
   cn(
     'appearance-none flex-row items-center transition-colors duration-100',
     inline ? 'inline-flex' : 'flex',
+    between && 'justify-between space-x-6',
     getShapeClass(shape),
     getVariantClass(variant)
   )
@@ -76,9 +80,10 @@ export type ButtonProps = {
   className?: ClassNames
   variant?: VariantValue
   iconProps?: IconProps
-  text?: string
+  text?: React.ReactNode
   shape?: ShapeValue
   inline?: boolean
+  shortcut?: React.ReactNode
 } & React.ButtonHTMLAttributes<HTMLButtonElement>
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -91,6 +96,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       shape,
       inline,
       iconProps,
+      shortcut,
       ...props
     },
     ref
@@ -102,18 +108,22 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           variant,
           shape: shape || (iconProps ? Shape.ICON : shape),
           inline,
+          between: !!shortcut,
         }),
         className
       )}
       {...props}
     >
-      {iconProps && (
-        <Icon
-          {...iconProps}
-          className={cn(text && 'mr-2', iconProps.className)}
-        />
-      )}
-      {text}
+      <div className="flex items-center">
+        {iconProps && (
+          <Icon
+            {...iconProps}
+            className={cn(text && 'mr-2', iconProps.className)}
+          />
+        )}
+        {text}
+      </div>
+      {shortcut && <Kbd>{shortcut}</Kbd>}
     </button>
   )
 )

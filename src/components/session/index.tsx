@@ -4,7 +4,7 @@ import { isPopup } from 'components/app/store'
 import { useSettings } from 'components/settings/store'
 import { defaultSettings } from 'utils/settings'
 
-import { useApiController, useDndSessions } from './dnd-store'
+import { useDndSessions } from './dnd-store'
 import { SessionContainer } from './session-container'
 
 // Scrolling is handled within certain divs
@@ -20,7 +20,6 @@ if (isPopup) {
 export const SessionLayout = () => {
   const [settings] = useSettings()
   const { onBeforeCapture, onDragEnd, sessionsManager } = useDndSessions()
-  const { apiControllerRef, apiControllerSensor } = useApiController()
 
   if (sessionsManager) {
     const session = sessionsManager.current
@@ -33,14 +32,11 @@ export const SessionLayout = () => {
         }}
       >
         <DragDropContext
-          sensors={[apiControllerSensor]}
+          enableDefaultSensors
           onBeforeCapture={onBeforeCapture}
           onDragEnd={onDragEnd}
         >
-          <SessionContainer
-            session={session}
-            apiControllerRef={apiControllerRef}
-          />
+          <SessionContainer session={session} />
         </DragDropContext>
       </div>
     )
