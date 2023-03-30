@@ -253,14 +253,18 @@ export const update = async (
  */
 const mapTabs = (
   tabs: Tabs.Tab[],
-  assignedWindowId: CurrentSessionTab['assignedWindowId']
+  assignedWindowId: CurrentSessionTab['assignedWindowId'],
+  existingTabs?: CurrentSessionTab[]
 ): CurrentSessionTab[] => {
   return (
     tabs
       // TODO: is this always necessary?
       .sort((a, b) => a.index - b.index)
       .reduce<CurrentSessionTab[]>((acc, tab) => {
-        const maybeTab = fromBrowserTab(tab, assignedWindowId)
+        const existingTab = existingTabs?.find(
+          (t) => tab.id && tab.id === t.assignedTabId
+        )
+        const maybeTab = fromBrowserTab(tab, assignedWindowId, existingTab?.id)
         return maybeTab ? acc.concat(maybeTab) : acc
       }, [])
   )
@@ -302,7 +306,8 @@ export const toCurrent = async <
  */
 export const fromBrowser = (
   win: Windows.Window,
-  id?: BrandedUuid<'window'>
+  id?: BrandedUuid<'window'>,
+  existingTabs?: CurrentSessionTab[]
 ): CurrentSessionWindow => {
   const {
     id: maybeAssignedWindowId,
@@ -317,7 +322,9 @@ export const fromBrowser = (
     left,
   } = win
   const assignedWindowId = maybeAssignedWindowId || fallbackWindowId()
-  const tabs = maybeTabs ? mapTabs(maybeTabs, assignedWindowId) : []
+  const tabs = maybeTabs
+    ? mapTabs(maybeTabs, assignedWindowId, existingTabs)
+    : []
   return createCurrent({
     id,
     assignedWindowId,
@@ -445,7 +452,9 @@ export const move = async (
       windowId: assignedWindowId,
       index,
     })
-    return _tabs.map(fromBrowserTab).filter(isDefined)
+    return _tabs
+      .map((t) => fromBrowserTab(t, assignedWindowId))
+      .filter(isDefined)
   }
 
   // when pinning, move to window

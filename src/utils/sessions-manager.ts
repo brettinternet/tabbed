@@ -69,9 +69,8 @@ export const getCurrent = async (
 export const updateCurrentSession = async (
   _sessionsManager: SessionsManager
 ) => {
-  const current = await sessionFromBrowser(_sessionsManager.current)
   const sessionsManager = cloneDeep(_sessionsManager)
-  sessionsManager.current = current
+  sessionsManager.current = await sessionFromBrowser(sessionsManager.current)
   return sessionsManager
 }
 

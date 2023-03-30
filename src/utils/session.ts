@@ -164,26 +164,33 @@ const searchWindowByAssignedId = (
 
 /**
  * @usage Generate current session from browser API
+ * TODO: perform more surgical update so entire board doesn't need rerender
  */
 export const fromBrowser = async ({
-  windowOrder,
+  windows: existingWindows,
+  windowOrder = existingWindows,
   ...options
 }: Partial<
-  Omit<CurrentSession, 'id' | 'windows' | 'active' | 'status'> & {
+  Omit<CurrentSession, 'active' | 'status'> & {
     windowOrder: StoredCurrentSession['windows']
   }
-> = {}): Promise<CurrentSession> => {
+>): Promise<CurrentSession> => {
   const browserWindows = await getAllWindows({ populate: true }, true)
   const windows: CurrentSessionWindow[] =
-    browserWindows.map<CurrentSessionWindow>((win) => fromBrowserWindow(win))
+    browserWindows.map<CurrentSessionWindow>((win) => {
+      const existingWindow = existingWindows?.find(
+        (w) => win.id && win.id === w.assignedWindowId
+      )
+      return fromBrowserWindow(win, existingWindow?.id, existingWindow?.tabs)
+    })
   return createCurrent({
+    ...options,
     windows: windowOrder
       ? sortWindows(
           windows,
           windowOrder.map(({ assignedWindowId }) => assignedWindowId)
         )
       : windows,
-    ...options,
   })
 }
 

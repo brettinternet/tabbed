@@ -1,4 +1,4 @@
-import { Runtime } from 'webextension-polyfill'
+import browser, { Runtime } from 'webextension-polyfill'
 
 // import type { ToastOptions } from 'components/toast/store'
 import { log } from 'utils/logger'
@@ -19,6 +19,17 @@ export const sendMessage = <T extends { type: string; value?: unknown }>(
       value,
     })
   }
+}
+
+export const broadcastMessage = <T extends { type: string; value?: unknown }>(
+  type: T['type'],
+  value?: T['value']
+): void => {
+  log.debug('postMessage()', type, tryParse(value))
+  browser.runtime.sendMessage({
+    type,
+    value,
+  })
 }
 
 type MaybeValue<T> = T extends { value: unknown } ? [T['value']] : [undefined?]

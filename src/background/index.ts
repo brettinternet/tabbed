@@ -4,7 +4,7 @@ import { buildVersion, buildTime } from 'utils/env'
 import { log } from 'utils/logger'
 import { loadSettings } from 'utils/settings'
 
-import { AppMaybePort, isAppWithPort, startApp } from './app'
+import { App, startApp } from './app'
 import {
   startBackgroundSessionListeners,
   startClientSessionListeners,
@@ -27,14 +27,11 @@ const logStartup = async () => {
   log.info(status.join('\n'))
 }
 
-const reloadClientListeners = async (app: AppMaybePort) => {
-  if (isAppWithPort(app)) {
-    await Promise.all([
-      startClientSessionListeners(app),
-      startClientSettingsListeners(app),
-    ])
-  }
-}
+const reloadClientListeners = async (app: App) =>
+  await Promise.all([
+    startClientSessionListeners(app),
+    startClientSettingsListeners(app),
+  ])
 
 const main = async () => {
   log.debug(logContext, 'main()')

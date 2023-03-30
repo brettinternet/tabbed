@@ -86,30 +86,27 @@ export const startBackgroundSettingsListeners = async (
   void configureExtensionActions(initialSettings.extensionClickAction)
 }
 
-export const startClientSettingsListeners = async (app: App) => {
+export const startClientSettingsListeners = (app: App) => {
   log.debug(logContext, 'startClientSettingsListeners()', app)
 
-  const hasClientConnections = app.clients.size !== 0
-
-  const {
-    startListener: startUpdatedSettingListener,
-    removeListener: removeSettingUpdatedListener,
-  } = createMessageListener<UpdatedSettingMessage>(
-    app.port,
-    MESSAGE_TYPE_UPDATED_SETTING,
-    async (changedSettings) => {
-      const sideEffects = []
-      let key: keyof Settings
-      for (key in changedSettings) {
-        sideEffects.push(handleSettingsSideEffects(key, changedSettings))
+  for (const port of app.ports.values()) {
+    const {
+      startListener: startUpdatedSettingListener,
+      removeListener: removeSettingUpdatedListener,
+    } = createMessageListener<UpdatedSettingMessage>(
+      port,
+      MESSAGE_TYPE_UPDATED_SETTING,
+      async (changedSettings) => {
+        const sideEffects = []
+        let key: keyof Settings
+        for (key in changedSettings) {
+          sideEffects.push(handleSettingsSideEffects(key, changedSettings))
+        }
+        await Promise.all(sideEffects)
       }
-      await Promise.all(sideEffects)
-    }
-  )
+    )
 
-  if (hasClientConnections) {
     startUpdatedSettingListener()
-  } else {
-    removeSettingUpdatedListener()
+    port.onDisconnect.addListener(removeSettingUpdatedListener)
   }
 }

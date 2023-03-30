@@ -11,7 +11,7 @@ import { isDefined, Valueof } from 'utils/helpers'
 import { SessionTab } from 'utils/session-tab'
 import { SessionWindow } from 'utils/session-window'
 
-import { useDndHandlers } from './handlers'
+import { useDndHandlers } from './dnd-handlers'
 import { useSessionsManager } from './store'
 
 /**

@@ -15,15 +15,17 @@ import { Mounted } from './mounted'
 import { usePort } from './store'
 
 const App: React.FC = () => {
-  const [port, setPort] = usePort()
+  const [port, setPort, portRef] = usePort()
 
   useEffect(() => {
+    if (portRef.current) {
+      return
+    }
+
     const clientId = uuidv4()
-    const backgroundPort = sendConnect(
-      `${CONNECT_NAME_CLIENT_PREFIX}-${clientId}`
-    )
-    setPort(backgroundPort)
-  }, [setPort])
+    portRef.current = sendConnect(`${CONNECT_NAME_CLIENT_PREFIX}-${clientId}`)
+    setPort(portRef.current)
+  }, [setPort, port, portRef])
 
   if (port) {
     return (
@@ -36,7 +38,6 @@ const App: React.FC = () => {
     )
   }
 
-  // TODO: add loading
   return null
 }
 

@@ -25,6 +25,7 @@ Visualize and organize your browser sessions, windows and tabs.
 - [x] Settings
   - [x] Theme, font size, etc
 - [x] Extension popup, popout window and tab view
+- [x] All extension popups receive updates to windows and tabs
 - [x] Shortcuts
 - [x] Extension window customization - tab, popup and popout window
 - [ ] Move tabs with keyboard
@@ -33,6 +34,7 @@ Visualize and organize your browser sessions, windows and tabs.
 - [ ] View saved sessions
 - [ ] Multi-tab drag and drop
 - [ ] Support combining windows
+- [ ] Allow custom titles on windows
 
 ## Privacy
 

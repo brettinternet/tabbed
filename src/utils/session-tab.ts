@@ -195,7 +195,8 @@ export const toCurrent = async <
  */
 export const fromBrowser = (
   tab: Tabs.Tab,
-  windowId: CurrentSessionTab['assignedWindowId']
+  assignedWindowId: CurrentSessionTab['assignedWindowId'],
+  id?: BrandedUuid<'tab'>
 ): CurrentSessionTab | undefined => {
   const {
     id: maybeAssignedTabId,
@@ -214,11 +215,12 @@ export const fromBrowser = (
   const url = maybeUrl || pendingUrl
   if (url) {
     return createCurrent({
+      id,
       assignedTabId: maybeAssignedTabId || fallbackTabId(),
       url,
       favIconUrl,
       title,
-      assignedWindowId: windowId,
+      assignedWindowId,
       active,
       pinned,
       muted: mutedInfo?.muted ?? false,

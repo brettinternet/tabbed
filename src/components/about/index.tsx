@@ -6,12 +6,23 @@ export const About: React.FC = () => {
       <section>
         <ul className="space-y-2 text-center">
           <li>
-            <Link href="https://github.com/brettinternet/tabbed">
+            <Link
+              newWindow
+              href="https://github.com/brettinternet/tabbed/blob/main/PRIVACYPOLICY.md"
+            >
+              Privacy policy
+            </Link>
+          </li>
+          <li>
+            <Link newWindow href="https://github.com/brettinternet/tabbed">
               View source
             </Link>
           </li>
           <li>
-            Authored by <Link href="https://brett.cloud">Brett</Link>
+            Authored by{' '}
+            <Link newWindow href="https://brett.cloud">
+              Brett
+            </Link>
           </li>
         </ul>
       </section>

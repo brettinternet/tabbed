@@ -27,7 +27,11 @@ export const EmptyWindow: React.FC<EmptyWindowProps> = ({ isTabDragging }) => {
 
   return (
     <div className="pb-3 md:pb-0 md:w-80 lg:w-96 bg-gray-100 dark:bg-gray-900">
-      <div className="flex items-center justify-center md:h-window-header">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex items-center justify-center md:h-window-header"
+      >
         <Button
           className="h-6 pl-4 pr-3 py-1 rounded-tl-full rounded-bl-full"
           variant="primary"
@@ -50,7 +54,7 @@ export const EmptyWindow: React.FC<EmptyWindowProps> = ({ isTabDragging }) => {
           iconProps={{ name: IconName.INCOGNITO, size: 'sm' }}
           aria-label="New incognito window"
         />
-      </div>
+      </motion.div>
       <div className="p-2 h-72 md:h-tab-list">
         <div className="relative h-full w-full">
           <Droppable

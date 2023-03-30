@@ -15,9 +15,10 @@ export const isConnectionFailed = (err: unknown) =>
     'Could not establish connection. Receiving end does not exist.'
   )
 
-export const handleMessageError = (error: unknown) => {
+export const handleMessageError = (error: unknown, ...values: unknown[]) => {
   // If client is not merely closed
   if (!isConnectionFailed(error)) {
+    console.error('Error details: ', ...values)
     throw error
   }
 }

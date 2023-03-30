@@ -5,7 +5,7 @@ import { Button } from 'components/button'
 import { Dropdown, DropdownButtonProps } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
 import { Active } from 'components/indicators'
-import { useWindowHandlers } from 'components/session/handlers'
+import { useWindowHandlers } from 'components/session/window-handlers'
 import { BrandedUuid } from 'utils/generate'
 import { stopPropagation } from 'utils/helpers'
 import {

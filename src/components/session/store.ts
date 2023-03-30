@@ -13,7 +13,8 @@ import {
 import {
   loadSessionsManager,
   save,
-  SessionsManager, // updateCurrentSession,
+  SessionsManager,
+  updateCurrentSession,
 } from 'utils/sessions-manager'
 
 const logContext = 'components/session/store'
@@ -37,14 +38,17 @@ export const useSessionsManager = (): [
   }, [setSessionsManager, tryToastError])
 
   useEffect(() => {
+    if (!port || !sessionsManager) {
+      return
+    }
+
     const { startListener, removeListener } =
       createMessageListener<CurrentSessionChangeMessage>(
         port,
         MESSAGE_TYPE_CURRENT_SESSION_CHANGE,
         async () => {
           if (sessionsManager) {
-            console.log('told to reload sessions.........')
-            // setSessionsManager(await updateCurrentSession(sessionsManager))
+            setSessionsManager(await updateCurrentSession(sessionsManager))
           }
         }
       )
