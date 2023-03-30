@@ -1,6 +1,12 @@
-# Tabbed
+<p align="center">
+  <img width="128" src="./assets/icon.png" style="padding:0.5rem;">
+</p>
+
+<h1 align="center">Tabbed</h1>
 
 Visualize and organize your browser sessions, windows and tabs.
+
+![app screenshot of window columns with tabs](./assets/screenshot.png)
 
 ## Features
 
