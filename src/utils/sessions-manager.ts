@@ -97,8 +97,8 @@ export const loadSessionsManager = async (): Promise<SessionsManager> => {
  * @usage validates and cleans data before saving to local extension storage
  */
 const validate = (sessionsManager: SessionsManager) => {
-  sessionsManager.saved = uniqBy(sessionsManager.saved, 'uuid')
-  sessionsManager.previous = uniqBy(sessionsManager.previous, 'uuid')
+  sessionsManager.saved = uniqBy(sessionsManager.saved, 'id')
+  sessionsManager.previous = uniqBy(sessionsManager.previous, 'id')
   return sessionsManager
 }
 
