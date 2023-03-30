@@ -103,8 +103,9 @@ export const useSettings = (): [
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const _updateSettings = useCallback(
     tryToastError(async (values: Partial<Settings>) => {
-      const keys = getKeys(values)
       const settings = await updateSettings(values)
+      setSettings(settings)
+      const keys = getKeys(values)
       await Promise.all(
         keys.map(async (key) => handleSettingsSideEffects(key, settings))
       )
@@ -113,7 +114,6 @@ export const useSettings = (): [
         MESSAGE_TYPE_UPDATED_SETTING,
         values
       )
-      setSettings(settings)
     }),
     [port, tryToastError]
   )

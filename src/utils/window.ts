@@ -44,10 +44,3 @@ export const useMedia = <T>(values: T[]) => {
 
   return value
 }
-
-export const getAbsoluteHeight = (element: HTMLElement): number => {
-  const styles = window.getComputedStyle(element)
-  const margin =
-    parseFloat(styles['marginTop']) + parseFloat(styles['marginBottom'])
-  return Math.ceil(element.offsetHeight + margin)
-}

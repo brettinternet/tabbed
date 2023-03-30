@@ -1,7 +1,7 @@
 import browser, { Tabs, Windows } from 'webextension-polyfill'
 
 import { tabUrl, popoutUrl } from 'utils/env'
-import { isDefined } from 'utils/helpers'
+import { isDefined, Valueof } from 'utils/helpers'
 import { Settings } from 'utils/settings'
 
 export const openExtensionPopup = () => browser.browserAction.openPopup()
@@ -354,6 +354,7 @@ export const openWindow = async (w: WindowOptions) => {
       w.tabs = w.tabs.map((tab) => ({ ...tab, active: false }))
     }
     const createdTabs = await openTabs(w.tabs, createdWindow.id)
+    console.log('createdTabs: ', createdTabs)
     const newWindow = await getWindow(createdWindow.id, { populate: true })
     const tabsToClose = newWindow.tabs?.filter(({ id }) =>
       emptyStartupTabIds.includes(id)
@@ -378,4 +379,19 @@ export const openWindow = async (w: WindowOptions) => {
 export const openWindows = async (windows: WindowOptions[]) => {
   const tasks = windows.map(openWindow)
   return await Promise.all(tasks)
+}
+
+export const Browsers = {
+  FIREFOX: 'Firefox',
+  CHROME: 'Chrome',
+} as const
+
+type BrowsersValue = Valueof<typeof Browsers>
+
+export const getBrowser = (): BrowsersValue => {
+  if (chrome.app) {
+    return Browsers.CHROME
+  } else {
+    return Browsers.FIREFOX
+  }
 }

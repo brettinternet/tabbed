@@ -29,7 +29,7 @@ type ShapeValue = Valueof<typeof Shape>
 const getVariantClass = (variant: VariantValue) => {
   switch (variant) {
     case Variant.PRIMARY:
-      return 'bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-300 dark:text-black'
+      return 'bg-blue-500 text-white hover:bg-blue-600 dark:bg-blue-400 dark:text-black'
     case Variant.SECONDARY:
       return 'bg-gray-200 text-black dark:bg-gray-700 dark:text-gray-100'
     case Variant.TRANSPARENT:

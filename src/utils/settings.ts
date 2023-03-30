@@ -1,5 +1,5 @@
 // Types shared between background and client
-import { merge } from 'lodash'
+import { assign } from 'lodash'
 
 import { isProd } from 'utils/env'
 import { Valueof } from 'utils/helpers'
@@ -91,7 +91,7 @@ export const loadSettings = async (): Promise<Settings> => {
   const settings = await LocalStorage.get<Partial<Settings>>(
     LocalStorage.key.SETTINGS
   )
-  return merge(defaultSettings, settings)
+  return assign({}, defaultSettings, settings)
 }
 
 const saveSettings = async (settings: Settings) => {
@@ -99,7 +99,8 @@ const saveSettings = async (settings: Settings) => {
 }
 
 export const updateSettings = async (someSettings: Partial<Settings>) => {
-  const settings: Settings = merge(await loadSettings(), someSettings)
+  const loaded = await loadSettings()
+  const settings: Settings = assign({}, loaded, someSettings)
   await saveSettings(settings)
   return settings
 }

@@ -9,7 +9,7 @@ import {
   updateWindow,
 } from 'utils/browser'
 import { AppError } from 'utils/error'
-import { isDefined, PartialBy, XOR } from 'utils/helpers'
+import { isDefined, PartialBy } from 'utils/helpers'
 
 import {
   BrandedUuid,
@@ -65,7 +65,7 @@ export type SavedSessionWindow = SessionWindow<SavedSessionTab>
 export type UpdateSessionWindow = Partial<
   Pick<
     SessionWindow,
-    'focused' | 'state' | 'top' | 'left' | 'width' | 'height' | 'tabs' | 'title'
+    'focused' | 'state' | 'top' | 'left' | 'width' | 'height' | 'tabs'
   >
 >
 
@@ -120,17 +120,6 @@ export const findWindowIndex = (
   return index
 }
 
-/**
- * @usage if no existing title, uses the window tabs to generate a new window title
- * TODO: avoid overriding user generated title with additional flag to indicate user-edited
- * and nullish coelesce `maybeTitle ?? (win.title || generateWindowTitle(win.tabs))`
- * However, for now, we must override to avoid title getting stale since it's generated
- */
-const maybeGetTitle = (
-  win: CurrentSessionWindow | SavedSessionWindow,
-  _maybeTitle?: SessionWindow['title']
-) => generateWindowTitle(win.tabs)
-
 export const createCurrent = ({
   id,
   assignedWindowId,
@@ -159,7 +148,7 @@ export const createCurrent = ({
   }
 
   if (!win.title) {
-    win.title = maybeGetTitle(win)
+    win.title = generateWindowTitle(win.tabs)
   }
 
   return cloneDeep(win)
@@ -191,10 +180,60 @@ export const createSaved = ({
   }
 
   if (!win.title) {
-    win.title = maybeGetTitle(win)
+    win.title = generateWindowTitle(win.tabs)
   }
 
   return cloneDeep(win)
+}
+
+/**
+ * For optimistic updates where updates must be synchronous
+ */
+export const createCurrentDraft = (
+  win: PartialBy<SavedSessionWindow, 'id'>
+) => {
+  const draftAssignedWindowId = fallbackWindowId()
+  const draftAssignedTabId = fallbackTabId()
+  const newWindow = createCurrent({
+    ...win,
+    assignedWindowId: draftAssignedWindowId,
+    tabs: win.tabs.map((t) => ({
+      ...t,
+      assignedTabId: draftAssignedTabId,
+      assignedWindowId: draftAssignedWindowId,
+    })),
+  })
+  const clonedWindow: SessionWindow = cloneDeep(newWindow)
+  const focused = newWindow.focused
+  const commit = async (
+    cb: (win: CurrentSessionWindow) => Promise<void> | void
+  ) => {
+    const { window: openedBrowserWin, closeStartupTabs } = await open(
+      clonedWindow,
+      focused
+    )
+    if (openedBrowserWin) {
+      // ignoring startup tabs from window open above
+      const newCurrentWindow = fromBrowser({
+        ...openedBrowserWin,
+        tabs: [],
+      })
+      newCurrentWindow.title = generateWindowTitle(newCurrentWindow.tabs)
+      // move tabs to new window or whatever else
+      await cb(newCurrentWindow)
+      // then cleanup startup tabs
+      if (closeStartupTabs) {
+        await closeStartupTabs()
+      }
+    }
+  }
+
+  return {
+    window: newWindow,
+    commit,
+    draftAssignedWindowId,
+    draftAssignedTabId,
+  }
 }
 
 export const update = async (
@@ -205,7 +244,7 @@ export const update = async (
     await updateWindow(win.assignedWindowId, values)
   }
   return merge(win, values, {
-    title: maybeGetTitle(win, values.title),
+    title: generateWindowTitle(win.tabs),
   })
 }
 
@@ -390,32 +429,10 @@ export const removeWindows = async (
 }
 
 /**
- * @usage Adds a window to a list of windows
- * @note _SIDE EFFECTS_: opens windows
- * @note made sync to be compatible with the DND move which works optimistically
- */
-export const addCurrentWindow = async ({
-  window: win,
-}: {
-  window: CurrentSessionWindow
-}) => {
-  const { window: openedBrowserWin, tabs: openedBrowserTabs } = await open(
-    win,
-    win.focused
-  )
-  if (openedBrowserWin) {
-    return fromBrowser({
-      ...openedBrowserWin,
-      tabs: openedBrowserTabs,
-    })
-  }
-}
-
-/**
  * @usage handles multi-step move side effect for tabs
  * @returns moved tabs `CurrentSessionTab[]`
  */
-const move = async (
+export const move = async (
   tabs: CurrentSessionTab[],
   index: number,
   pinned: boolean | undefined,

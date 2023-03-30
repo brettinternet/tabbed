@@ -7,6 +7,8 @@ import {
   openExtensionNewTab,
   openExtensionExistingTab,
   openExtensionPopout,
+  getBrowser,
+  Browsers,
 } from 'utils/browser'
 import { popupUrl, sidebarUrl } from 'utils/env'
 import { SAVE_SESSIONS } from 'utils/flags'
@@ -121,19 +123,25 @@ export const configureExtensionActions = async (
     await browser.contextMenus.remove(menuIds.popup)
   }
 
-  menuIds.popup = browser.contextMenus.create({
-    title: 'Open popup',
-    contexts: ['browser_action'],
-    onclick: async () => {
-      if (extensionClickAction !== ExtensionClickActions.POPUP) {
-        await enablePopup()
-        await openExtensionPopup()
-        await disablePopup()
-      } else {
-        await openExtensionPopup()
-      }
-    },
-  })
+  /**
+   * This is not possible now on Chrome
+   * https://stackoverflow.com/questions/17928979/how-to-programmatically-open-chrome-extension-popup-html
+   */
+  if (getBrowser() === Browsers.FIREFOX) {
+    menuIds.popup = browser.contextMenus.create({
+      title: 'Open popup',
+      contexts: ['browser_action'],
+      onclick: async () => {
+        if (extensionClickAction !== ExtensionClickActions.POPUP) {
+          await enablePopup()
+          await openExtensionPopup()
+          await disablePopup()
+        } else {
+          await openExtensionPopup()
+        }
+      },
+    })
+  }
 }
 
 const BADGE_BACKGROUND_COLOR = '#3b82f6'

@@ -183,7 +183,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
               aria-label="Incognito window"
               name={IconName.INCOGNITO}
               size="xs"
-              className="text-purple-500"
+              className="text-purple-600 dark:text-indigo-200"
             />
           )}
           {focused && <Active aria-label="Window is focused" title="Focused" />}

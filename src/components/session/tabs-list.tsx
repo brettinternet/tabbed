@@ -45,7 +45,7 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
         <Draggable key={id} draggableId={id} index={index}>
           {(
             dragProvided: DraggableProvided,
-            dragSnapshot: DraggableStateSnapshot
+            { isDragging, isDropAnimating }: DraggableStateSnapshot
           ) => (
             <div
               ref={dragProvided.innerRef}
@@ -54,9 +54,7 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
               className="mb-2"
             >
               <motion.div
-                layout={
-                  !dragSnapshot.isDragging && !dragSnapshot.isDropAnimating
-                }
+                layout={!(isDragging || isDropAnimating)}
                 transition={{
                   type: 'spring',
                   duration: Math.max(0.1 * (Math.min(index, 20) / 2), 0.3),
@@ -80,7 +78,7 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
                   tab={tab}
                   sessionId={sessionId}
                   windowId={windowId}
-                  isDragging={dragSnapshot.isDragging}
+                  isDragging={isDragging}
                   isWindowFocused={isWindowFocused}
                   apiControllerRef={apiControllerRef}
                   index={index}

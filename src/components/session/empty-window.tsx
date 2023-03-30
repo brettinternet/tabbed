@@ -1,6 +1,6 @@
 import { Droppable } from '@hello-pangea/dnd'
 import cn from 'classnames'
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import browser from 'webextension-polyfill'
 
@@ -51,7 +51,7 @@ export const EmptyWindow: React.FC<EmptyWindowProps> = ({ isTabDragging }) => {
           aria-label="New incognito window"
         />
       </div>
-      <div className="p-2 h-tab-list">
+      <div className="p-2 h-72 md:h-tab-list">
         <div className="relative h-full w-full">
           <Droppable
             droppableId={DroppableId.NEW_WINDOW}
@@ -60,7 +60,10 @@ export const EmptyWindow: React.FC<EmptyWindowProps> = ({ isTabDragging }) => {
             {(dropProvided) => (
               <div
                 ref={dropProvided.innerRef}
-                className={cn('w-full', allowIncognito ? 'h-2/3' : 'h-full')}
+                className={cn(
+                  'w-full',
+                  allowIncognito ? 'h-1/2 md:h-2/3' : 'h-full'
+                )}
               >
                 {dropProvided.placeholder}
               </div>
@@ -72,51 +75,44 @@ export const EmptyWindow: React.FC<EmptyWindowProps> = ({ isTabDragging }) => {
               type={DroppableType.WINDOW}
             >
               {(dropProvided) => (
-                <div ref={dropProvided.innerRef} className="w-full h-1/3">
+                <div
+                  ref={dropProvided.innerRef}
+                  className="w-full h-1/2 md:h-1/3"
+                >
                   {dropProvided.placeholder}
                 </div>
               )}
             </Droppable>
           )}
-          <AnimatePresence initial={false}>
-            {isTabDragging && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{
-                  opacity: 0,
-                  scale: 1,
-                  transition: {
-                    duration: 0.15,
-                    delay: 0.3,
-                  },
-                }}
+          {isTabDragging && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className={cn(
+                'absolute inset-0 flex flex-col h-full rounded-lg border-2 transition-colors duration-100',
+                'border-dashed border-gray-400 cursor-copy'
+              )}
+            >
+              <div
                 className={cn(
-                  'absolute inset-0 flex flex-col h-full rounded-lg border-2 transition-colors duration-100',
-                  'border-dashed border-gray-400 cursor-copy'
+                  'w-full flex items-center justify-center hover:bg-blue-100',
+                  allowIncognito ? 'h-2/3' : 'h-full'
                 )}
               >
-                <div
-                  className={cn(
-                    'w-full flex items-center justify-center hover:bg-blue-100',
-                    allowIncognito ? 'h-2/3' : 'h-full'
-                  )}
-                >
+                <p className="flex flex-wrap items-center text-gray-400 dark:text-gray-700 font-bold">
+                  <Icon name={IconName.WINDOW} className="mr-2" /> New window
+                </p>
+              </div>
+              {allowIncognito && (
+                <div className="h-1/3 w-full flex items-center justify-center border-t-2 border-dashed border-gray-400 hover:bg-indigo-200">
                   <p className="flex flex-wrap items-center text-gray-400 dark:text-gray-700 font-bold">
-                    <Icon name={IconName.WINDOW} className="mr-2" /> New window
+                    <Icon name={IconName.INCOGNITO} className="mr-2" /> New
+                    incognito window
                   </p>
                 </div>
-                {allowIncognito && (
-                  <div className="h-1/3 w-full flex items-center justify-center border-t-2 border-dashed border-gray-400 hover:bg-indigo-200">
-                    <p className="flex flex-wrap items-center text-gray-400 dark:text-gray-700 font-bold">
-                      <Icon name={IconName.INCOGNITO} className="mr-2" /> New
-                      incognito window
-                    </p>
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+              )}
+            </motion.div>
+          )}
         </div>
       </div>
     </div>

@@ -1,5 +1,3 @@
-// `FluidDragActions` not exported, issue: https://github.com/hello-pangea/dnd/issues/509
-import type { PreDragActions, SnapDragActions } from '@hello-pangea/dnd'
 import {
   DropResult,
   OnBeforeCaptureResponder,
@@ -9,15 +7,12 @@ import { atom, useAtom } from 'jotai'
 import { useCallback, useRef } from 'react'
 
 import { brandUuid, getBrandKind, UuidKind } from 'utils/generate'
-import { easeOutCirc, isDefined, Valueof } from 'utils/helpers'
+import { isDefined, Valueof } from 'utils/helpers'
 import { SessionTab } from 'utils/session-tab'
 import { SessionWindow } from 'utils/session-window'
-import { getAbsoluteHeight } from 'utils/window'
 
 import { useDndHandlers } from './handlers'
 import { useSessionsManager } from './store'
-
-type FluidDragActions = ReturnType<PreDragActions['fluidLift']>
 
 /**
  * Dragging element type, or undefined when not dragged
@@ -123,7 +118,7 @@ export const useDndSessions = () => {
         }
       }
     },
-    [sessionsManager]
+    [sessionsManager, setActiveDragKind]
   )
 
   /**
@@ -159,7 +154,7 @@ export const useDndSessions = () => {
             })
           } else {
             // reordering tab
-            // For now, TODO: support all session types
+            // TODO: support all session types
             const sessionId = sessionsManager.current.id
             const fromWindowId =
               getBrandKind(source.droppableId) === UuidKind.WINDOW
@@ -194,7 +189,7 @@ export const useDndSessions = () => {
         setActiveDragKind(undefined)
       }
     },
-    [sessionsManager, moveWindows, moveTabs]
+    [sessionsManager, setActiveDragKind, moveWindows, moveTabs]
   )
 
   return {

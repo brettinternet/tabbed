@@ -18,12 +18,14 @@ Visualize and organize your browser sessions, windows and tabs.
   - [x] Incognito window support
 - [x] Settings
   - [x] Theme, font size, etc
+- [x] Extension popup, popout window and tab view
 - [x] Shortcuts
 - [x] Extension window customization - tab, popup and popout window
 - [ ] Move tabs with keyboard
 - [ ] Search
 - [ ] View recently closed tabs/windows
 - [ ] View saved sessions
+- [ ] multi-tab drag and drop
 
 ## Privacy
 

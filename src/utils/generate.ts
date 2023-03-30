@@ -54,7 +54,7 @@ export const unbrandUuid = <T extends UuidKindValue>(
  * this is a fallback more for typing than for an actual value
  */
 export const fallbackTabId = (): number => new Date().valueOf()
-export const fallbackWindowId = (): number => browser.windows.WINDOW_ID_CURRENT
+export const fallbackWindowId = (): number => browser.windows.WINDOW_ID_NONE
 
 const getSortedOccurrences = (arr: string[]) => {
   const hash = arr.reduce((acc, value) => {

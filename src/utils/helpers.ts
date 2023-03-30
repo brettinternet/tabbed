@@ -1,3 +1,5 @@
+import { cloneDeep } from 'lodash'
+
 /**
  * @usage defines a type of an object's values
  */
@@ -82,7 +84,7 @@ export const reorder = <T>(
   fromIndex: number,
   toIndex: number
 ): T[] => {
-  const list = _list.slice() // clone
+  const list = cloneDeep(_list)
   let [target] = list.splice(fromIndex, 1)
   list.splice(toIndex, 0, target)
   return list
@@ -98,8 +100,8 @@ export const spliceSeparate = <T>(
   fromIndex: number,
   toIndex: number
 ): [T[], T[]] => {
-  const from = _from.slice() // clone
-  const to = _to.slice() // clone
+  const from = cloneDeep(_from)
+  const to = cloneDeep(_to)
   let [target] = from.splice(fromIndex, 1)
   to.splice(toIndex, 0, target)
   return [from, to]
@@ -139,17 +141,4 @@ export const stopPropagation = (
   event: { stopPropagation?: () => void } = {}
 ) => {
   event.stopPropagation?.()
-}
-
-/**
- * Tween function
- */
-export const easeOutCirc = (
-  i: number,
-  start: number,
-  end: number,
-  steps: number
-): number => {
-  const distance = end - start
-  return distance * Math.sqrt(1 - (i = i / steps - 1) * i) + start
 }
