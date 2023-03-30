@@ -687,6 +687,7 @@ export const useDndHandlers = () => {
                       w.assignedWindowId ===
                       draftWindowParams?.draftAssignedWindowId
                   )
+                  target.assignedWindowId = newWindow.assignedWindowId
                   newWindow.tabs = [target]
                   if (index > -1) {
                     const mergedWindow = merge(
