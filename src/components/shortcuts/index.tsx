@@ -1,20 +1,21 @@
 import { Fragment } from 'react'
 
 import { isMac } from 'components/app/store'
+import { Icon, IconName } from 'components/icon'
 import { Kbd as Keyboard } from 'components/kbd'
 
 import { Shortcut } from './store'
 
-const Th: React.FC = ({ children }) => (
-  <th className="font-normal px-2 py-1 bg-gray-100 dark:bg-gray-700 text-center">
+const Th: React.FC<React.PropsWithChildren> = ({ children }) => (
+  <th className="flex items-center justify-center font-normal px-2 py-1 bg-gray-100 dark:bg-gray-700 text-center">
     {children}
   </th>
 )
-const Td: React.FC = ({ children }) => (
+const Td: React.FC<React.PropsWithChildren> = ({ children }) => (
   <td className="px-2 py-1 text-gray-600 dark:text-gray-300">{children}</td>
 )
-const Kbd: React.FC = ({ children }) => (
-  <Keyboard className="bg-white dark:bg-gray-900 dark:border-gray-500 dark:text-gray-50">
+const Kbd: React.FC<React.PropsWithChildren> = ({ children }) => (
+  <Keyboard className="bg-white dark:bg-gray-900 dark:border-gray-500 dark:text-gray-50 pt-1">
     {children}
   </Keyboard>
 )
@@ -30,8 +31,19 @@ export const Shortcuts: React.FC = () => (
       <tbody>
         <tr>
           <Th>
-            {isMac ? <Kbd>Cmd</Kbd> : <Kbd>Ctrl</Kbd>} + <Kbd>Shift</Kbd> +{' '}
-            <Kbd>S</Kbd>
+            {isMac ? (
+              <Keyboard className="bg-white dark:bg-gray-900 dark:border-gray-500 dark:text-gray-50">
+                <Icon
+                  name={IconName.KEYBOARD_COMMAND}
+                  ariaLabel="Command"
+                  size="xs"
+                  className="my-1"
+                />
+              </Keyboard>
+            ) : (
+              <Kbd>Ctrl</Kbd>
+            )}{' '}
+            + <Kbd>Shift</Kbd> + <Kbd>S</Kbd>
           </Th>
           <Td>Opens browser extension</Td>
         </tr>

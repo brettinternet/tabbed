@@ -1,5 +1,6 @@
 import cn from 'classnames'
 import { useRef, useState } from 'react'
+import browser from 'webextension-polyfill'
 
 import { Button } from 'components/button'
 import { openOptions } from 'components/help/handlers'
@@ -17,7 +18,7 @@ import { ExtensionClickActions, Themes } from 'utils/settings'
 
 import { useHandlers } from './handlers'
 
-const Error: React.FC = ({ children }) => (
+const Error: React.FC<React.PropsWithChildren> = ({ children }) => (
   <p className="text-red-600 dark:text-red-500">{children}</p>
 )
 
@@ -82,7 +83,10 @@ export const Settings: React.FC = () => {
           value={settings.theme}
           optionsListClassName="flex flex-row flex-wrap items-center"
         />
-        <Description>Changes extension color theme.</Description>
+        <Description>
+          Changes extension color theme. "System" is recommended for favicon
+          visibility.
+        </Description>
       </div>
 
       <div className="space-y-3">
@@ -123,13 +127,15 @@ export const Settings: React.FC = () => {
         />
         <Description>
           Enables extension shortcuts. Use <Kbd>?</Kbd> when enabled to{' '}
-          <button
-            onClick={handleOpenShortcuts}
-            className="appearance-none text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-500"
-          >
-            view shortcuts
-          </button>
-          .
+          <span className="whitespace-nowrap">
+            <button
+              onClick={handleOpenShortcuts}
+              className="appearance-none text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-500"
+            >
+              view shortcuts
+            </button>
+            .
+          </span>
         </Description>
       </div>
 
@@ -308,6 +314,22 @@ export const Settings: React.FC = () => {
           Enables verbose logging in the console.
         </Description>
       </div>
+
+      {settings.debugMode && (
+        <div className="space-y-3">
+          <Button
+            onClick={() => {
+              browser.runtime.reload()
+            }}
+            aria-describedby="reload-extension-description"
+          >
+            Reload extension
+          </Button>
+          <Description id="reload-extension-description">
+            Reloads the browser extension runtime.
+          </Description>
+        </div>
+      )}
 
       <div className="space-y-3">
         <Button

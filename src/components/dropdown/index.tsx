@@ -1,4 +1,5 @@
 import { Menu as M } from '@headlessui/react'
+import { Placement } from '@popperjs/core'
 import cn, { Argument as ClassNames } from 'classnames'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useState } from 'react'
@@ -10,6 +11,7 @@ import {
   getClass as getButtonClass,
 } from 'components/button'
 import { Icon, IconName, IconProps } from 'components/icon'
+import { isDefined } from 'utils/helpers'
 import { Portal } from 'utils/portal'
 
 export type DropdownButtonProps = {
@@ -21,7 +23,7 @@ const MenuItem: React.FC<{ buttonProps: DropdownButtonProps }> = ({
 }) => (
   <M.Item
     as={Button}
-    variant="none"
+    variant="item"
     shape="item"
     {...buttonProps}
     className={({ active }) =>
@@ -41,12 +43,14 @@ type GroupedActions = {
 type MenuProps = {
   className?: ClassNames
   buttonProps?: ButtonProps
-  dropdownOffset?: boolean
-  iconProps?: IconProps
+  dropdownOffset?: number
+  iconProps?: Partial<IconProps>
   menuItemsClassName?: ClassNames
   portalEnabled?: boolean
   animatedExit?: boolean
-} & (Actions | GroupedActions)
+  placement?: Placement
+} & (Actions | GroupedActions) &
+  React.PropsWithChildren
 
 export const Dropdown: React.FC<MenuProps> = (props) => {
   const {
@@ -58,13 +62,14 @@ export const Dropdown: React.FC<MenuProps> = (props) => {
     menuItemsClassName,
     portalEnabled = true,
     animatedExit = true,
+    placement = 'bottom-end',
   } = props
   const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null)
   const [container, setContainer] = useState<HTMLDivElement | null>(null)
   const { styles, attributes } = usePopper(trigger, container, {
-    placement: 'bottom-end',
-    modifiers: dropdownOffset
-      ? [{ name: 'offset', options: { offset: [0, -40] } }]
+    placement,
+    modifiers: isDefined(dropdownOffset)
+      ? [{ name: 'offset', options: { offset: [0, dropdownOffset] } }]
       : undefined,
   })
 

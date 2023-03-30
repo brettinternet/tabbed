@@ -61,6 +61,9 @@ const faqs: Faq[] = [
   },
 ]
 
+/**
+ * TODO: deep linking to specific FAQs
+ */
 export const Help: React.FC = () => {
   return (
     <div className="space-y-9">

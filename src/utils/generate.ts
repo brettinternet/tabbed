@@ -1,7 +1,60 @@
 import { v4 as uuidv4 } from 'uuid'
 import browser from 'webextension-polyfill'
 
-import { SessionTabData, SessionWindowData } from 'utils/sessions'
+import { SessionTab } from 'utils/session-tab'
+import { SessionWindow } from 'utils/session-window'
+
+import { Valueof } from './helpers'
+
+/**
+ * const map of different UUID brands
+ */
+export const UuidKind = {
+  TAB: 'tab',
+  WINDOW: 'window',
+  SESSION: 'session',
+} as const
+export type UuidKindValue = Valueof<typeof UuidKind>
+
+/**
+ * @note Branded type to increase type safety and prevent abuse
+ * https://gist.github.com/brettinternet/b32a63f057eb58f1a2de3765141097a7
+ */
+export type BrandedUuid<T extends UuidKindValue> = {
+  __uuid: T
+}
+
+/**
+ * @usage Generates UUID with a entity prefix
+ * @returns prefix + "-" + UUID with a branded type
+ */
+export const createId = <T extends UuidKindValue>(prefix: T): BrandedUuid<T> =>
+  `${prefix}-${uuidv4()}` as unknown as BrandedUuid<T>
+
+/**
+ * @usage Cast a value to the UUID brand type
+ * @returns the same value with a branded type
+ */
+export const brandUuid = <T extends UuidKindValue>(str: string) =>
+  str as unknown as BrandedUuid<T>
+
+export const getBrandKind = (uuid: string): UuidKindValue | undefined =>
+  Object.values(UuidKind).find((kind) => uuid.startsWith(kind))
+
+/**
+ * @usage Cast a branded UUID back to a string
+ * @returns the same value with type string
+ */
+export const unbrandUuid = <T extends UuidKindValue>(
+  uuid: BrandedUuid<T>
+): string => uuid as unknown as string
+
+/**
+ * @usage Unlikely to be used, but since browser windows and tabs are optional,
+ * this is a fallback more for typing than for an actual value
+ */
+export const fallbackTabId = (): number => new Date().valueOf()
+export const fallbackWindowId = (): number => browser.windows.WINDOW_ID_NONE
 
 const getSortedOccurrences = (arr: string[]) => {
   const hash = arr.reduce((acc, value) => {
@@ -57,7 +110,7 @@ const titleFromProperties = (
   }
 }
 
-const parseTitle = (tab: SessionTabData) => {
+const parseTitle = (tab: SessionTab) => {
   const urlObj = new URL(tab.url)
   const protocol = urlObj.protocol
   let hostname = urlObj.hostname
@@ -81,7 +134,7 @@ const parseTitle = (tab: SessionTabData) => {
   return tabTitle
 }
 
-const getTitlesFromTabs = (tabs: SessionTabData[]) => {
+const getTitlesFromTabs = (tabs: SessionTab[]) => {
   return tabs.reduce((acc, tab) => {
     const tabTitle = parseTitle(tab)
     if (tabTitle) {
@@ -92,22 +145,14 @@ const getTitlesFromTabs = (tabs: SessionTabData[]) => {
 }
 
 const MAX_TITLE_LENTH = 15
-export const generateWindowTitle = (tabs: SessionTabData[]) => {
+export const generateWindowTitle = (tabs: SessionTab[]) => {
   const titles = getTitlesFromTabs(tabs)
   return formatTopTitlesAndMore(titles)
 }
 
-export const generateSessionTitle = (windows: SessionWindowData[]) => {
+export const generateSessionTitle = (windows: SessionWindow[]) => {
   const titles = windows.reduce((acc, { tabs }) => {
     return acc.concat(getTitlesFromTabs(tabs))
   }, [] as string[])
   return formatTopTitlesAndMore(titles)
 }
-
-export const fallbackTabId = (): number => new Date().valueOf()
-export const fallbackWindowId = (): number => browser.windows.WINDOW_ID_CURRENT
-
-/**
- * Creates a UUID
- */
-export const createId = (prefix: string) => `${prefix}-${uuidv4()}`

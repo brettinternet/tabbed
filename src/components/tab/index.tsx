@@ -1,54 +1,34 @@
 import cn, { Argument as ClassNames } from 'classnames'
 
+import { Button } from 'components/button'
 import { Dropdown } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
+import { Active } from 'components/indicators'
+import { ApiControllerRef } from 'components/session/dnd-store'
+import { useTabHandlers } from 'components/session/handlers'
+import { isExtensionUrl } from 'utils/browser'
+import { stopPropagation } from 'utils/helpers'
+import { Session } from 'utils/session'
 import {
   isCurrentSessionTab,
-  SessionData,
-  SessionWindowData,
-  SomeSessionTabData,
-} from 'utils/sessions'
+  CurrentSessionTab,
+  SavedSessionTab,
+} from 'utils/session-tab'
+import { SessionWindow } from 'utils/session-window'
 
-import { useHandlers } from './handlers'
 import { Img } from './img'
-
-// TODO: add missing indicatorrs
-/* <div className="flex items-center flex-wrap">
-    {muted && (
-      <Icon
-        title="muted"
-        name={IconName.MUTE}
-        className="mr-2"
-        size="sm"
-      />
-    )}
-    {discarded && (
-      <Icon
-        title="discarded"
-        name={IconName.WINDOW_REMOVE}
-        className="mr-2"
-        size="sm"
-      />
-    )}
-    {attention && (
-      <Icon title="alert" name={IconName.ALERT} className="mr-2" size="sm" />
-    )}
-    {isDefined(groupId) && groupId > -1 && (
-      <span
-        title="group ID"
-        className="inline-block px-1 bg-yellow-900 mr-2"
-      >
-        {groupId}
-      </span>
-    )}
-  </div> */
+import { Shortcut } from './shortcut'
 
 export type TabProps = {
-  windowId: SessionWindowData['id']
-  sessionId: SessionData['id']
-  isDragging: boolean
-  tab: SomeSessionTabData
+  windowId: SessionWindow['id']
+  sessionId: Session['id']
+  tab: CurrentSessionTab | SavedSessionTab
   className?: ClassNames
+  isDragging: boolean
+  isWindowFocused?: boolean
+  apiControllerRef: ApiControllerRef
+  index: number
+  isLastTab: boolean
 }
 
 export const Tab: React.FC<TabProps> = ({
@@ -57,74 +37,183 @@ export const Tab: React.FC<TabProps> = ({
   tab,
   isDragging,
   className,
+  isWindowFocused,
+  apiControllerRef,
+  index,
+  isLastTab,
 }) => {
-  const { handleOpenTab, handleRemoveTab, handleUpdateTab, handleDiscardTab } =
-    useHandlers()
-
   const {
     id: tabId,
     url,
     favIconUrl,
     title,
-    // muted,
+    muted,
+    audible,
     pinned,
     discarded,
-    // attention,
+    attention,
     active,
     // groupId,
   } = tab
+  const { openTabs, updateTab, removeTabs } = useTabHandlers(apiControllerRef)
+  const isCurrentSession = isCurrentSessionTab(tab)
 
   const handleOpen = () => {
-    handleOpenTab({ sessionId, tabs: [{ windowId, tabIds: [tabId] }] })
+    openTabs({ sessionId, tabs: [{ windowId, tabIds: [tabId] }] })
   }
 
-  // TODO: animate presence (delete) https://www.framer.com/docs/animate-presence/
+  const handlePinToggle = () => {
+    updateTab({
+      sessionId,
+      windowId,
+      tabId,
+      options: { pinned: !pinned },
+    })
+  }
+
+  const handleMuteToggle = () => {
+    updateTab({
+      sessionId,
+      windowId,
+      tabId,
+      options: { muted: !muted },
+    })
+  }
+
+  const handleRemove = () => {
+    removeTabs({
+      sessionId,
+      tabs: [{ windowId, tabIds: [tabId] }],
+    })
+  }
+
+  const tabOrder = index + 1
+
   return (
     <div
       className={cn(
-        'group relative overflow-hidden transition-color transition-opacity duration-100 flex flex-row rounded h-tab',
+        'relative overflow-hidden group rounded border border-gray-100 dark:border-gray-700 transition-color duration-100',
         isDragging ? 'shadow-xl' : 'shadow',
         active
-          ? 'bg-green-50 dark:bg-green-900'
-          : 'bg-white hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700',
+          ? 'bg-green-50 dark:bg-teal-900'
+          : 'bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700',
         className
       )}
     >
-      {pinned && (
-        <div className="absolute rotate-45">
-          <div className="absolute -left-1 -top-4 h-8 w-5 bg-orange-400 dark:bg-orange-600" />
-          <Icon
-            className="absolute -top-1.5 left-1 text-white dark:text-gray-800"
-            title="pinned"
-            name={IconName.PIN}
-            size="xs"
-          />
-        </div>
-      )}
       <div
+        className={cn('h-tab relative p-3 flex flex-col justify-between')}
         onDoubleClick={handleOpen}
-        className="flex flex-row p-3 w-full max-w-full"
       >
-        <Img
-          src={favIconUrl}
-          className="mr-3"
-          alt={title || 'Site image'}
-          url={url}
-        />
-        {/* width is full width - image width (w-8) - padding right (p-3) */}
-        <div className="space-y-2 w-[calc(100%-2.75rem)]">
-          {title && <div className="line-clamp-2">{title}</div>}
-          <div className="truncate max-w-full inline-block text-blue-500">
-            {url}
+        {isWindowFocused && active && (
+          <div className="absolute left-0 top-0">
+            <Active aria-label="Tab is focused" title="Focused" />
+          </div>
+        )}
+        <div className="flex flex-row w-full max-w-full">
+          <Img
+            src={favIconUrl}
+            className="mr-2"
+            alt={title || 'Site image'}
+            url={url}
+          />
+          {/* width is full width - image width (w-8) - padding right (p-3) */}
+          <div className="w-[calc(100%-2.75rem)]">
+            {title && (
+              <div className="line-clamp-2 leading-3 font-semibold text-gray-700 dark:text-gray-400 mb-1">
+                {title}
+              </div>
+            )}
+            <div className="truncate max-w-full leading-3 inline-block text-blue-500 text-xxs font-light">
+              {url}
+            </div>
           </div>
         </div>
+        <div className="flex flex-row justify-start items-center overflow-hidden w-full max-w-full space-x-2">
+          {(audible || muted) && (
+            <Button
+              iconProps={{
+                name: muted ? IconName.MUTE : IconName.AUDIBLE,
+                size: 'xs',
+              }}
+              variant="card-action"
+              shape="outline"
+              onClick={handleMuteToggle}
+              onDoubleClick={stopPropagation}
+              aria-label={muted ? 'Mute tab' : 'Unmute tab'}
+              title={muted ? 'Mute tab' : 'Unmute tab'}
+            />
+          )}
+          {attention && (
+            <Icon
+              name={IconName.ALERT}
+              title="Tab has notification"
+              aria-label="Tab has notification"
+              size="xs"
+              className="text-red-500"
+            />
+          )}
+          {tabOrder < 9 ? (
+            <Shortcut
+              value={tabOrder}
+              onClick={handleOpen}
+              ariaLabel="focus tab"
+            />
+          ) : (
+            isLastTab && (
+              <Shortcut value={9} onClick={handleOpen} ariaLabel="focus tab" />
+            )
+          )}
+          {isExtensionUrl(url) && (
+            <Shortcut
+              value={'+Shift+S'}
+              onClick={handleOpen}
+              ariaLabel="focus tab"
+            />
+          )}
+          <Button
+            iconProps={{ name: IconName.PIN, size: 'xs' }}
+            className={cn(
+              'transition-opacity duration-100',
+              pinned
+                ? 'text-orange-600 hover:bg-gray-100 dark:border-gray-600'
+                : 'opacity-0 group-hover:opacity-100'
+            )}
+            variant={pinned ? 'none' : 'card-action'}
+            shape="outline"
+            onClick={handlePinToggle}
+            onDoubleClick={stopPropagation}
+            aria-label={pinned ? 'Unpin tab' : 'Pin tab'}
+            title={pinned ? 'Unpin tab' : 'Pin tab'}
+          />
+        </div>
       </div>
-      <div className="absolute h-full right-0 flex items-start space-x-2 p-3">
+      <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-100 h-full right-0 bottom-0 top-0 flex flex-col items-center justify-between p-3">
+        <Button
+          iconProps={{ name: IconName.CLOSE, size: 'xs' }}
+          variant="card-action"
+          className={cn(
+            'rounded-full text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-50',
+            active
+              ? 'bg-green-50 dark:bg-teal-900'
+              : 'bg-gray-50 dark:bg-gray-700'
+          )}
+          onClick={handleRemove}
+          onDoubleClick={stopPropagation}
+          aria-label={isCurrentSession ? 'Close' : 'Remove'}
+          title={isCurrentSession ? 'Close' : 'Remove'}
+        />
+
         <Dropdown
-          dropdownOffset
           buttonProps={{
-            className:
-              'transition-opacity duration-75 opacity-0 group-hover:opacity-100 focus:opacity-100 bg-gray-200 border border-gray-400 dark:bg-gray-800 dark:border-gray-600',
+            className: cn(
+              'rounded-full text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-50',
+              active
+                ? 'bg-green-50 dark:bg-teal-900'
+                : 'bg-gray-50 dark:bg-gray-700'
+            ),
+          }}
+          iconProps={{
+            size: 'sm',
           }}
           actionGroups={[
             [
@@ -134,37 +223,35 @@ export const Tab: React.FC<TabProps> = ({
                 iconProps: { name: IconName.WINDOW_OPEN },
               },
               {
-                onClick: () => {
-                  handleUpdateTab({
-                    sessionId,
-                    windowId,
-                    tabId,
-                    options: { pinned: !pinned },
-                  })
-                },
+                onClick: handlePinToggle,
                 text: pinned ? 'Unpin' : 'Pin',
                 iconProps: { name: IconName.PIN },
+              },
+              {
+                onClick: handleMuteToggle,
+                text: muted ? 'Unmute' : 'Mute',
+                iconProps: { name: IconName.MUTE },
               },
             ],
             [
               {
                 onClick: () => {
-                  handleDiscardTab({ sessionId, windowId, tabIds: [tabId] })
+                  updateTab({
+                    sessionId,
+                    windowId,
+                    tabId,
+                    options: { discarded: !discarded },
+                  })
                 },
                 text: 'Free memory',
                 iconProps: { name: IconName.TAB_DISCARD },
                 disabled: discarded,
               },
               {
-                onClick: () => {
-                  handleRemoveTab({
-                    sessionId,
-                    tabs: [{ windowId, tabIds: [tabId] }],
-                  })
-                },
-                text: isCurrentSessionTab(tab) ? 'Close' : 'Remove',
+                onClick: handleRemove,
+                text: isCurrentSession ? 'Close' : 'Remove',
                 iconProps: {
-                  name: isCurrentSessionTab(tab)
+                  name: isCurrentSession
                     ? IconName.WINDOW_REMOVE
                     : IconName.DELETE,
                 },

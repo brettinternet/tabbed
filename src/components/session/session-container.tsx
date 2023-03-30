@@ -1,21 +1,30 @@
-import { Droppable } from 'react-beautiful-dnd'
+import { Droppable } from '@hello-pangea/dnd'
 
-import { SessionData } from 'utils/sessions'
+import { Session } from 'utils/session'
 import { useMedia } from 'utils/window'
 
+import {
+  ActiveDragKind,
+  ApiControllerRef,
+  DroppableType,
+  useActiveDragKind,
+} from './dnd-store'
 import { EmptyWindow } from './empty-window'
-import { ActiveDragKind, ActiveDragKindType, DroppableType } from './store'
 import { WindowContainer } from './window-container'
 
 type SessionContainerProps = {
-  session: SessionData
-  activeDragKind: ActiveDragKindType
+  session: Session
+  apiControllerRef: ApiControllerRef
 }
 
+/**
+ * Modeled after https://github.com/hello-pangea/dnd/blob/00d2fd24ef9db1c62274d89da213b711efbacdde/stories/src/board/board.tsx
+ */
 export const SessionContainer: React.FC<SessionContainerProps> = ({
   session,
-  activeDragKind,
+  apiControllerRef,
 }) => {
+  const [activeDragKind] = useActiveDragKind()
   const direction = useMedia<'vertical' | 'horizontal'>([
     'vertical',
     'vertical',
@@ -25,7 +34,7 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
   ])
   return (
     <Droppable
-      droppableId={session.id}
+      droppableId={`${session.id}`}
       type={DroppableType.SESSION}
       direction={direction}
     >
@@ -33,7 +42,8 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
         <div
           ref={provided.innerRef}
           {...provided.droppableProps}
-          className="scroll overflow-auto md:flex md:flex-row md:align-center"
+          // inline flex extends x-axis past body, modeled after board.tsx link above
+          className="md:inline-flex"
         >
           {session.windows.map((win, index) => (
             <WindowContainer
@@ -41,6 +51,7 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
               index={index}
               sessionId={session.id}
               window={win}
+              apiControllerRef={apiControllerRef}
             />
           ))}
           {provided.placeholder}

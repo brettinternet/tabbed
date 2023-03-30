@@ -1,23 +1,36 @@
+import { cloneDeep } from 'lodash'
+
+/**
+ * @usage defines a type of an object's values
+ */
 export type Valueof<T> = T[keyof T]
 
 /**
+ * @usage changes a required field to an optional one
  * @source https://stackoverflow.com/a/54178819
  */
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
 
+type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never }
 /**
+ * @usage defines mutually exclusive relationship between types
  * @source https://stackoverflow.com/a/53229567
  */
-type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never }
 export type XOR<T, U> = T | U extends object
   ? (Without<T, U> & U) | (Without<U, T> & T)
   : T | U
 
 /**
- * Determine if a value is defined
+ * @usage Determine if a value is defined
  */
 export const isDefined = <T>(arg: T | undefined): arg is T =>
   typeof arg !== 'undefined'
+
+/**
+ * @usage Determine if a value is undefined, null or empty string
+ */
+export const isEmpty = (arg: string | number | null | undefined): boolean =>
+  typeof arg === 'undefined' || arg === null || arg === ''
 
 /**
  * @usage typed version of Object.keys
@@ -28,7 +41,7 @@ export const getKeys = Object.keys as <T extends Record<string, unknown>>(
 ) => Array<keyof T>
 
 /**
- * Returns value if exists in object
+ * @usage Returns value if exists in object
  */
 export const objValue = <T extends Record<string, unknown>>(
   value: unknown,
@@ -40,21 +53,10 @@ export const objValue = <T extends Record<string, unknown>>(
 }
 
 /**
- * Parse value that may be undefined - good for `target.dataset.value`
+ * @usage Parse value that may be undefined - good for `target.dataset.value`
  */
 export const parseNum = (str: string | undefined) =>
   str ? parseInt(str, 10) : undefined
-
-export const findDuplicates = (arr: unknown[]) => {
-  const sorted = arr.slice().sort()
-  const duplicates = []
-  for (let i = 0; i < sorted.length - 1; i++) {
-    if (sorted[i + 1] === sorted[i]) {
-      duplicates.push(sorted[i])
-    }
-  }
-  return duplicates
-}
 
 /**
  * @source https://stackoverflow.com/a/2901298
@@ -72,47 +74,41 @@ export const insert = <T>(list: T[], item: T, index: number) => {
 }
 
 /**
- * Reorder item in list with splice
+ * @usage Reorder item in list with splice
  * @source https://github.com/lodash/lodash/issues/1701
  * https://stackoverflow.com/a/5306832
+ * @returns a new array
  */
 export const reorder = <T>(
-  list: T[],
+  _list: T[],
   fromIndex: number,
-  toIndex: number,
-  mutate?: (target: T) => T
+  toIndex: number
 ): T[] => {
-  const copy = list.slice()
-  let [target] = copy.splice(fromIndex, 1)
-  if (mutate) {
-    target = mutate(target)
-  }
-  copy.splice(toIndex, 0, target)
-  return copy
+  const list = cloneDeep(_list)
+  let [target] = list.splice(fromIndex, 1)
+  list.splice(toIndex, 0, target)
+  return list
 }
 
 /**
- * Reorder item in list with splice
+ * @usage Reorder item in list with splice
+ * @returns two new arrays nested in a tuple
  */
 export const spliceSeparate = <T>(
-  from: T[],
-  to: T[],
-  startIndex: number,
-  endIndex: number,
-  mutate?: (target: T) => T
+  _from: T[],
+  _to: T[],
+  fromIndex: number,
+  toIndex: number
 ): [T[], T[]] => {
-  const fromCopy = from.slice()
-  const toCopy = to.slice()
-  let [target] = fromCopy.splice(startIndex, 1)
-  if (mutate) {
-    target = mutate(target)
-  }
-  toCopy.splice(endIndex, 0, target)
-  return [fromCopy, toCopy]
+  const from = cloneDeep(_from)
+  const to = cloneDeep(_to)
+  let [target] = from.splice(fromIndex, 1)
+  to.splice(toIndex, 0, target)
+  return [from, to]
 }
 
 /**
- * Downloads data as JSON by creating a url blog, adding an anchor to
+ * @usage Downloads data as JSON by creating a url blog, adding an anchor to
  * the DOM and initiliazing the download
  */
 export const downloadJson = (filename: string, data: unknown) => {
@@ -139,4 +135,10 @@ export const tryParse = (str: unknown) => {
   } catch {
     return str
   }
+}
+
+export const stopPropagation = (
+  event: { stopPropagation?: () => void } = {}
+) => {
+  event.stopPropagation?.()
 }

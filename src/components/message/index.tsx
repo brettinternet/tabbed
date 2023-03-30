@@ -1,4 +1,4 @@
-import cn from 'classnames'
+import cn, { Argument as ClassNames } from 'classnames'
 
 import { Button } from 'components/button'
 import { IconName } from 'components/icon'
@@ -36,8 +36,9 @@ type Tag<T = any> = T extends React.ElementType
 type MessageProps<T extends keyof JSX.IntrinsicElements = any> = {
   as?: Tag<T>
   title?: string
-  body: string
+  body?: React.ReactNode
   variant?: MessageVariantType
+  className?: ClassNames
   onDismiss?: React.MouseEventHandler
 } & React.HTMLAttributes<HTMLElement> &
   React.ComponentProps<T>
@@ -45,15 +46,18 @@ type MessageProps<T extends keyof JSX.IntrinsicElements = any> = {
 export const Message: React.FC<MessageProps> = ({
   as: Tag = 'div',
   title,
-  body,
+  children,
+  body = children,
   variant,
+  className,
   onDismiss,
   ...props
 }) => (
   <Tag
     className={cn(
-      'flex justify-between items-center m-4 p-3 min-h-11 shadow-md rounded w-72',
-      getVariantClass(variant)
+      'flex justify-between items-center m-4 p-3 min-h-11 shadow-md rounded',
+      getVariantClass(variant),
+      className
     )}
     {...props}
   >

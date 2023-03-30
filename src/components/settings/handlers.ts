@@ -1,11 +1,12 @@
-import { useSettings } from 'components/app/store'
 import { useModal } from 'components/modal/store'
 import {
-  SettingsData,
+  Settings,
   ExtensionClickActions,
   defaultSettings, // ExtensionClickActionType,
   ThemeType,
 } from 'utils/settings'
+
+import { useSettings } from './store'
 
 /**
  * Find the closest input value to constraint list for font size
@@ -18,7 +19,7 @@ const clamp = (x: number, min: number, max: number) =>
 
 export const useHandlers = () => {
   const modal = useModal()
-  const [userSettings, , updateSettings] = useSettings()
+  const [userSettings, updateSettings] = useSettings()
   const settings = userSettings || defaultSettings
 
   // const handleChangeLayout: React.ChangeEventHandler<HTMLInputElement> = useCallback(
@@ -49,7 +50,7 @@ export const useHandlers = () => {
   }
 
   const handleChangeSaveIncognito = async (checked: boolean) => {
-    const change: Partial<SettingsData> = {
+    const change: Partial<Settings> = {
       saveIncognito: checked,
     }
     if (checked) {
@@ -77,21 +78,22 @@ export const useHandlers = () => {
     })
   }
 
-  const handleChangePopupDimension: React.ChangeEventHandler<HTMLInputElement> =
-    async (ev) => {
-      const value = parseInt(ev.currentTarget.value)
-      const name = ev.currentTarget.name
-      await updateSettings({
-        popupDimensions: {
-          ...settings.popupDimensions,
-          [ev.currentTarget.name]: clamp(
-            value,
-            300,
-            name === 'width' ? 800 : 600
-          ),
-        },
-      })
-    }
+  const handleChangePopupDimension: React.ChangeEventHandler<
+    HTMLInputElement
+  > = async (ev) => {
+    const value = parseInt(ev.currentTarget.value)
+    const name = ev.currentTarget.name
+    await updateSettings({
+      popupDimensions: {
+        ...settings.popupDimensions,
+        [ev.currentTarget.name]: clamp(
+          value,
+          300,
+          name === 'width' ? 800 : 600
+        ),
+      },
+    })
+  }
 
   const handleChangeTheme: (options: unknown) => void = async (option) => {
     await updateSettings({
@@ -105,10 +107,11 @@ export const useHandlers = () => {
     })
   }
 
-  const handleClickReset: React.MouseEventHandler<HTMLButtonElement> =
-    async () => {
-      await updateSettings(defaultSettings)
-    }
+  const handleClickReset: React.MouseEventHandler<
+    HTMLButtonElement
+  > = async () => {
+    await updateSettings(defaultSettings)
+  }
 
   const handleChangeSortFocusedWindowFirst = async (checked: boolean) => {
     await updateSettings({
@@ -116,13 +119,14 @@ export const useHandlers = () => {
     })
   }
 
-  const handleOpenShortcuts: React.MouseEventHandler<HTMLButtonElement> =
-    () => {
-      modal.shortcuts.set(true)
-    }
+  const handleOpenShortcuts: React.MouseEventHandler<
+    HTMLButtonElement
+  > = () => {
+    modal.help.set(true)
+  }
 
   const handleChangeExcludedUrls = async (value: string) => {
-    const excludedUrls: SettingsData['excludedUrls'] = {
+    const excludedUrls: Settings['excludedUrls'] = {
       raw: value.trim(),
       parsed: [],
       error: undefined,

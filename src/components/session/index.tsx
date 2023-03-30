@@ -1,11 +1,11 @@
-import { DragDropContext } from 'react-beautiful-dnd'
+import { DragDropContext } from '@hello-pangea/dnd'
 
-import { useSettings, isPopup } from 'components/app/store'
+import { isPopup } from 'components/app/store'
+import { useSettings } from 'components/settings/store'
 import { defaultSettings } from 'utils/settings'
 
-import { useListeners } from './handlers'
+import { useApiController, useDndSessions } from './dnd-store'
 import { SessionContainer } from './session-container'
-import { useSessions } from './store'
 
 // Scrolling is handled within certain divs
 // Without this, there's a minor UI bug where scroll bar appears with spacing on the right
@@ -19,14 +19,8 @@ if (isPopup) {
  */
 export const SessionLayout = () => {
   const [settings] = useSettings()
-  const {
-    onBeforeCapture,
-    onDragEnd,
-    activeDragKind,
-    sessionsManager,
-    setSessionsManager,
-  } = useSessions()
-  useListeners(setSessionsManager)
+  const { onBeforeCapture, onDragEnd, sessionsManager } = useDndSessions()
+  const { apiControllerRef, apiControllerSensor } = useApiController()
 
   if (sessionsManager) {
     const session = sessionsManager.current
@@ -39,10 +33,14 @@ export const SessionLayout = () => {
         }}
       >
         <DragDropContext
+          sensors={[apiControllerSensor]}
           onBeforeCapture={onBeforeCapture}
           onDragEnd={onDragEnd}
         >
-          <SessionContainer session={session} activeDragKind={activeDragKind} />
+          <SessionContainer
+            session={session}
+            apiControllerRef={apiControllerRef}
+          />
         </DragDropContext>
       </div>
     )

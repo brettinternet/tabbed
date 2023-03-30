@@ -1,6 +1,5 @@
-import hotkeys from 'hotkeys-js'
 import { noop } from 'lodash'
-import { useEffect } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 
 import { isPopup } from 'components/app/store'
 import { useModal } from 'components/modal/store'
@@ -33,140 +32,129 @@ const logContext = 'components/shortcuts/store'
 //   }
 // }
 
-const ShortcutScopes = {
-  ENABLED: 'enabled',
-  DISABLED: 'disabled',
-} as const
-
 type ShortcutEntry = {
   hotkey: string
+  eventKey: string
   display: string
   description?: string
 }
+
 type ShortcutType = Record<string, ShortcutEntry>
+
 export const Shortcut: ShortcutType = {
   question: {
-    hotkey: 'shift+/',
+    hotkey: 'shift+?',
+    eventKey: '?',
     display: '?',
     description: 'Toggle shortcuts display',
   },
   escape: {
     hotkey: 'esc',
+    eventKey: 'Escape',
     display: 'Esc',
     description: 'Close modals or close popup',
   },
-  slash: {
-    hotkey: '/',
-    display: '/',
-    description: 'Focus search bar',
-  },
   backtick: {
     hotkey: '`',
+    eventKey: '`',
     display: '`',
     description: 'Toggle settings display',
   },
-  delete: {
-    hotkey: 'delete',
-    display: 'Del',
-    description: 'Delete selected sessions, windows and tabs',
-  },
-  backspace: {
-    hotkey: 'backspace',
-    display: 'Backspace',
-  },
-  ctrl_z: {
-    hotkey: 'ctrl+z',
-    display: 'Ctrl+z',
-    description: 'Undo certain actions',
-  },
-  ctrl_y: {
-    hotkey: 'ctrl+y',
-    display: 'Ctrl+y',
-    description: 'Redo previously undone action',
-  },
-  i: {
-    hotkey: 'i',
-    display: 'i',
-    description: 'Open import form',
-  },
-  r: {
-    hotkey: 'r',
-    display: 'r',
-    description: 'Rename saved sessions',
-  },
-  c: {
-    hotkey: 'c',
-    display: 'c',
-    description: 'Focus current session',
-  },
+  // slash: {
+  //   hotkey: '/',
+  //   display: '/',
+  //   description: 'Focus search bar',
+  // },
+  // delete: {
+  //   hotkey: 'delete',
+  //   display: 'Del',
+  //   description: 'Delete selected sessions, windows and tabs',
+  // },
+  // backspace: {
+  //   hotkey: 'backspace',
+  //   display: 'Backspace',
+  // },
+  // ctrl_z: {
+  //   hotkey: 'ctrl+z',
+  //   display: 'Ctrl+z',
+  //   description: 'Undo certain actions',
+  // },
+  // ctrl_y: {
+  //   hotkey: 'ctrl+y',
+  //   display: 'Ctrl+y',
+  //   description: 'Redo previously undone action',
+  // },
+  // i: {
+  //   hotkey: 'i',
+  //   display: 'i',
+  //   description: 'Open import form',
+  // },
+  // r: {
+  //   hotkey: 'r',
+  //   display: 'r',
+  //   description: 'Rename saved sessions',
+  // },
+  // c: {
+  //   hotkey: 'c',
+  //   display: 'c',
+  //   description: 'Focus current session',
+  // },
 } as const
+
+const hotkeyShortcuts = Object.values(Shortcut)
+  .map(({ hotkey }) => hotkey)
+  .join(',')
 
 /**
  * @docs https://github.com/jaywcjlove/hotkeys
  */
 export const useShortcuts = (enabled: boolean) => {
   const { modal, ...updateModal } = useModal()
-
-  useEffect(() => {
-    log.debug(logContext, 'setupShortcuts', enabled)
-    const hotkeyShortcuts = Object.values(Shortcut)
-      .map(({ hotkey }) => hotkey)
-      .join(',')
-
-    if (enabled) {
-      hotkeys(hotkeyShortcuts, ShortcutScopes.ENABLED, (event, handler) => {
-        if (enabled) {
-          event.preventDefault()
-          switch (handler.key) {
-            case Shortcut.question.hotkey:
-              updateModal.shortcuts.toggle()
-              break
-            case Shortcut.escape.hotkey:
-              if (!!modal) {
-                updateModal.off()
-              } else if (isPopup) {
-                window.close()
-              }
-              break
-            case Shortcut.slash.hotkey: {
-              updateModal.off()
-              const search = document.getElementById('search')
-              search?.focus()
-              break
-            }
-            case Shortcut.backtick.hotkey:
-              updateModal.settings.toggle()
-              break
-            case Shortcut.i.hotkey:
-              updateModal.importer.set(true)
-              break
-            case Shortcut.r.hotkey:
-              // void openSessionEdit()
-              break
-            case Shortcut.backspace.hotkey:
-            case Shortcut.delete.hotkey:
-              // void handleDelete(event)
-              break
-            case Shortcut.ctrl_z.hotkey:
-              // void undo()
-              break
-            case Shortcut.ctrl_y.hotkey:
-              // void redo()
-              break
-            case Shortcut.c.hotkey:
-              // handleSelectCurrentSession()
-              break
+  useHotkeys(
+    hotkeyShortcuts,
+    (event, _handler) => {
+      switch (event.key) {
+        case Shortcut.question.eventKey:
+          updateModal.help.toggle()
+          break
+        case Shortcut.escape.eventKey:
+          if (!!modal) {
+            updateModal.off()
+          } else if (isPopup) {
+            window.close()
           }
-        }
-      })
-    } else {
-      hotkeys('', ShortcutScopes.DISABLED, noop)
-    }
-
-    // https://github.com/jaywcjlove/hotkeys/issues/90
-    hotkeys.setScope(ShortcutScopes[enabled ? 'ENABLED' : 'DISABLED'])
-    hotkeys.deleteScope(ShortcutScopes[enabled ? 'DISABLED' : 'ENABLED'])
-
-    log.debug(logContext, `hotkeys scope: '${hotkeys.getScope()}'`)
-  }, [enabled, modal, updateModal])
+          break
+        case Shortcut.backtick.eventKey:
+          updateModal.settings.toggle()
+          break
+        // case Shortcut.slash.eventKey: {
+        //   updateModal.off()
+        //   const search = document.getElementById('search')
+        //   search?.focus()
+        //   break
+        // }
+        // case Shortcut.i.eventKey:
+        //   updateModal.importer.set(true)
+        //   break
+        // case Shortcut.r.eventKey:
+        //   // void openSessionEdit()
+        //   break
+        // case Shortcut.backspace.eventKey:
+        // case Shortcut.delete.eventKey:
+        //   // void handleDelete(event)
+        //   break
+        // case Shortcut.ctrl_z.eventKey:
+        //   // void undo()
+        //   break
+        // case Shortcut.ctrl_y.eventKey:
+        //   // void redo()
+        //   break
+        // case Shortcut.c.eventKey:
+        //   // handleSelectCurrentSession()
+        //   break
+      }
+    },
+    { enabled, preventDefault: true },
+    [modal, updateModal]
+  )
 }

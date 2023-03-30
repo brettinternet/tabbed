@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react'
 import { About } from 'components/about'
 import { Help } from 'components/help'
 import { Settings } from 'components/settings'
-import { Shortcuts } from 'components/shortcuts'
 
 import { Modal, ModalProps } from './modal'
 import { Modal as ModalOption, ModalType, useModal } from './store'
@@ -23,12 +22,6 @@ const getModalValues = (modal: ActiveModal): ModalValues => {
         Content: Settings,
         title: 'Settings',
         modalProps: { variant: 'drawer-right' },
-      }
-    case ModalOption.SHORTCUTS:
-      return {
-        Content: Shortcuts,
-        title: 'Shortcuts',
-        modalProps: { variant: 'card' },
       }
     case ModalOption.HELP:
       return {

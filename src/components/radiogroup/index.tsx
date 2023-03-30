@@ -39,11 +39,11 @@ export const RadioGroup: React.FC<RadioGroupProps> = ({
               value={value}
               className={({ active, checked }) =>
                 cn(
-                  'relative rounded-lg shadow-md px-5 py-4 cursor-pointer border flex focus:outline-none transition-colors duration-100',
+                  'relative rounded-lg px-5 py-4 cursor-pointer border flex transition-colors duration-100',
                   // active &&
                   // 'ring-2 ring-offset-2 ring-offset-blue-300 ring-white ring-opacity-60',
                   checked
-                    ? 'bg-sky-900 bg-opacity-75 text-white bg-green-500 border-transparent'
+                    ? 'bg-opacity-75 text-white bg-green-500 border-transparent'
                     : 'hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-100 dark:border-gray-500',
                   className
                 )

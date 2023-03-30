@@ -10,28 +10,20 @@ type ModalDropdownProps = {
 export const ModalDropdown: React.FC<ModalDropdownProps> = ({
   inModal = false,
 }) => {
-  const { settings, shortcuts, help, about } = useModal()
+  const { settings, help, about } = useModal()
   return (
     <Dropdown
+      dropdownOffset={-28}
       buttonProps={{
+        className: 'text-gray-600 dark:text-gray-400',
         variant: 'transparent',
       }}
       iconProps={{ name: IconName.MORE }}
-      menuItemsClassName="text-base text-gray-800 dark:text-gray-200"
+      menuItemsClassName="text-base"
       portalEnabled={!inModal}
       animatedExit={!inModal}
       actionGroups={[
         [
-          {
-            onClick: () => {
-              shortcuts.set(true)
-            },
-            text: 'Shortcuts',
-            iconProps: {
-              name: IconName.KEYBOARD,
-              size: 'sm',
-            },
-          },
           {
             onClick: () => {
               help.set(true)

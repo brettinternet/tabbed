@@ -12,15 +12,61 @@ const Variant = {
   CARD: 'card',
 } as const
 
-type VariantType = Valueof<typeof Variant>
+type VariantValue = Valueof<typeof Variant>
 
-export type ModalProps = {
+const getOverlayTransitionChildProps = (variant: VariantValue) => {
+  switch (variant) {
+    case Variant.DRAWER:
+      return {
+        enter: 'ease-out duration-300',
+        enterFrom: 'opacity-0',
+        enterTo: 'opacity-100',
+        leave: 'ease-in duration-300',
+        leaveFrom: 'opacity-100',
+        leaveTo: 'opacity-0',
+      }
+    case Variant.CARD:
+      return {
+        enter: 'ease-out duration-200',
+        enterFrom: 'opacity-0',
+        enterTo: 'opacity-100',
+        leave: 'ease-in duration-150',
+        leaveFrom: 'opacity-100',
+        leaveTo: 'opacity-0',
+      }
+  }
+}
+
+const getModalTransitionChildProps = (variant: VariantValue) => {
+  switch (variant) {
+    case Variant.DRAWER:
+      return {
+        enter: 'transition ease-in-out duration-300 transform',
+        enterFrom: 'translate-x-full',
+        enterTo: 'translate-x-0',
+        leave: 'transition ease-in-out duration-300 transform',
+        leaveFrom: 'translate-x-0',
+        leaveTo: 'translate-x-full',
+      }
+    case Variant.CARD:
+      return {
+        enter: 'ease-out duration-200',
+        enterFrom: 'opacity-0 scale-95',
+        enterTo: 'opacity-100 scale-100',
+        leave: 'ease-in duration-150',
+        leaveFrom: 'opacity-100 scale-100',
+        leaveTo: 'opacity-0 scale-95',
+      }
+  }
+}
+
+export type ModalProps = React.PropsWithChildren<{
   show: boolean
   close: () => void
   title?: React.ReactNode
   animationEnd?: () => void
-  variant: VariantType
-}
+  variant: VariantValue
+}>
 
 export const Modal: React.FC<ModalProps> = ({
   children,
@@ -45,24 +91,14 @@ export const Modal: React.FC<ModalProps> = ({
       >
         <Transition.Child
           as={Fragment}
-          enter="ease-out duration-200"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-150"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
+          {...getOverlayTransitionChildProps(variant)}
         >
           <Dialog.Overlay className="z-overlay fixed inset-0 bg-gray-900 bg-opacity-30 dark:bg-opacity-60" />
         </Transition.Child>
 
         <Transition.Child
           as={Fragment}
-          enter="ease-out duration-200"
-          enterFrom="opacity-0 scale-95"
-          enterTo="opacity-100 scale-100"
-          leave="ease-in duration-150"
-          leaveFrom="opacity-100 scale-100"
-          leaveTo="opacity-0 scale-95"
+          {...getModalTransitionChildProps(variant)}
         >
           <div
             className={cn(

@@ -5,7 +5,6 @@ import { Valueof } from 'utils/helpers'
 
 export const Modal = {
   SETTINGS: 'settings',
-  SHORTCUTS: 'shortcuts',
   SESSION_EDIT: 'sessionEdit',
   IMPORTER: 'importer',
   ABOUT: 'about',
@@ -16,7 +15,6 @@ export type ModalType = Valueof<typeof Modal>
 
 const initialModals = {
   settings: false,
-  shortcuts: false,
   sessionEdit: false,
   importer: false,
   about: false,
@@ -66,10 +64,6 @@ export const useModal = () => {
     settings: {
       set: setter('settings'),
       toggle: toggler('settings'),
-    },
-    shortcuts: {
-      set: setter('shortcuts'),
-      toggle: toggler('shortcuts'),
     },
     sessionEdit: {
       set: setter('sessionEdit'),

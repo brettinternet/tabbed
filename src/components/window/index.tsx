@@ -1,25 +1,34 @@
 import cn, { Argument as ClassNames } from 'classnames'
+import browser from 'webextension-polyfill'
 
+import { Button } from 'components/button'
 import { Dropdown, DropdownButtonProps } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
-import { isCurrentSessionWindow, SessionWindowData } from 'utils/sessions'
+import { Active } from 'components/indicators'
+import { useWindowHandlers } from 'components/session/handlers'
+import { BrandedUuid } from 'utils/generate'
+import { stopPropagation } from 'utils/helpers'
+import {
+  CurrentSessionWindow,
+  isCurrentSessionWindow,
+  SavedSessionWindow,
+  SessionWindow,
+} from 'utils/session-window'
 
-import { useHandlers } from './handlers'
-
-type WindowHeaderProps = {
-  sessionId: string
-  window: SessionWindowData
-  className?: ClassNames
+type StateActions = {
+  dropdownStateItems: DropdownButtonProps[]
+  stateActionTitle: string | undefined
+  stateAction: DropdownButtonProps | undefined
 }
 
 /**
  * Window states:
  * "normal" | "minimized" | "maximized" | "fullscreen" | "docked"
  */
-const getStateActions = (
-  currentState: SessionWindowData['state'],
-  updateWindowState: (state: SessionWindowData['state']) => void
-): DropdownButtonProps[] => {
+const useStateActions = (
+  currentState: SessionWindow['state'],
+  updateWindowState: (state: SessionWindow['state']) => void
+): StateActions => {
   const normal: DropdownButtonProps = {
     onClick: () => {
       updateWindowState('normal')
@@ -44,16 +53,48 @@ const getStateActions = (
     iconProps: { name: IconName.FULLSCREEN },
   }
 
+  let dropdownStateItems: DropdownButtonProps[] = []
   switch (currentState) {
     case 'normal':
-      return [fullscreen, minimize]
+      dropdownStateItems = [fullscreen, minimize]
+      break
     case 'minimized':
-      return [normal, fullscreen]
+      dropdownStateItems = [normal, fullscreen]
+      break
     case 'fullscreen':
-      return [normal]
+      dropdownStateItems = [normal]
+      break
     default:
-      return []
+      dropdownStateItems = []
+      break
   }
+  let stateActionTitle: string | undefined
+  let stateAction: DropdownButtonProps | undefined
+  switch (currentState) {
+    case 'normal':
+      stateActionTitle = 'Minimize'
+      stateAction = minimize
+      break
+    case 'minimized':
+      stateActionTitle = 'Normal'
+      stateAction = normal
+      break
+    case 'fullscreen':
+      stateActionTitle = 'Normal'
+      stateAction = normal
+      break
+  }
+  return {
+    dropdownStateItems,
+    stateActionTitle,
+    stateAction,
+  }
+}
+
+type WindowHeaderProps = {
+  sessionId: BrandedUuid<'session'>
+  window: CurrentSessionWindow | SavedSessionWindow
+  className?: ClassNames
 }
 
 export const WindowHeader: React.FC<WindowHeaderProps> = ({
@@ -62,52 +103,100 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
   className,
 }) => {
   const { id: windowId, focused, title, state, tabs, incognito } = win
-  const {
-    handleOpenWindow,
-    // handleSaveWindow,
-    handleRemoveWindow,
-    handleUpdateWindow,
-  } = useHandlers()
+  const { openWindows, updateWindow, removeWindows } = useWindowHandlers()
 
   const handleOpen = () => {
     if (!focused) {
-      handleOpenWindow({ sessionId, windowIds: [windowId] })
+      openWindows({ sessionId, windowIds: [windowId] })
     }
   }
+
+  const handleNewTab = () => {
+    if ('assignedWindowId' in win) {
+      browser.tabs.create({ windowId: win.assignedWindowId })
+    }
+  }
+
+  const { stateAction, stateActionTitle, dropdownStateItems } = useStateActions(
+    state,
+    (state: SessionWindow['state']) => {
+      updateWindow({
+        sessionId,
+        windowId,
+        options: { state },
+      })
+    }
+  )
 
   return (
     <div
       className={cn(
-        'group relative flex justify-between items-center transition-colors duration-75 hover:bg-gray-200 dark:hover:bg-gray-800',
+        'group relative py-3 px-6 flex justify-between items-center transition-colors duration-75 hover:bg-gray-200 dark:hover:bg-gray-800',
         className
       )}
     >
       <div
         onDoubleClick={handleOpen}
-        className="space-y-2 py-3 px-6 w-full max-w-full"
+        className={cn(
+          'flex-1 flex flex-col h-full w-full max-w-full',
+          title ? 'justify-between' : 'justify-end'
+        )}
       >
         {title && (
-          <div className="truncate max-w-full inline-block">{title}</div>
+          <div className="line-clamp-2 max-w-full inline-block font-semibold text-gray-700 dark:text-gray-400">
+            {title}
+          </div>
         )}
-        <div className="flex items-center flex-wrap text-xs text-gray-500 space-x-2">
-          <div>{state}</div>
-          {focused && (
-            <Icon title="active" name={IconName.WINDOW_OPEN} size="sm" />
+        <div className="flex flex-row justify-start items-center overflow-hidden w-full max-w-full space-x-2">
+          {stateAction && (
+            <Button
+              variant="card-action"
+              shape="none"
+              className="text-xxs px-1 border rounded h-5"
+              onClick={stateAction.onClick}
+              onDoubleClick={stopPropagation}
+              aria-label={stateActionTitle}
+              title={stateActionTitle}
+            >
+              {state}
+            </Button>
           )}
-          {incognito && (
-            <Icon title="active" name={IconName.INCOGNITO} size="sm" />
-          )}
-          <div>
+          <div className="text-gray-500 px-1 text-xxs">
             {tabs.length} tab{tabs.length > 1 && 's'}
           </div>
+          {'assignedWindowId' in win && (
+            <Button
+              variant="none"
+              shape="icon"
+              className="text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-50"
+              iconProps={{
+                name: IconName.ADD,
+                size: 'sm',
+              }}
+              onClick={handleNewTab}
+              onDoubleClick={stopPropagation}
+            />
+          )}
+          {incognito && (
+            <Icon
+              title="Incognito"
+              aria-label="Incognito window"
+              name={IconName.INCOGNITO}
+              size="xs"
+              className="text-purple-600 dark:text-indigo-200"
+            />
+          )}
+          {focused && <Active aria-label="Window is focused" title="Focused" />}
         </div>
       </div>
-      <div className="absolute h-full right-0 py-3 px-6 transition-opacity duration-75 opacity-0 group-hover:opacity-100">
+      <div className="flex flex-row items-center justify-center">
         <Dropdown
-          dropdownOffset
+          dropdownOffset={-24}
           buttonProps={{
-            className:
-              'bg-gray-200 border border-gray-400 dark:bg-gray-800 dark:border-gray-600',
+            className: 'text-gray-400 hover:text-gray-700',
+          }}
+          iconProps={{
+            size: 'sm',
           }}
           actionGroups={[
             [
@@ -124,23 +213,12 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
               //   text: 'Save',
               //   iconProps: { name: IconName.SAVE },
               // },
-              ...(isCurrentSessionWindow(win)
-                ? getStateActions(
-                    state,
-                    (state: SessionWindowData['state']) => {
-                      handleUpdateWindow({
-                        sessionId,
-                        windowId,
-                        options: { state },
-                      })
-                    }
-                  )
-                : []),
+              ...dropdownStateItems,
             ],
             [
               {
                 onClick: () => {
-                  handleRemoveWindow({ sessionId, windowIds: [windowId] })
+                  removeWindows({ sessionId, windowIds: [windowId] })
                 },
                 text: isCurrentSessionWindow(win) ? 'Close' : 'Delete',
                 iconProps: {

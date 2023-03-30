@@ -1,8 +1,8 @@
 import browser, { Tabs, Windows } from 'webextension-polyfill'
 
 import { tabUrl, popoutUrl } from 'utils/env'
-import { isDefined } from 'utils/helpers'
-import { SettingsData } from 'utils/settings'
+import { isDefined, Valueof } from 'utils/helpers'
+import { Settings } from 'utils/settings'
 
 export const openExtensionPopup = () => browser.browserAction.openPopup()
 
@@ -20,7 +20,7 @@ export const openExtensionExistingTab = async () => {
 }
 
 export const openExtensionPopout = async (
-  popoutState: SettingsData['popoutState']
+  popoutState: Settings['popoutState']
 ) => {
   await browser.windows.create({
     type: 'popup',
@@ -104,6 +104,9 @@ export const getActiveTabCurrentWindow = async () => {
  * @docs https://developer.chrome.com/docs/extensions/reference/i18n/#overview-predefined
  */
 export const getExtensionId = () => browser.i18n.getMessage('@@extension_id')
+
+export const isExtensionUrl = (url: string) =>
+  url.includes(`chrome-extension://${getExtensionId()}`)
 
 export const getWindowAndTabs = (windowId: number) =>
   browser.windows.get(windowId, { populate: true })
@@ -191,10 +194,15 @@ export const moveTabs = async ({
   index: number
   windowId: number
 }) => {
-  await browser.tabs.move(tabIds, {
+  const result = await browser.tabs.move(tabIds, {
     index,
     windowId,
   })
+  if (Array.isArray(result)) {
+    return result
+  } else {
+    return [result]
+  }
 }
 
 export const updateWindow = async (
@@ -315,7 +323,7 @@ type WindowOptions = {
   top?: number
   left?: number
   incognito?: boolean
-  tabs: TabOptions[]
+  tabs?: TabOptions[]
   focused?: boolean
 }
 
@@ -324,7 +332,6 @@ type WindowOptions = {
  * @returns newly opened window ID
  */
 export const openWindow = async (w: WindowOptions) => {
-  console.log('w: ', w)
   const options: Windows.CreateCreateDataType = {
     state: w.state,
     focused: w.focused,
@@ -339,7 +346,7 @@ export const openWindow = async (w: WindowOptions) => {
 
   const createdWindow = await browser.windows.create(options)
 
-  if (w.tabs.length > 0 && createdWindow.id) {
+  if (w.tabs && w.tabs.length > 0 && createdWindow.id) {
     const emptyStartupTabIds = createdWindow.tabs?.map(({ id }) => id) || []
     // If the window should explicitly not be focused, then make sure none of the tabs are active
     // otherwise, an active tab will cause the window to be focused
@@ -347,6 +354,7 @@ export const openWindow = async (w: WindowOptions) => {
       w.tabs = w.tabs.map((tab) => ({ ...tab, active: false }))
     }
     const createdTabs = await openTabs(w.tabs, createdWindow.id)
+    console.log('createdTabs: ', createdTabs)
     const newWindow = await getWindow(createdWindow.id, { populate: true })
     const tabsToClose = newWindow.tabs?.filter(({ id }) =>
       emptyStartupTabIds.includes(id)
@@ -362,7 +370,7 @@ export const openWindow = async (w: WindowOptions) => {
     return { window: createdWindow, tabs: createdTabs }
   }
 
-  return {}
+  return { window: createdWindow, tabs: [] }
 }
 
 /**
@@ -371,4 +379,19 @@ export const openWindow = async (w: WindowOptions) => {
 export const openWindows = async (windows: WindowOptions[]) => {
   const tasks = windows.map(openWindow)
   return await Promise.all(tasks)
+}
+
+export const Browsers = {
+  FIREFOX: 'Firefox',
+  CHROME: 'Chrome',
+} as const
+
+type BrowsersValue = Valueof<typeof Browsers>
+
+export const getBrowser = (): BrowsersValue => {
+  if (chrome.app) {
+    return Browsers.CHROME
+  } else {
+    return Browsers.FIREFOX
+  }
 }
