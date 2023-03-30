@@ -36,6 +36,7 @@ Visualize and organize your browser sessions, windows and tabs.
 - [ ] Support combining windows
 - [ ] Allow custom titles on windows
 - [ ] View saved sessions
+- [ ] Support tab groups
 
 ## Privacy
 
@@ -72,20 +73,4 @@ Navigate to `about:debugging`, select "This Firefox", "Load Temporary Addon-on..
 ### Related issues
 
 - [Safari support](https://github.com/mozilla/webextension-polyfill/issues/234)
-
-<!--
-TODO:
-combine windows
-combine tabs - turn into group?
-animate slide to previous history sessions https://www.framer.com/docs/examples/
-copy to clipboard https://github.com/chakra-ui/chakra-ui/blob/main/packages/hooks/src/use-clipboard.ts
-tree shake unused icons (see build/media)
-preview tab with captureTab ? https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/tabs/captureTab
- -->
-
-<!--
-https://github.com/atlassian/react-beautiful-dnd/blob/master/stories/src/interactive-elements/interactive-elements-app.jsx
-https://github.com/atlassian/react-beautiful-dnd/blob/master/stories/src/board/board.jsx
-https://github.com/atlassian/react-beautiful-dnd/blob/master/stories/src/board/column.jsx
-https://github.com/atlassian/react-beautiful-dnd/blob/master/stories/src/primatives/quote-list.jsx
--->
+- [Dragging tabs autoscroll to windows out of view](https://github.com/hello-pangea/dnd/issues/537)
