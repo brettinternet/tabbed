@@ -7,52 +7,26 @@ import type { Settings } from 'utils/settings'
 
 import { tryParse } from './helpers'
 
-export const sendMessage = <T extends { type: string; value?: unknown }>(
-  port: Runtime.Port | undefined,
-  type: T['type'],
-  value?: T['value']
-): void => {
-  log.debug('postMessage()', type, tryParse(value))
-  if (port) {
-    port.postMessage({
-      type,
-      value,
-    })
-  }
-}
+export type BaseMessage = { type: string; value?: unknown }
 
-export const broadcastMessage = <T extends { type: string; value?: unknown }>(
+/**
+ * Messages sent to all instances (background, clients, tabs, etc)
+ */
+export const broadcastMessage = <T extends BaseMessage, R = void>(
   type: T['type'],
   value?: T['value']
-): void => {
-  log.debug('postMessage()', type, tryParse(value))
-  browser.runtime.sendMessage({
+): Promise<R> => {
+  log.debug('broadcastMessage()', type, tryParse(value))
+  return browser.runtime.sendMessage({
     type,
     value,
   })
 }
 
-type MaybeValue<T> = T extends { value: unknown } ? [T['value']] : [undefined?]
-
-/**
- * @note because value is not always required, but we want it to be when contained in T
- * something like this doesn't seem to work, so I had to use `...args`
- * T extends { value: unknown } ? T['value'] : undefined?
- */
-export const createMessageAction =
-  <T extends { type: string; value?: unknown }>(
-    port: Runtime.Port | undefined,
-    type: T['type']
-  ) =>
-  (...[value]: MaybeValue<T>): void => {
-    sendMessage(port, type, value)
-  }
-
-export const createMessageListener = <
-  T extends { value?: unknown; type: string },
+export const createBroadcastMessageListener = <
+  T extends BaseMessage,
   C extends (value: T['value']) => void = (value: T['value']) => void
 >(
-  port: Runtime.Port | undefined,
   type: T['type'],
   handler: C,
   parse?: boolean
@@ -66,17 +40,63 @@ export const createMessageListener = <
     }
   }
 
-  return {
-    startListener: () => {
-      if (port) {
-        port.onMessage.addListener(_handler)
-      }
-    },
-    removeListener: () => {
-      if (port) {
-        port.onMessage.removeListener(_handler)
-      }
-    },
+  browser.runtime.onMessage.addListener(_handler)
+  return () => {
+    browser.runtime.onMessage.removeListener(_handler)
+  }
+}
+
+/**
+ * Port messages sent to specific targets
+ */
+export const sendMessage = <T extends BaseMessage>(
+  port: Runtime.Port | undefined,
+  type: T['type'],
+  value?: T['value']
+): void => {
+  log.debug('postMessage()', type, tryParse(value))
+  if (port) {
+    port.postMessage({
+      type,
+      value,
+    })
+  }
+}
+
+type MaybeValue<T> = T extends { value: unknown } ? [T['value']] : [undefined?]
+
+/**
+ * @note because value is not always required, but we want it to be when contained in T
+ * something like this doesn't seem to work, so I had to use `...args`
+ * T extends { value: unknown } ? T['value'] : undefined?
+ */
+export const createMessageAction =
+  <T extends BaseMessage>(port: Runtime.Port | undefined, type: T['type']) =>
+  (...[value]: MaybeValue<T>): void => {
+    sendMessage(port, type, value)
+  }
+
+export const createPortMessageListener = <
+  T extends BaseMessage,
+  C extends (value: T['value']) => void = (value: T['value']) => void
+>(
+  port: Runtime.Port,
+  type: T['type'],
+  handler: C,
+  parse?: boolean
+) => {
+  const _handler = (message: T) => {
+    if (message.type === type) {
+      const { value } = message
+      const parsedValue = parse && value ? JSON.parse(value as string) : value
+      log.debug('message listener', type, parsedValue)
+      return Promise.resolve(handler(parsedValue))
+    }
+  }
+
+  port.onMessage.addListener(_handler)
+  return () => {
+    port.onMessage.removeListener(_handler)
   }
 }
 

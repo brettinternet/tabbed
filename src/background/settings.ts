@@ -1,11 +1,12 @@
 import browser from 'webextension-polyfill'
 
 import { configureClosedWindowListener } from 'background/sessions'
+import { getKeys } from 'utils/helpers'
 import { updateLogLevel, log } from 'utils/logger'
 import {
   MESSAGE_TYPE_UPDATED_SETTING,
   UpdatedSettingMessage,
-  createMessageListener,
+  createBroadcastMessageListener,
 } from 'utils/messages'
 import type { Settings } from 'utils/settings'
 
@@ -89,24 +90,13 @@ export const startBackgroundSettingsListeners = async (
 export const startClientSettingsListeners = (app: App) => {
   log.debug(logContext, 'startClientSettingsListeners()', app)
 
-  for (const port of app.ports.values()) {
-    const {
-      startListener: startUpdatedSettingListener,
-      removeListener: removeSettingUpdatedListener,
-    } = createMessageListener<UpdatedSettingMessage>(
-      port,
-      MESSAGE_TYPE_UPDATED_SETTING,
-      async (changedSettings) => {
-        const sideEffects = []
-        let key: keyof Settings
-        for (key in changedSettings) {
-          sideEffects.push(handleSettingsSideEffects(key, changedSettings))
-        }
-        await Promise.all(sideEffects)
-      }
-    )
-
-    startUpdatedSettingListener()
-    port.onDisconnect.addListener(removeSettingUpdatedListener)
-  }
+  createBroadcastMessageListener<UpdatedSettingMessage>(
+    MESSAGE_TYPE_UPDATED_SETTING,
+    async (changedSettings) => {
+      const keys = getKeys(changedSettings)
+      await Promise.all(
+        keys.map((key) => handleSettingsSideEffects(key, changedSettings))
+      )
+    }
+  )
 }

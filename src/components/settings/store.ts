@@ -1,13 +1,15 @@
 import { atom, useAtom } from 'jotai'
+import { assign } from 'lodash'
 import { SetStateAction, useCallback, useEffect } from 'react'
 
-import { isPopup, useBackground } from 'components/app/store'
+import { isPopup } from 'components/app/store'
 import { useTryToastError } from 'components/error/handlers'
 import { getKeys } from 'utils/helpers'
 import { updateLogLevel } from 'utils/logger'
 import {
+  broadcastMessage,
+  createBroadcastMessageListener,
   MESSAGE_TYPE_UPDATED_SETTING,
-  sendMessage,
   UpdatedSettingMessage,
 } from 'utils/messages'
 import {
@@ -84,10 +86,22 @@ export const useSettings = (): [
   (values: Partial<Settings>) => Promise<void>
 ] => {
   const tryToastError = useTryToastError()
-  const port = useBackground()
   const [settings, setSettings] = useAtom(settingsAtom)
 
   useEffect(() => {
+    const removeListener =
+      createBroadcastMessageListener<UpdatedSettingMessage>(
+        MESSAGE_TYPE_UPDATED_SETTING,
+        async (changedSettings) => {
+          const savedSettings = await loadSettings()
+          const settings = assign(savedSettings, changedSettings)
+          const keys = getKeys(settings)
+          await Promise.all(
+            keys.map((key) => handleSettingsSideEffects(key, settings))
+          )
+        }
+      )
+
     const load = async () => {
       const settings = await loadSettings()
       const keys = getKeys(settings)
@@ -98,6 +112,8 @@ export const useSettings = (): [
     }
 
     void load()
+
+    return removeListener
   }, [setSettings])
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,13 +125,12 @@ export const useSettings = (): [
       await Promise.all(
         keys.map(async (key) => handleSettingsSideEffects(key, settings))
       )
-      sendMessage<UpdatedSettingMessage>(
-        port,
+      broadcastMessage<UpdatedSettingMessage>(
         MESSAGE_TYPE_UPDATED_SETTING,
         values
       )
     }),
-    [port, tryToastError]
+    [tryToastError]
   )
 
   return [settings, _updateSettings]

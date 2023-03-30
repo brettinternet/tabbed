@@ -440,15 +440,15 @@ export const removeWindows = async (
  * @returns moved tabs `CurrentSessionTab[]`
  */
 export const move = async (
-  tabs: CurrentSessionTab[],
+  _tabs: CurrentSessionTab[],
   index: number,
   pinned: boolean | undefined,
   assignedWindowId: CurrentSessionWindow['assignedWindowId']
 ): Promise<CurrentSessionTab[]> => {
-  const originalTabs = cloneDeep(tabs)
+  const tabs = cloneDeep(_tabs)
   const _move = async (): Promise<CurrentSessionTab[]> => {
     const _tabs = await moveTabs({
-      tabIds: originalTabs.map(({ assignedTabId }) => assignedTabId),
+      tabIds: tabs.map(({ assignedTabId }) => assignedTabId),
       windowId: assignedWindowId,
       index,
     })
@@ -462,7 +462,7 @@ export const move = async (
   // update pinned if defined
   if (isDefined(pinned)) {
     movedTabs = await Promise.all(
-      originalTabs.map(async (t) => await updateTab(t, { pinned }))
+      tabs.map(async (t) => await updateTab(t, { pinned }))
     )
     // toggling pin status moves the tab to after last pin, so moving again is necessary
     movedTabs = await _move()

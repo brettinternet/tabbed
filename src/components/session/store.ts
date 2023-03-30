@@ -6,7 +6,7 @@ import { useBackground } from 'components/app/store'
 import { useTryToastError } from 'components/error/handlers'
 import { log } from 'utils/logger'
 import {
-  createMessageListener,
+  createPortMessageListener,
   CurrentSessionChangeMessage,
   MESSAGE_TYPE_CURRENT_SESSION_CHANGE,
 } from 'utils/messages'
@@ -42,8 +42,8 @@ export const useSessionsManager = (): [
       return
     }
 
-    const { startListener, removeListener } =
-      createMessageListener<CurrentSessionChangeMessage>(
+    const removeListener =
+      createPortMessageListener<CurrentSessionChangeMessage>(
         port,
         MESSAGE_TYPE_CURRENT_SESSION_CHANGE,
         async () => {
@@ -53,9 +53,8 @@ export const useSessionsManager = (): [
         }
       )
 
-    startListener()
     return removeListener
-  }, [port, sessionsManager])
+  }, [port, sessionsManager, setSessionsManager])
 
   useEffect(() => {
     const handleUnload = async () => {

@@ -7,7 +7,9 @@ type KbdProps = React.PropsWithChildren<{
 export const Kbd: React.FC<KbdProps> = ({ children, className }) => (
   <kbd
     className={cn(
-      'text-xxs border rounded-md border-gray-200 shadow-sm inline-block px-1',
+      'text-xxs border rounded-md border-gray-200 shadow-sm inline-flex items-center justify-center px-1',
+      // hard to center text vertically with inline elements...
+      typeof children === 'string' && 'pt-1',
       className
     )}
   >
