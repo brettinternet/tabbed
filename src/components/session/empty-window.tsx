@@ -56,6 +56,8 @@ export const EmptyWindow: React.FC<EmptyWindowProps> = ({ isTabDragging }) => {
           <Droppable
             droppableId={DroppableId.NEW_WINDOW}
             type={DroppableType.WINDOW}
+            // disables invalid activeDragKind from parent
+            isDropDisabled={!isTabDragging}
           >
             {(dropProvided) => (
               <div
@@ -73,6 +75,7 @@ export const EmptyWindow: React.FC<EmptyWindowProps> = ({ isTabDragging }) => {
             <Droppable
               droppableId={DroppableId.NEW_INCOGNITO_WINDOW}
               type={DroppableType.WINDOW}
+              isDropDisabled={!isTabDragging}
             >
               {(dropProvided) => (
                 <div

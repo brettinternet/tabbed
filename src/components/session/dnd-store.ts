@@ -130,8 +130,8 @@ export const useDndSessions = () => {
       if (sessionsManager) {
         const { source, destination } = result
 
-        // Dropped somewhere and moved
         if (
+          // Dropped somewhere and moved
           destination &&
           !(
             source.droppableId === destination.droppableId &&
@@ -189,7 +189,7 @@ export const useDndSessions = () => {
         setActiveDragKind(undefined)
       }
     },
-    [sessionsManager, setActiveDragKind, moveWindows, moveTabs]
+    [sessionsManager, moveWindows, moveTabs, setActiveDragKind]
   )
 
   return {

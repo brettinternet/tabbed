@@ -22,10 +22,11 @@ Visualize and organize your browser sessions, windows and tabs.
 - [x] Shortcuts
 - [x] Extension window customization - tab, popup and popout window
 - [ ] Move tabs with keyboard
-- [ ] Search
+- [ ] Search tabs
 - [ ] View recently closed tabs/windows
 - [ ] View saved sessions
-- [ ] multi-tab drag and drop
+- [ ] Multi-tab drag and drop
+- [ ] Support combining windows
 
 ## Privacy
 

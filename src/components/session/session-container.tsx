@@ -55,12 +55,7 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
             />
           ))}
           {provided.placeholder}
-          <EmptyWindow
-            isTabDragging={
-              activeDragKind === ActiveDragKind.TAB ||
-              activeDragKind === ActiveDragKind.INCOGNITO_TAB
-            }
-          />
+          <EmptyWindow isTabDragging={activeDragKind === ActiveDragKind.TAB} />
         </div>
       )}
     </Droppable>
