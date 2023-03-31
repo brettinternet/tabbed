@@ -121,9 +121,11 @@ export const startClientSessionListeners = (app: App) => {
 
   // Listen for window/tab changes in order to update current session when client is connected
   for (const port of app.ports.values()) {
-    port.onDisconnect.addListener(() => {
+    const cancel = () => {
       debounceCurrentSessionChange.cancel()
       removeSessionListeners(handleChange)
-    })
+    }
+    port.onDisconnect.addListener(cancel)
+    window.addEventListener('unload', cancel)
   }
 }

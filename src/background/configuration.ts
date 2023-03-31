@@ -162,24 +162,39 @@ const clearTabCountBadge = async () => {
   await browser.browserAction.setBadgeText({ text: '' })
 }
 
-const updateTabCountDebounce = debounce(updateTabCountBadge, 250)
+const debounceUpdateTabCountBadge = debounce(updateTabCountBadge, 250)
+const handleTabCountChange = () => {
+  debounceUpdateTabCountBadge()
+}
+
+const removeTabCountListeners = (handler: () => void) => {
+  browser.tabs.onUpdated.removeListener(handler)
+  browser.tabs.onRemoved.removeListener(handler)
+  browser.tabs.onReplaced.removeListener(handler)
+  browser.tabs.onDetached.removeListener(handler)
+  browser.tabs.onAttached.removeListener(handler)
+  browser.tabs.onMoved.removeListener(handler)
+}
+
+const addTabCountListeners = (handler: () => void) => {
+  removeTabCountListeners(handler)
+  browser.tabs.onUpdated.addListener(handler)
+  browser.tabs.onRemoved.addListener(handler)
+  browser.tabs.onReplaced.addListener(handler)
+  browser.tabs.onDetached.addListener(handler)
+  browser.tabs.onAttached.addListener(handler)
+  browser.tabs.onMoved.addListener(handler)
+}
 
 export const configureTabCountListeners = (showTabCountBadge: boolean) => {
   if (showTabCountBadge) {
-    void updateTabCountDebounce()
-    browser.tabs.onUpdated.addListener(updateTabCountDebounce)
-    browser.tabs.onRemoved.addListener(updateTabCountDebounce)
-    browser.tabs.onReplaced.addListener(updateTabCountDebounce)
-    browser.tabs.onDetached.addListener(updateTabCountDebounce)
-    browser.tabs.onAttached.addListener(updateTabCountDebounce)
-    browser.tabs.onMoved.addListener(updateTabCountDebounce)
+    void handleTabCountChange()
+    addTabCountListeners(handleTabCountChange)
   } else {
     void clearTabCountBadge()
-    browser.tabs.onUpdated.removeListener(updateTabCountDebounce)
-    browser.tabs.onRemoved.removeListener(updateTabCountDebounce)
-    browser.tabs.onReplaced.removeListener(updateTabCountDebounce)
-    browser.tabs.onDetached.removeListener(updateTabCountDebounce)
-    browser.tabs.onAttached.removeListener(updateTabCountDebounce)
-    browser.tabs.onMoved.removeListener(updateTabCountDebounce)
+    removeTabCountListeners(handleTabCountChange)
   }
+  window.addEventListener('unload', () => {
+    removeTabCountListeners(handleTabCountChange)
+  })
 }

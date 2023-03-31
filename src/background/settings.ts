@@ -90,7 +90,7 @@ export const startBackgroundSettingsListeners = async (
 export const startClientSettingsListeners = (app: App) => {
   log.debug(logContext, 'startClientSettingsListeners()', app)
 
-  createBroadcastMessageListener<UpdatedSettingMessage>(
+  const removeListener = createBroadcastMessageListener<UpdatedSettingMessage>(
     MESSAGE_TYPE_UPDATED_SETTING,
     async (changedSettings) => {
       const keys = getKeys(changedSettings)
@@ -99,4 +99,6 @@ export const startClientSettingsListeners = (app: App) => {
       )
     }
   )
+
+  window.addEventListener('unload', removeListener)
 }
