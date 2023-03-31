@@ -13,6 +13,7 @@ import { Message } from 'components/message'
 import { RadioGroup } from 'components/radiogroup'
 import { Toggle } from 'components/toggle'
 import { browserRuntime, browsers } from 'utils/env'
+import { SAVE_SESSIONS } from 'utils/flags'
 import { isDefined } from 'utils/helpers'
 import { ExtensionClickActions, Themes } from 'utils/settings'
 
@@ -141,36 +142,40 @@ export const Settings: React.FC = () => {
 
       <H2>Sessions</H2>
 
-      <div className="space-y-3">
-        <Toggle
-          label="Save closed windows"
-          checked={settings.saveClosedWindows}
-          onChange={handleChangeSaveClosedWindow}
-        />
-        <Description>
-          Saves a single window session when windows are closed. This option may
-          clutter up your "Previous" sessions.
-        </Description>
-      </div>
+      {SAVE_SESSIONS && (
+        <div className="space-y-3">
+          <Toggle
+            label="Save closed windows"
+            checked={settings.saveClosedWindows}
+            onChange={handleChangeSaveClosedWindow}
+          />
+          <Description>
+            Saves a single window session when windows are closed. This option
+            may clutter up your "Previous" sessions.
+          </Description>
+        </div>
+      )}
 
-      <div className="space-y-3">
-        <Toggle
-          label="Save closed incognito windows"
-          checked={settings.saveIncognito}
-          onChange={handleChangeSaveIncognito}
-        />
-        <Description>
-          Allows autosave to save incognito windows.{' '}
-          {browserRuntime === browsers.CHROMIUM && (
-            <>
-              <Button onClick={openOptions} variant="link" shape="none">
-                Open extension options
-              </Button>{' '}
-              to enable incognito access and for this option to work.
-            </>
-          )}
-        </Description>
-      </div>
+      {SAVE_SESSIONS && (
+        <div className="space-y-3">
+          <Toggle
+            label="Save closed incognito windows"
+            checked={settings.saveIncognito}
+            onChange={handleChangeSaveIncognito}
+          />
+          <Description>
+            Allows autosave to save incognito windows.{' '}
+            {browserRuntime === browsers.CHROMIUM && (
+              <>
+                <Button onClick={openOptions} variant="link" shape="none">
+                  Open extension options
+                </Button>{' '}
+                to enable incognito access and for this option to work.
+              </>
+            )}
+          </Description>
+        </div>
+      )}
 
       <div className="space-y-3">
         <Toggle
@@ -183,50 +188,52 @@ export const Settings: React.FC = () => {
         </Description>
       </div>
 
-      <div className="space-y-3">
-        <Label className="space-y-2">
-          <div>Excluded URLs</div>
-          <textarea
-            id="excluded-urls-textarea"
-            className={cn('w-full max-h-64 min-h-11', getInputClass())}
-            placeholder="chrome://bookmarks, http://example.com"
-            spellCheck="false"
-            onChange={(ev) => {
-              setExcludedUrlsValue(ev.currentTarget.value)
-            }}
-            onBlur={(ev) => {
-              handleChangeExcludedUrls(ev.currentTarget.value)
-            }}
-            value={excludedUrlsValue}
-            aria-describedby="excluded-urls-description"
-            rows={3}
-            ref={excludedUrlsTextArea}
-          />
-        </Label>
-        <div className="flex items-center space-x-3">
-          <Button
-            onClick={() => {
-              const value = excludedUrlsTextArea.current?.value
-              if (isDefined(value)) {
-                handleChangeExcludedUrls(value)
-              }
-            }}
-          >
-            Check
-          </Button>
-          {!settings.excludedUrls.error && (
-            <p className="text-gray-600 dark:text-gray-500">&#x2713; URLs</p>
+      {SAVE_SESSIONS && (
+        <div className="space-y-3">
+          <Label className="space-y-2">
+            <div>Excluded URLs</div>
+            <textarea
+              id="excluded-urls-textarea"
+              className={cn('w-full max-h-64 min-h-11', getInputClass())}
+              placeholder="chrome://bookmarks, http://example.com"
+              spellCheck="false"
+              onChange={(ev) => {
+                setExcludedUrlsValue(ev.currentTarget.value)
+              }}
+              onBlur={(ev) => {
+                handleChangeExcludedUrls(ev.currentTarget.value)
+              }}
+              value={excludedUrlsValue}
+              aria-describedby="excluded-urls-description"
+              rows={3}
+              ref={excludedUrlsTextArea}
+            />
+          </Label>
+          <div className="flex items-center space-x-3">
+            <Button
+              onClick={() => {
+                const value = excludedUrlsTextArea.current?.value
+                if (isDefined(value)) {
+                  handleChangeExcludedUrls(value)
+                }
+              }}
+            >
+              Check
+            </Button>
+            {!settings.excludedUrls.error && (
+              <p className="text-gray-600 dark:text-gray-500">&#x2713; URLs</p>
+            )}
+          </div>
+          {settings.excludedUrls.error && (
+            <Error>{settings.excludedUrls.error}</Error>
           )}
+          <Description id="excluded-urls-description">
+            Excludes tabs with matching URLs from saved sessions and windows.
+            Use "*" to match wildcard patterns. Separate by new lines, spaces or
+            commas.
+          </Description>
         </div>
-        {settings.excludedUrls.error && (
-          <Error>{settings.excludedUrls.error}</Error>
-        )}
-        <Description id="excluded-urls-description">
-          Excludes tabs with matching URLs from saved sessions and windows. Use
-          "*" to match wildcard patterns. Separate by new lines, spaces or
-          commas.
-        </Description>
-      </div>
+      )}
 
       <H2>Extension Icon</H2>
 

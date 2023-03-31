@@ -8,7 +8,7 @@ export var process = {
     {},
     {
       APP_NAME: 'Tabbed', // process.env.APP_NAME,
-      SAVE_SESSIONS: true,
+      SAVE_SESSIONS: false,
     }
   ),
 }

@@ -5,7 +5,7 @@ import { log } from 'utils/logger'
 // import type { SearchSessionsResults } from 'background/search/sessions'
 import type { Settings } from 'utils/settings'
 
-import { tryParse } from './helpers'
+import { isDefined, tryParse } from './helpers'
 
 export type BaseMessage = { type: string; value?: unknown }
 
@@ -34,7 +34,8 @@ export const createBroadcastMessageListener = <
   const _handler = (message: T) => {
     if (message.type === type) {
       const { value } = message
-      const parsedValue = parse && value ? JSON.parse(value as string) : value
+      const parsedValue =
+        parse && isDefined(value) ? JSON.parse(value as string) : value
       log.debug('message listener', type, parsedValue)
       return Promise.resolve(handler(parsedValue))
     }
