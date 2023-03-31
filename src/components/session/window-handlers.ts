@@ -1,10 +1,6 @@
 import { useCallback } from 'react'
 
-import { Session, update as _updateSession } from 'utils/session'
-import {
-  removeTabs as _removeTabs,
-  update as _updateTab,
-} from 'utils/session-tab'
+import { Session } from 'utils/session'
 import {
   findWindowIndex,
   removeWindows as _removeWindows,

@@ -3,7 +3,7 @@ import { useCallback } from 'react'
 import { generateWindowTitle } from 'utils/generate'
 import { reorder } from 'utils/helpers'
 import { isDefined } from 'utils/helpers'
-import { Session, update as _updateSession } from 'utils/session'
+import { Session } from 'utils/session'
 import {
   SessionTab,
   removeTabs as _removeTabs,
@@ -19,7 +19,6 @@ import {
   removeWindows as _removeWindows,
   SessionWindow,
   findWindow,
-  update as _updateWindow,
 } from 'utils/session-window'
 import {
   updateCurrentSession,

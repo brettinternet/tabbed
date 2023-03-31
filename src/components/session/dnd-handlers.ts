@@ -5,25 +5,14 @@ import { Tabs } from 'webextension-polyfill'
 import { generateWindowTitle } from 'utils/generate'
 import { reorder, spliceSeparate } from 'utils/helpers'
 import { isDefined } from 'utils/helpers'
-import {
-  Session,
-  update as _updateSession,
-  isCurrentSession,
-} from 'utils/session'
-import {
-  removeTabs as _removeTabs,
-  isCurrentSessionTab,
-  update as _updateTab,
-  shouldPin,
-} from 'utils/session-tab'
+import { Session, isCurrentSession } from 'utils/session'
+import { isCurrentSessionTab, shouldPin } from 'utils/session-tab'
 import {
   findWindowIndex,
-  removeWindows as _removeWindows,
   filterWindows,
   SessionWindow,
   createSaved as createSavedWindow,
   isCurrentSessionWindow,
-  update as _updateWindow,
   createCurrentDraft as createCurrentDraftWindow,
   move as moveWindowTab,
 } from 'utils/session-window'
