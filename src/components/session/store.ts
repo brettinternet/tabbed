@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 
 import { useBackground } from 'components/app/store'
 import { useTryToastError } from 'components/error/handlers'
+import { useSettings } from 'components/settings/store'
 import { log } from 'utils/logger'
 import {
   createPortMessageListener,
@@ -27,6 +28,8 @@ export const useSessionsManager = (): [
 ] => {
   const port = useBackground()
   const tryToastError = useTryToastError()
+  const [settings] = useSettings()
+  const sortFocusedWindowFirst = settings.sortFocusedWindowFirst
   const [sessionsManager, setSessionsManager] = useAtom(sessionsManagerAtom)
 
   useEffect(() => {
@@ -48,13 +51,18 @@ export const useSessionsManager = (): [
         MESSAGE_TYPE_CURRENT_SESSION_CHANGE,
         async () => {
           if (sessionsManager) {
-            setSessionsManager(await updateCurrentSession(sessionsManager))
+            setSessionsManager(
+              await updateCurrentSession(
+                sessionsManager,
+                sortFocusedWindowFirst
+              )
+            )
           }
         }
       )
 
     return removeListener
-  }, [port, sessionsManager, setSessionsManager])
+  }, [port, sessionsManager, setSessionsManager, sortFocusedWindowFirst])
 
   useEffect(() => {
     const handleUnload = async () => {

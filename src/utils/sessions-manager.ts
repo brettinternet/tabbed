@@ -67,10 +67,24 @@ export const getCurrent = async (
  * @returns a new sessions manager reference with current field updated
  */
 export const updateCurrentSession = async (
-  _sessionsManager: SessionsManager
+  _sessionsManager: SessionsManager,
+  sortFocusedWindowFirst?: boolean
 ) => {
   const sessionsManager = cloneDeep(_sessionsManager)
-  sessionsManager.current = await sessionFromBrowser(sessionsManager.current)
+  const current = await sessionFromBrowser(sessionsManager.current)
+  if (sortFocusedWindowFirst) {
+    const windows = current.windows.sort((a, b) => {
+      if (a.focused) {
+        return -1
+      } else if (b.focused) {
+        return 1
+      } else {
+        return 0
+      }
+    })
+    current.windows = windows
+  }
+  sessionsManager.current = current
   return sessionsManager
 }
 
