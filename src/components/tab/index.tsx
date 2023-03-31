@@ -7,6 +7,7 @@ import { Active } from 'components/indicators'
 import { Shortcut } from 'components/session/shortcut'
 import { useTabHandlers } from 'components/session/tab-handlers'
 import { isExtensionUrl } from 'utils/browser'
+import { useClipboard } from 'utils/clipboard'
 import { stopPropagation } from 'utils/helpers'
 import { Session } from 'utils/session'
 import {
@@ -52,8 +53,14 @@ export const Tab: React.FC<TabProps> = ({
     active,
     // groupId,
   } = tab
-  const { openTabs, updateTab, removeTabs } = useTabHandlers()
   const isCurrentSession = isCurrentSessionTab(tab)
+  const { openTabs, updateTab, removeTabs } = useTabHandlers()
+  const { onCopy } = useClipboard(url)
+
+  const handleCopyUrl: React.MouseEventHandler<HTMLElement> = (event) => {
+    event.stopPropagation()
+    onCopy()
+  }
 
   const handleOpen: React.MouseEventHandler<HTMLElement> = (event) => {
     event.stopPropagation()
@@ -244,6 +251,11 @@ export const Tab: React.FC<TabProps> = ({
                 onClick: handleMuteToggle,
                 text: muted ? 'Unmute' : 'Mute',
                 iconProps: { name: IconName.MUTE },
+              },
+              {
+                onClick: handleCopyUrl,
+                text: 'Copy URL',
+                iconProps: { name: IconName.COPY_TO_CLIPBOARD },
               },
             ],
             [

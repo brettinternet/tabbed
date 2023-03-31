@@ -8,6 +8,7 @@ import { Active } from 'components/indicators'
 import { Shortcut } from 'components/session/shortcut'
 import { useWindowHandlers } from 'components/session/window-handlers'
 import { useWindowShortcuts } from 'components/shortcuts/sessions'
+import { useClipboard } from 'utils/clipboard'
 import { BrandedUuid } from 'utils/generate'
 import { stopPropagation } from 'utils/helpers'
 import {
@@ -108,9 +109,15 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
   index,
   isLast,
 }) => {
+  const windowOrder = index + 1
   const { id: windowId, focused, title, state, tabs, incognito } = win
   const { openWindows, updateWindow, removeWindows } = useWindowHandlers()
-  const windowOrder = index + 1
+  const { onCopy } = useClipboard(win.tabs.map((t) => t.url).join('\n'))
+
+  const handleCopyUrl: React.MouseEventHandler<HTMLElement> = (event) => {
+    event.stopPropagation()
+    onCopy()
+  }
 
   const handleOpen = () => {
     if (!focused) {
@@ -237,6 +244,11 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
               //   iconProps: { name: IconName.SAVE },
               // },
               ...dropdownStateItems,
+              {
+                onClick: handleCopyUrl,
+                text: 'Copy tab URLs',
+                iconProps: { name: IconName.COPY_TO_CLIPBOARD },
+              },
             ],
             [
               {

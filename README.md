@@ -16,12 +16,14 @@ Visualize and organize your browser sessions, windows and tabs.
   - [x] Pin with animated reorder
   - [x] Free memory
   - [x] Mute
+  - [x] Copy URL to clipboard
 - [x] Quick window actions
   - [x] Custom reorder with drag and drop
   - [x] Change state
   - [x] View tab count, focused window and active tab
   - [x] Focus, close and open new tab
   - [x] Incognito window support
+  - [x] Copy window tabs URLs to clipboard
 - [x] Settings
   - [x] Theme, font size, etc
 - [x] Extension popup, popout window and tab view

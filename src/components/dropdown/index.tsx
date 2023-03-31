@@ -19,15 +19,16 @@ export type DropdownButtonProps = {
 } & Omit<ButtonProps, 'onClick'>
 
 const MenuItem: React.FC<{ buttonProps: DropdownButtonProps }> = ({
-  buttonProps,
+  buttonProps: { iconProps, ...props },
 }) => (
   <M.Item
     as={Button}
     variant="item"
     shape="item"
-    {...buttonProps}
+    iconProps={iconProps ? { size: 'sm', ...iconProps } : undefined}
+    {...props}
     className={({ active }) =>
-      cn(buttonProps.className, active && 'bg-gray-200 dark:bg-gray-700')
+      cn(props.className, active && 'bg-gray-200 dark:bg-gray-700')
     }
   />
 )
