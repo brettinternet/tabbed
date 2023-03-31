@@ -20,7 +20,7 @@ const clamp = (x: number, min: number, max: number) =>
 export const useHandlers = () => {
   const modal = useModal()
   const [userSettings, updateSettings] = useSettings()
-  const settings = userSettings || defaultSettings
+  const settings = userSettings
 
   // const handleChangeLayout: React.ChangeEventHandler<HTMLInputElement> = useCallback(
   //   async (ev) => {

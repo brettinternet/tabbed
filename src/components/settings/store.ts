@@ -99,6 +99,7 @@ export const useSettings = (): [
           await Promise.all(
             keys.map((key) => handleSettingsSideEffects(key, settings))
           )
+          setSettings(settings)
         }
       )
 
