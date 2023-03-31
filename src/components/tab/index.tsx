@@ -4,6 +4,7 @@ import { Button } from 'components/button'
 import { Dropdown } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
 import { Active } from 'components/indicators'
+import { Shortcut } from 'components/session/shortcut'
 import { useTabHandlers } from 'components/session/tab-handlers'
 import { isExtensionUrl } from 'utils/browser'
 import { stopPropagation } from 'utils/helpers'
@@ -16,7 +17,6 @@ import {
 import { SessionWindow } from 'utils/session-window'
 
 import { Img } from './img'
-import { Shortcut } from './shortcut'
 
 export type TabProps = {
   windowId: SessionWindow['id']
@@ -36,8 +36,8 @@ export const Tab: React.FC<TabProps> = ({
   isDragging,
   className,
   isWindowFocused,
-  index,
-  isLastTab,
+  // index,
+  // isLastTab,
 }) => {
   const {
     id: tabId,
@@ -55,11 +55,15 @@ export const Tab: React.FC<TabProps> = ({
   const { openTabs, updateTab, removeTabs } = useTabHandlers()
   const isCurrentSession = isCurrentSessionTab(tab)
 
-  const handleOpen = () => {
+  const handleOpen: React.MouseEventHandler<HTMLElement> = (event) => {
+    event.stopPropagation()
     openTabs({ sessionId, tabs: [{ windowId, tabIds: [tabId] }] })
   }
 
-  const handlePinToggle = () => {
+  const handlePinToggle: React.MouseEventHandler<HTMLButtonElement> = (
+    event
+  ) => {
+    event.stopPropagation()
     updateTab({
       sessionId,
       windowId,
@@ -68,7 +72,10 @@ export const Tab: React.FC<TabProps> = ({
     })
   }
 
-  const handleMuteToggle = () => {
+  const handleMuteToggle: React.MouseEventHandler<HTMLButtonElement> = (
+    event
+  ) => {
+    event.stopPropagation()
     updateTab({
       sessionId,
       windowId,
@@ -77,14 +84,15 @@ export const Tab: React.FC<TabProps> = ({
     })
   }
 
-  const handleRemove = () => {
+  const handleRemove: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    event.stopPropagation()
     removeTabs({
       sessionId,
       tabs: [{ windowId, tabIds: [tabId] }],
     })
   }
 
-  const tabOrder = index + 1
+  // const tabOrder = index + 1
 
   return (
     <div
@@ -149,22 +157,30 @@ export const Tab: React.FC<TabProps> = ({
               className="text-red-500"
             />
           )}
-          {tabOrder < 9 ? (
+          {/* TODO: tab shortcuts */}
+          {/* {tabOrder < 9 ? (
             <Shortcut
               value={tabOrder}
               onClick={handleOpen}
               ariaLabel="focus tab"
+              modifier={{ mac: 'command', other: 'control' }}
             />
           ) : (
             isLastTab && (
-              <Shortcut value={9} onClick={handleOpen} ariaLabel="focus tab" />
+              <Shortcut
+                value={9}
+                onClick={handleOpen}
+                ariaLabel="focus tab"
+                modifier={{ mac: 'command', other: 'control' }}
+              />
             )
-          )}
+          )} */}
           {isExtensionUrl(url) && (
             <Shortcut
               value={'+Shift+S'}
               onClick={handleOpen}
               ariaLabel="focus tab"
+              modifier={{ mac: 'command', other: 'control' }}
             />
           )}
           <Button

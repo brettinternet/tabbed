@@ -7,7 +7,7 @@ import { useModal } from 'components/modal/store'
 
 // import { log } from 'utils/logger'
 
-// const logContext = 'components/shortcuts/store'
+// const logContext = 'components/global/store'
 
 // import { useToasts } from 'components/toast/store'
 // import { parseNum, isDefined } from 'utils/helpers'
@@ -36,30 +36,30 @@ import { useModal } from 'components/modal/store'
 
 type ShortcutEntry = {
   hotkey: string
-  eventKey: string
+  code: string
   display: string
   description?: string
 }
 
-type ShortcutType = Record<string, ShortcutEntry>
+export type ShortcutsMap = Record<string, ShortcutEntry>
 
-export const Shortcut: ShortcutType = {
+export const Shortcut: ShortcutsMap = {
   question: {
     hotkey: 'shift+?',
-    eventKey: '?',
+    code: 'Slash',
     display: '?',
     description: 'Toggle shortcuts display',
   },
   escape: {
     hotkey: 'esc',
-    eventKey: 'Escape',
+    code: 'Escape',
     display: 'Esc',
     description: 'Close modals or close popup',
   },
   backtick: {
     hotkey: '`',
-    eventKey: '`',
-    display: 'Backtick',
+    code: 'Backquote',
+    display: 'Backquote',
     description: 'Toggle settings display',
   },
   // slash: {
@@ -103,23 +103,27 @@ export const Shortcut: ShortcutType = {
   // },
 } as const
 
-const hotkeyShortcuts = Object.values(Shortcut)
-  .map(({ hotkey }) => hotkey)
-  .join(',')
+export const getHotkeys = (shortcuts: ShortcutsMap) =>
+  Object.values(shortcuts)
+    .map(({ hotkey }) => hotkey)
+    .join(',')
 
 /**
  * @docs https://github.com/jaywcjlove/hotkeys
+ * https://github.com/JohannesKlauss/react-hotkeys-hook
  */
 export const useShortcuts = (enabled: boolean) => {
   const { modal, ...updateModal } = useModal()
   useHotkeys(
-    hotkeyShortcuts,
-    (event, _handler) => {
-      switch (event.key) {
-        case Shortcut.question.eventKey:
-          updateModal.help.toggle()
+    getHotkeys(Shortcut),
+    (event) => {
+      switch (event.code) {
+        case Shortcut.question.code:
+          if (event.shiftKey) {
+            updateModal.help.toggle()
+          }
           break
-        case Shortcut.escape.eventKey:
+        case Shortcut.escape.code:
           if (!!modal) {
             updateModal.off()
           } else if (
@@ -131,32 +135,32 @@ export const useShortcuts = (enabled: boolean) => {
             window.close()
           }
           break
-        case Shortcut.backtick.eventKey:
+        case Shortcut.backtick.code:
           updateModal.settings.toggle()
           break
-        // case Shortcut.slash.eventKey: {
+        // case Shortcut.slash.code: {
         //   updateModal.off()
         //   const search = document.getElementById('search')
         //   search?.focus()
         //   break
         // }
-        // case Shortcut.i.eventKey:
+        // case Shortcut.i.code:
         //   updateModal.importer.set(true)
         //   break
-        // case Shortcut.r.eventKey:
+        // case Shortcut.r.code:
         //   // void openSessionEdit()
         //   break
-        // case Shortcut.backspace.eventKey:
-        // case Shortcut.delete.eventKey:
+        // case Shortcut.backspace.code:
+        // case Shortcut.delete.code:
         //   // void handleDelete(event)
         //   break
-        // case Shortcut.ctrl_z.eventKey:
+        // case Shortcut.ctrl_z.code:
         //   // void undo()
         //   break
-        // case Shortcut.ctrl_y.eventKey:
+        // case Shortcut.ctrl_y.code:
         //   // void redo()
         //   break
-        // case Shortcut.c.eventKey:
+        // case Shortcut.c.code:
         //   // handleSelectCurrentSession()
         //   break
       }

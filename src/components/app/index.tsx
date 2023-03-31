@@ -7,14 +7,17 @@ import { withErrorBoundary } from 'components/error/boundary'
 import { Layout } from 'components/layout'
 import { ModalProvider } from 'components/modal/provider'
 import { SessionLayout } from 'components/session'
+import { useSettings } from 'components/settings/store'
+import { useShortcuts } from 'components/shortcuts/global'
 import { ToastContainer } from 'components/toast'
 import { CONNECT_NAME_CLIENT_PREFIX, sendConnect } from 'utils/connect'
 import { isProd } from 'utils/env'
 
-import { Mounted } from './mounted'
 import { usePort } from './store'
 
 const App: React.FC = () => {
+  const [settings] = useSettings()
+  useShortcuts(settings?.shortcuts || false)
   const [port, setPort, portRef] = usePort()
 
   useEffect(() => {
@@ -30,7 +33,6 @@ const App: React.FC = () => {
   if (port) {
     return (
       <Layout>
-        <Mounted />
         <SessionLayout />
         <ToastContainer />
         <ModalProvider />

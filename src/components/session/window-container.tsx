@@ -11,7 +11,7 @@ import { WindowHeader } from 'components/window'
 import { Session } from 'utils/session'
 import { SessionWindow } from 'utils/session-window'
 
-import { handleFocusDraggable } from './dnd-handlers'
+// import { handleFocusDraggable } from './dnd-handlers'
 import { TabsList } from './tabs-list'
 
 type ColorOptions = {
@@ -45,8 +45,9 @@ const getHeaderBackground = ({ isDragging, incognito }: ColorOptions) => {
 
 type SessionWindowProps = {
   sessionId: Session['id']
-  index: number
   window: SessionWindow
+  index: number
+  isLast: boolean
 }
 
 /**
@@ -54,8 +55,9 @@ type SessionWindowProps = {
  */
 export const WindowContainer: React.FC<SessionWindowProps> = ({
   sessionId,
-  index,
   window: win,
+  index,
+  isLast,
 }) => (
   <Draggable draggableId={`${sessionId}-${win.id}`} index={index}>
     {(
@@ -76,7 +78,7 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
         ref={dragProvided.innerRef}
         {...dragProvided.draggableProps}
         {...dragProvided.dragHandleProps}
-        onClick={handleFocusDraggable}
+        // onClick={handleFocusDraggable}
       >
         <motion.div
           layout={!(isDragging || isDropAnimating)}
@@ -99,6 +101,8 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
           <WindowHeader
             sessionId={sessionId}
             window={win}
+            index={index}
+            isLast={isLast}
             className={classNames(
               'md:h-window-header overflow-hidden cursor-grab',
               'transition-colors duration-150',

@@ -5,7 +5,9 @@ import { Button } from 'components/button'
 import { Dropdown, DropdownButtonProps } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
 import { Active } from 'components/indicators'
+import { Shortcut } from 'components/session/shortcut'
 import { useWindowHandlers } from 'components/session/window-handlers'
+import { useWindowShortcuts } from 'components/shortcuts/sessions'
 import { BrandedUuid } from 'utils/generate'
 import { stopPropagation } from 'utils/helpers'
 import {
@@ -95,21 +97,31 @@ type WindowHeaderProps = {
   sessionId: BrandedUuid<'session'>
   window: CurrentSessionWindow | SavedSessionWindow
   className?: ClassNames
+  index: number
+  isLast: boolean
 }
 
 export const WindowHeader: React.FC<WindowHeaderProps> = ({
   sessionId,
   window: win,
   className,
+  index,
+  isLast,
 }) => {
   const { id: windowId, focused, title, state, tabs, incognito } = win
   const { openWindows, updateWindow, removeWindows } = useWindowHandlers()
+  const windowOrder = index + 1
 
   const handleOpen = () => {
     if (!focused) {
       openWindows({ sessionId, windowIds: [windowId] })
     }
   }
+
+  useWindowShortcuts(
+    windowOrder < 9 || isLast ? windowOrder : undefined,
+    handleOpen
+  )
 
   const handleNewTab = () => {
     if ('assignedWindowId' in win) {
@@ -148,6 +160,17 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
           </div>
         )}
         <div className="flex flex-row justify-start items-center overflow-hidden w-full max-w-full space-x-2">
+          {windowOrder < 9 && (
+            <Shortcut
+              value={windowOrder}
+              onClick={handleOpen}
+              ariaLabel="focus window"
+              modifier={{
+                mac: 'option',
+                other: 'alt',
+              }}
+            />
+          )}
           {stateAction && (
             <Button
               variant="card-action"

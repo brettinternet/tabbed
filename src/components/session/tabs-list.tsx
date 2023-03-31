@@ -50,7 +50,7 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
               ref={dragProvided.innerRef}
               {...dragProvided.draggableProps}
               {...dragProvided.dragHandleProps}
-              className={cn('mb-2 rounded', focusRingClass)}
+              className={cn('mb-2 rounded cursor-grab', focusRingClass)}
               onClick={handleFocusDraggable}
             >
               <motion.div

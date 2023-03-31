@@ -41,9 +41,10 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
           {session.windows.map((win, index) => (
             <WindowContainer
               key={`${session.id}-${win.id}`}
-              index={index}
               sessionId={session.id}
               window={win}
+              index={index}
+              isLast={index === session.windows.length - 1}
             />
           ))}
           {provided.placeholder}

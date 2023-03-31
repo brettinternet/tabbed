@@ -70,12 +70,13 @@ export class ErrorBoundary extends React.Component<
 
     if (hasError || forceHasError) {
       return defaultMessage || (showErrorMessage && errorMessage) ? (
-        <div className="p-1 space-y-3">
-          <Message variant={MessageVariant.ERROR} title="Error">
+        <section className="p-1 space-y-3">
+          <Message variant={MessageVariant.ERROR} className="space-y-2">
+            <b>Error</b>
             {defaultMessage && <p>{defaultMessage}</p>}
             {showErrorMessage && errorMessage && <p>{errorMessage}</p>}
           </Message>
-        </div>
+        </section>
       ) : null
     }
 

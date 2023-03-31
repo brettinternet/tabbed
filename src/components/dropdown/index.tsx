@@ -15,7 +15,7 @@ import { isDefined } from 'utils/helpers'
 import { Portal } from 'utils/portal'
 
 export type DropdownButtonProps = {
-  onClick: () => void
+  onClick: React.MouseEventHandler<HTMLButtonElement>
 } & Omit<ButtonProps, 'onClick'>
 
 const MenuItem: React.FC<{ buttonProps: DropdownButtonProps }> = ({

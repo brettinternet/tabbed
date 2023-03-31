@@ -41,13 +41,14 @@ type MessageProps<T extends keyof JSX.IntrinsicElements = any> = {
   className?: ClassNames
   onDismiss?: React.MouseEventHandler
 } & React.HTMLAttributes<HTMLElement> &
-  React.ComponentProps<T>
+  React.ComponentProps<T> &
+  React.PropsWithChildren
 
 export const Message: React.FC<MessageProps> = ({
   as: Tag = 'div',
   title,
   children,
-  body = children,
+  body,
   variant,
   className,
   onDismiss,
@@ -61,10 +62,12 @@ export const Message: React.FC<MessageProps> = ({
     )}
     {...props}
   >
-    <p>
-      {title && <b className="mr-1">{title}</b>}
-      {body}
-    </p>
+    {children || (
+      <p>
+        {title && <b className="mr-1">{title}</b>}
+        {body}
+      </p>
+    )}
     {onDismiss && (
       <Button
         variant="none"
