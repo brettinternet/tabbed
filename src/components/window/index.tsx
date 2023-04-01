@@ -126,7 +126,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
   }
 
   useWindowShortcuts(
-    windowOrder < 9 || isLast ? windowOrder : undefined,
+    windowOrder < 9 ? windowOrder : isLast ? 9 : undefined,
     handleOpen
   )
 
@@ -172,19 +172,20 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
           </div>
         )}
         <div className="flex flex-row justify-start items-center overflow-hidden w-full max-w-full space-x-2 h-5">
-          {windowOrder < 9 && (
-            <Shortcut
-              value={windowOrder}
-              onClick={handleOpen}
-              ariaLabel="focus window"
-              modifiers={[
-                {
-                  mac: 'option',
-                  other: 'alt',
-                },
-              ]}
-            />
-          )}
+          {windowOrder < 9 ||
+            (isLast && (
+              <Shortcut
+                value={isLast ? 9 : windowOrder}
+                onClick={handleOpen}
+                ariaLabel="focus window"
+                modifiers={[
+                  {
+                    mac: 'option',
+                    other: 'alt',
+                  },
+                ]}
+              />
+            ))}
           {stateAction && (
             <Button
               variant="card-action"
