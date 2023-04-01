@@ -1,10 +1,10 @@
 import browser, { Tabs, Windows } from 'webextension-polyfill'
 
 import { tabUrl, popoutUrl } from 'utils/env'
-import { isDefined, Valueof } from 'utils/helpers'
+import { isDefined } from 'utils/helpers'
 import { Settings } from 'utils/settings'
 
-export const openExtensionPopup = () => browser.browserAction.openPopup()
+export const openExtensionPopup = () => browser.action.openPopup()
 
 export const openExtensionSidebar = async () => browser.sidebarAction.open()
 
@@ -379,19 +379,4 @@ export const openWindow = async (w: WindowOptions) => {
 export const openWindows = async (windows: WindowOptions[]) => {
   const tasks = windows.map(openWindow)
   return await Promise.all(tasks)
-}
-
-export const Browsers = {
-  FIREFOX: 'Firefox',
-  CHROME: 'Chrome',
-} as const
-
-type BrowsersValue = Valueof<typeof Browsers>
-
-export const getBrowser = (): BrowsersValue => {
-  if (chrome.app) {
-    return Browsers.CHROME
-  } else {
-    return Browsers.FIREFOX
-  }
 }

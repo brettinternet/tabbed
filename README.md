@@ -32,6 +32,7 @@ Visualize and organize your browser sessions, windows and tabs.
   - [x] All extension popups receive updates to windows and tabs
   - [x] Settings are applied to all open clients and background tasks
 - [x] Move tabs with keyboard (see related bug)
+- [ ] Support internationalization
 - [ ] Better tab and focus ring support
 - [ ] Search tabs
 - [ ] Multi-tab drag and drop
@@ -62,11 +63,11 @@ npm start
 
 #### Chrome
 
-Navigate to `chrome://extensions`, enable "Developer mode", select "Load unpacked" and open the `dist/` folder. See [Chrome's developer instructions](https://developer.chrome.com/docs/extensions/mv3/getstarted/).
+Navigate to `chrome://extensions`, enable "Developer mode", select "Load unpacked" and open the `build/` folder. See [Chrome's developer instructions](https://developer.chrome.com/docs/extensions/mv3/getstarted/).
 
 #### Firefox
 
-Navigate to `about:debugging`, select "This Firefox", "Load Temporary Addon-on..." and open the `dist/` folder. See [Firefox's Extension Workshop](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/).
+Navigate to `about:debugging`, select "This Firefox", "Load Temporary Addon-on..." and open the `build/` folder. See [Firefox's Extension Workshop](https://extensionworkshop.com/documentation/develop/temporary-installation-in-firefox/).
 
 ### Notes
 

@@ -12,7 +12,7 @@ import { H2 } from 'components/markup/h2'
 import { Message } from 'components/message'
 import { RadioGroup } from 'components/radiogroup'
 import { Toggle } from 'components/toggle'
-import { browserRuntime, browsers } from 'utils/env'
+import { isChrome } from 'utils/env'
 import { SAVE_SESSIONS } from 'utils/flags'
 import { isDefined } from 'utils/helpers'
 import { ExtensionClickActions, Themes } from 'utils/settings'
@@ -165,7 +165,7 @@ export const Settings: React.FC = () => {
           />
           <Description>
             Allows autosave to save incognito windows.{' '}
-            {browserRuntime === browsers.CHROMIUM && (
+            {isChrome && (
               <>
                 <Button onClick={openOptions} variant="link" shape="none">
                   Open extension options

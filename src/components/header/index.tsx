@@ -1,6 +1,7 @@
 import cn, { Argument as ClassNames } from 'classnames'
 
 import { Icon, IconName } from 'components/icon'
+import { appName } from 'utils/env'
 
 import { ModalDropdown } from './modal-dropdown'
 
@@ -21,7 +22,7 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
       <ul className="w-full m-0 flex items-center justify-between px-6">
         <li className="md:mr-auto flex flex-row items-center text-gray-700 dark:text-gray-200">
           <Icon name={IconName.TAB} className="mr-2" />
-          <span className="font-bold text-lg">Tabbed</span>
+          <span className="font-bold text-lg">{appName}</span>
         </li>
         {/* TODO: */}
         {/* <li className="w-full mr-3 md:ml-auto md:mr-0 md:max-w-xs">

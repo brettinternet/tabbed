@@ -1,3 +1,4 @@
+import { assign } from 'lodash'
 import browser from 'webextension-polyfill'
 
 import { configureClosedWindowListener } from 'background/sessions'
@@ -8,12 +9,12 @@ import {
   UpdatedSettingMessage,
   createBroadcastMessageListener,
 } from 'utils/messages'
-import type { Settings } from 'utils/settings'
+import { Settings, loadSettings } from 'utils/settings'
 
 import { App } from './app'
 import {
-  configurePopoutAction,
-  configureExtension,
+  configureMenuActions,
+  configureMenus,
   configureExtensionActions,
   configureTabCountListeners,
 } from './configuration'
@@ -30,75 +31,58 @@ const logContext = 'background/settings'
  */
 const handleSettingsSideEffects = async <K extends keyof Settings>(
   changedKey: K,
-  settings: Partial<Settings>
+  settings: Settings
 ) => {
-  const {
-    showTabCountBadge,
-    extensionClickAction,
-    debugMode,
-    popoutState,
-    saveIncognito,
-    saveClosedWindows,
-  } = settings
-
   switch (changedKey) {
     case 'showTabCountBadge': {
-      if (showTabCountBadge) {
-        void configureTabCountListeners(showTabCountBadge)
-      }
+      void configureTabCountListeners(settings.showTabCountBadge)
       break
     }
     case 'extensionClickAction': {
-      if (extensionClickAction) {
-        void configureExtensionActions(extensionClickAction)
-      }
+      void configureExtensionActions(settings.extensionClickAction)
       break
     }
     case 'debugMode': {
-      void updateLogLevel(debugMode)
+      void updateLogLevel(settings.debugMode)
       break
     }
     case 'saveIncognito':
     case 'saveClosedWindows': {
-      if (saveIncognito && saveClosedWindows) {
-        void configureClosedWindowListener({ saveIncognito, saveClosedWindows })
-        break
+      if (settings.saveIncognito && settings.saveClosedWindows) {
+        void configureClosedWindowListener(settings)
       }
+      break
     }
     case 'popoutState': {
-      if (popoutState) {
-        configurePopoutAction(popoutState)
-      }
+      configureMenuActions(settings)
       break
     }
   }
 }
 
-export const startBackgroundSettingsListeners = async (
-  initialSettings: Settings
-) => {
-  log.debug(logContext, 'startBackgroundSettingsListeners()', initialSettings)
-
-  // reset to avoid duplicates
-  await browser.contextMenus.removeAll()
-  void configureExtension()
-  configurePopoutAction(initialSettings.popoutState)
-  void configureTabCountListeners(initialSettings.showTabCountBadge)
-  void configureExtensionActions(initialSettings.extensionClickAction)
+export const configureSettings = async () => {
+  log.debug(logContext, 'configureSettings()')
+  const settings = await loadSettings()
+  const keys = getKeys(settings)
+  await Promise.all(
+    keys.map(async (key) => handleSettingsSideEffects(key, settings))
+  )
+  await configureMenus()
+  return settings
 }
 
 export const startClientSettingsListeners = (app: App) => {
   log.debug(logContext, 'startClientSettingsListeners()', app)
 
-  const removeListener = createBroadcastMessageListener<UpdatedSettingMessage>(
+  createBroadcastMessageListener<UpdatedSettingMessage>(
     MESSAGE_TYPE_UPDATED_SETTING,
     async (changedSettings) => {
       const keys = getKeys(changedSettings)
+      const savedSettings = await loadSettings()
+      const settings = assign(savedSettings, changedSettings)
       await Promise.all(
-        keys.map((key) => handleSettingsSideEffects(key, changedSettings))
+        keys.map((key) => handleSettingsSideEffects(key, settings))
       )
     }
   )
-
-  window.addEventListener('unload', removeListener)
 }

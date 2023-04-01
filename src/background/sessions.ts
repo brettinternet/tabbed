@@ -126,6 +126,5 @@ export const startClientSessionListeners = (app: App) => {
       removeSessionListeners(handleChange)
     }
     port.onDisconnect.addListener(cancel)
-    window.addEventListener('unload', cancel)
   }
 }

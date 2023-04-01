@@ -30,7 +30,7 @@ export const Toggle: React.FC<ToggleProps> = ({
         'relative flex items-center h-6 rounded-full w-11'
       )}
     >
-      <span className="sr-only">Enable notifications</span>
+      <span className="sr-only">{label}</span>
       <span
         className={cn(
           checked ? 'translate-x-6' : 'translate-x-1',

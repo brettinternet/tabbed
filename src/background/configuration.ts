@@ -1,5 +1,5 @@
 import { debounce } from 'lodash'
-import browser from 'webextension-polyfill'
+import browser, { Menus } from 'webextension-polyfill'
 
 import {
   openExtensionPopup,
@@ -7,90 +7,118 @@ import {
   openExtensionNewTab,
   openExtensionExistingTab,
   openExtensionPopout,
-  getBrowser,
-  Browsers,
 } from 'utils/browser'
-import { popupUrl, sidebarUrl } from 'utils/env'
+import { isFirefox, popupUrl, sidebarUrl } from 'utils/env'
 import { SAVE_SESSIONS } from 'utils/flags'
 import { isDefined } from 'utils/helpers'
 import { log } from 'utils/logger'
 import { addSaved, loadSessionsManager, save } from 'utils/sessions-manager'
 import { Settings, ExtensionClickActions } from 'utils/settings'
 
-type MenuId = string | number
-let menuIds: {
-  popout?: MenuId
-  sidebar?: MenuId
-  tab?: MenuId
-  saveContext?: MenuId
-  popup?: MenuId
-} = {}
+const menuIds = {
+  popout: 'open-in-popout',
+  sidebar: 'open-in-sidebar',
+  tab: 'open-in-tab',
+  saveContext: 'save-session',
+  popup: 'open-in-popup',
+} as const
 
-export const configurePopoutAction = (popoutState: Settings['popoutState']) => {
-  menuIds.popout = browser.contextMenus.create({
-    title: 'Open in popout window',
-    contexts: ['browser_action'],
-    onclick: async () => {
-      await openExtensionPopout(popoutState)
-    },
-  })
+type MenuActionOptions = Pick<Settings, 'popoutState' | 'extensionClickAction'>
+
+export const configureMenuActions = (options: MenuActionOptions) => {
+  const handleContextMenus = (info: Menus.OnClickData) => {
+    switch (info.menuItemId) {
+      case menuIds.popout:
+        void openExtensionPopout(options.popoutState)
+        break
+      case menuIds.sidebar:
+        void openExtensionSidebar()
+        break
+      case menuIds.tab:
+        openExtensionNewTab()
+        break
+      case menuIds.popup:
+        if (options.extensionClickAction !== ExtensionClickActions.POPUP) {
+          void enablePopup().then(openExtensionPopup).then(disablePopup)
+        } else {
+          void openExtensionPopup()
+        }
+        break
+      // case menuIds.saveContext:
+      //   (async () => {
+      //     try {
+      //       const sessionsManager = await loadSessionsManager()
+      //       await addSaved(sessionsManager, sessionsManager.current)
+      //       await save(sessionsManager)
+      //       // TODO: send msg to client to reload sessions
+      //       // but how to reload without overwrite save?
+      //       await browser.notifications.create({
+      //         type: 'basic',
+      //         iconUrl: 'icon-32x32.png',
+      //         title: 'Session saved',
+      //         message: 'The current session has been saved',
+      //       })
+      //     } catch (err) {
+      //       log.error(err)
+      //     }
+      //   })()
+    }
+  }
+  browser.contextMenus.onClicked.removeListener(handleContextMenus)
+  browser.contextMenus.onClicked.addListener(handleContextMenus)
 }
 
-export const configureExtension = async () => {
-  await Promise.all(
-    [menuIds.sidebar, menuIds.tab, menuIds.saveContext].map(async (id) => {
-      if (isDefined(id)) {
-        await browser.contextMenus.remove(id)
-      }
-    })
-  )
+export const configureMenus = async () => {
+  // reset to avoid duplicates
+  await browser.contextMenus.removeAll()
 
-  if (browser.sidebarAction) {
-    menuIds.sidebar = browser.contextMenus.create({
-      title: 'Open sidebar',
-      contexts: ['browser_action'],
-      onclick: openExtensionSidebar,
-    })
-  }
+  browser.contextMenus.create({
+    id: menuIds.popout,
+    title: 'Open in popout window',
+    contexts: ['action'],
+  })
 
-  menuIds.tab = browser.contextMenus.create({
+  browser.contextMenus.create({
+    id: menuIds.tab,
     title: 'Open in tab',
-    contexts: ['browser_action'],
-    onclick: openExtensionNewTab,
+    contexts: ['action'],
   })
 
   if (SAVE_SESSIONS) {
-    menuIds.saveContext = browser.contextMenus.create({
-      id: 'save-session',
+    browser.contextMenus.create({
+      id: menuIds.saveContext,
       title: 'Save session',
       contexts: ['page'],
-      onclick: async () => {
-        try {
-          const sessionsManager = await loadSessionsManager()
-          await addSaved(sessionsManager, sessionsManager.current)
-          await save(sessionsManager)
-          // TODO: send msg to client to reload sessions
-          // but how to reload without overwrite save?
-          await browser.notifications.create({
-            type: 'basic',
-            iconUrl: 'icon-32x32.png',
-            title: 'Session saved',
-            message: 'The current session has been saved',
-          })
-        } catch (err) {
-          log.error(err)
-        }
-      },
+    })
+  }
+
+  if (browser.sidebarAction) {
+    browser.contextMenus.create({
+      id: menuIds.sidebar,
+      title: 'Open sidebar',
+      contexts: ['action'],
+    })
+  }
+
+  /**
+   * This is not possible now on Chrome
+   * https://stackoverflow.com/questions/17928979/how-to-programmatically-open-chrome-extension-popup-html
+   */
+  if (isFirefox) {
+    browser.contextMenus.create({
+      id: menuIds.popup,
+      title: 'Open popup',
+      contexts: ['action'],
     })
   }
 }
 
 const enablePopup = async () => {
-  await browser.browserAction.setPopup({ popup: popupUrl })
+  await browser.action.setPopup({ popup: popupUrl })
 }
 
 const disablePopup = async () => {
-  await browser.browserAction.setPopup({ popup: '' })
+  await browser.action.setPopup({ popup: '' })
 }
 
 /**
@@ -101,65 +129,45 @@ export const configureExtensionActions = async (
 ) => {
   if (extensionClickAction === ExtensionClickActions.TAB) {
     await disablePopup()
-    browser.browserAction.onClicked.removeListener(openExtensionSidebar)
-    browser.browserAction.onClicked.addListener(openExtensionExistingTab)
+    browser.action.onClicked.removeListener(openExtensionSidebar)
+    browser.action.onClicked.addListener(openExtensionExistingTab)
   } else if (
     extensionClickAction === ExtensionClickActions.SIDEBAR &&
     !!browser.sidebarAction
   ) {
     await disablePopup()
-    browser.browserAction.onClicked.removeListener(openExtensionExistingTab)
+    browser.action.onClicked.removeListener(openExtensionExistingTab)
     await browser.sidebarAction.setPanel({
       panel: sidebarUrl,
     })
-    browser.browserAction.onClicked.addListener(openExtensionSidebar)
+    browser.action.onClicked.addListener(openExtensionSidebar)
   } else {
-    browser.browserAction.onClicked.removeListener(openExtensionSidebar)
-    browser.browserAction.onClicked.removeListener(openExtensionExistingTab)
+    browser.action.onClicked.removeListener(openExtensionSidebar)
+    browser.action.onClicked.removeListener(openExtensionExistingTab)
     await enablePopup()
-  }
-
-  if (isDefined(menuIds.popup)) {
-    await browser.contextMenus.remove(menuIds.popup)
-  }
-
-  /**
-   * This is not possible now on Chrome
-   * https://stackoverflow.com/questions/17928979/how-to-programmatically-open-chrome-extension-popup-html
-   */
-  if (getBrowser() === Browsers.FIREFOX) {
-    menuIds.popup = browser.contextMenus.create({
-      title: 'Open popup',
-      contexts: ['browser_action'],
-      onclick: async () => {
-        if (extensionClickAction !== ExtensionClickActions.POPUP) {
-          await enablePopup()
-          await openExtensionPopup()
-          await disablePopup()
-        } else {
-          await openExtensionPopup()
-        }
-      },
-    })
   }
 }
 
+const BADGE_TEXT_COLOR = '#ffffff'
 const BADGE_BACKGROUND_COLOR = '#3b82f6'
 const updateTabCountBadge = async () => {
   try {
     const tabs = await browser.tabs.query({})
     const count = tabs.length
-    await browser.browserAction.setBadgeBackgroundColor({
+    await browser.action.setBadgeBackgroundColor({
       color: BADGE_BACKGROUND_COLOR,
     })
-    await browser.browserAction.setBadgeText({ text: count ? `${count}` : '' })
+    void browser.action.setBadgeTextColor({
+      color: BADGE_TEXT_COLOR,
+    })
+    await browser.action.setBadgeText({ text: count ? `${count}` : '' })
   } catch (err) {
     log.error(err)
   }
 }
 
 const clearTabCountBadge = async () => {
-  await browser.browserAction.setBadgeText({ text: '' })
+  await browser.action.setBadgeText({ text: '' })
 }
 
 const debounceUpdateTabCountBadge = debounce(updateTabCountBadge, 250)
@@ -194,7 +202,4 @@ export const configureTabCountListeners = (showTabCountBadge: boolean) => {
     void clearTabCountBadge()
     removeTabCountListeners(handleTabCountChange)
   }
-  window.addEventListener('unload', () => {
-    removeTabCountListeners(handleTabCountChange)
-  })
 }

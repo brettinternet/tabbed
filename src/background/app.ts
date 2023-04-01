@@ -5,7 +5,6 @@ import {
   ClientId,
   getClientId,
 } from 'utils/connect'
-import { isProd } from 'utils/env'
 import { log } from 'utils/logger'
 
 const logContext = 'background/app'
@@ -21,10 +20,6 @@ export const startApp = (
 
   const app: App = {
     ports: new Map<ClientId, Runtime.Port>(),
-  }
-  // for debugging
-  if (!isProd) {
-    window.app = app
   }
 
   browser.runtime.onConnect.addListener(async (port) => {
