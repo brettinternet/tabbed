@@ -7,6 +7,10 @@ import { Icon, IconName } from 'components/icon'
 type Modifier = 'command' | 'control' | 'option' | 'alt' | 'shift'
 type ModifierGroup = NonNullable<ShortcutProps['modifiers']>[number]
 
+const T: React.FC<React.PropsWithChildren> = ({ children }) => (
+  <span className="-mb-[2px]">{children}</span>
+)
+
 const displayModifier = (modifier: ModifierGroup) => {
   if (isMac) {
     switch (modifier.mac) {
@@ -27,11 +31,11 @@ const displayModifier = (modifier: ModifierGroup) => {
 
   switch (modifier.other) {
     case 'control':
-      return 'Ctrl'
+      return <T>Ctrl</T>
     case 'alt':
-      return 'Alt'
+      return <T>Alt</T>
     case 'shift':
-      return 'Shift'
+      return <T>Shift</T>
   }
 }
 
@@ -57,17 +61,20 @@ export const Shortcut: React.FC<ShortcutProps> = ({
     onClick={onClick}
     aria-label={ariaLabel}
     className={cn(
-      'inline-flex flex-row items-center justify-center space-x-1 border border-dotted rounded px-1',
+      'flex flex-row items-center justify-center h-full space-x-1 border border-dotted rounded px-1',
       'border-gray-400 text-gray-500 dark:border-gray-600 dark:text-gray-400',
       className
     )}
   >
-    <kbd className="shadow-sm text-xxs flex-1 inline-flex items-center h-[20px] leading-[20px]">
+    <kbd className="text-xxs inline-flex items-center">
       {modifiers?.length &&
         modifiers.map((modifierGroup, index) => (
-          <Fragment key={index}>{displayModifier(modifierGroup)}+</Fragment>
+          <Fragment key={index}>
+            {displayModifier(modifierGroup)}
+            <T>+</T>
+          </Fragment>
         ))}
-      <span className="-mb-[1px]">{value}</span>
+      <T>{value}</T>
     </kbd>
   </button>
 )

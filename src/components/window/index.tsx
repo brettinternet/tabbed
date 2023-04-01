@@ -171,7 +171,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
             {title}
           </div>
         )}
-        <div className="flex flex-row justify-start items-center overflow-hidden w-full max-w-full space-x-2">
+        <div className="flex flex-row justify-start items-center overflow-hidden w-full max-w-full space-x-2 h-5">
           {windowOrder < 9 && (
             <Shortcut
               value={windowOrder}
@@ -189,7 +189,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
             <Button
               variant="card-action"
               shape="none"
-              className="text-xxs px-1 border rounded h-5"
+              className="text-xxs px-1 border rounded h-full"
               onClick={stateAction.onClick}
               onDoubleClick={stopPropagation}
               aria-label={stateActionTitle}
