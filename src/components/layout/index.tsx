@@ -8,7 +8,7 @@ export const Layout: React.FC<React.PropsWithChildren> = ({ children }) => (
   <Fragment>
     <Head title={appName} />
     <Header />
-    <main id="main" className="md:pt-header">
+    <main id="main" className="pt-header">
       {children}
     </main>
   </Fragment>
