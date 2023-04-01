@@ -170,7 +170,7 @@ export const Tab: React.FC<TabProps> = ({
               value={tabOrder}
               onClick={handleOpen}
               ariaLabel="focus tab"
-              modifier={{ mac: 'command', other: 'control' }}
+              modifiers={[{ mac: 'command', other: 'control' }]}
             />
           ) : (
             isLastTab && (
@@ -178,16 +178,19 @@ export const Tab: React.FC<TabProps> = ({
                 value={9}
                 onClick={handleOpen}
                 ariaLabel="focus tab"
-                modifier={{ mac: 'command', other: 'control' }}
+                modifiers={[{ mac: 'command', other: 'control' }]}
               />
             )
           )} */}
           {isExtensionUrl(url) && (
             <Shortcut
-              value={'+Shift+S'}
+              value="S"
               onClick={handleOpen}
               ariaLabel="focus tab"
-              modifier={{ mac: 'command', other: 'control' }}
+              modifiers={[
+                { mac: 'command', other: 'control' },
+                { other: 'shift' },
+              ]}
             />
           )}
           <Button

@@ -1,11 +1,13 @@
 import cn, { Argument as ClassNames } from 'classnames'
+import { Fragment } from 'react'
 
 import { isMac } from 'components/app/store'
 import { Icon, IconName } from 'components/icon'
 
-type Modifier = 'command' | 'control' | 'option' | 'alt'
+type Modifier = 'command' | 'control' | 'option' | 'alt' | 'shift'
+type ModifierGroup = NonNullable<ShortcutProps['modifiers']>[number]
 
-const displayModifier = (modifier: NonNullable<ShortcutProps['modifier']>) => {
+const displayModifier = (modifier: ModifierGroup) => {
   if (isMac) {
     switch (modifier.mac) {
       case 'command':
@@ -21,13 +23,15 @@ const displayModifier = (modifier: NonNullable<ShortcutProps['modifier']>) => {
           <Icon name={IconName.KEYBOARD_OPTION} ariaLabel="Command" size="xs" />
         )
     }
-  } else {
-    switch (modifier.other) {
-      case 'command':
-        return 'Ctrl'
-      case 'alt':
-        return 'Alt'
-    }
+  }
+
+  switch (modifier.other) {
+    case 'control':
+      return 'Ctrl'
+    case 'alt':
+      return 'Alt'
+    case 'shift':
+      return 'Shift'
   }
 }
 
@@ -36,10 +40,10 @@ type ShortcutProps = {
   className?: ClassNames
   onClick: React.MouseEventHandler<HTMLButtonElement>
   ariaLabel: string
-  modifier?: {
-    mac: Modifier
+  modifiers?: Array<{
+    mac?: Modifier
     other: Modifier
-  }
+  }>
 }
 
 export const Shortcut: React.FC<ShortcutProps> = ({
@@ -47,7 +51,7 @@ export const Shortcut: React.FC<ShortcutProps> = ({
   className,
   onClick,
   ariaLabel,
-  modifier,
+  modifiers,
 }) => (
   <button
     onClick={onClick}
@@ -59,7 +63,10 @@ export const Shortcut: React.FC<ShortcutProps> = ({
     )}
   >
     <kbd className="shadow-sm text-xxs flex-1 inline-flex items-center h-[20px] leading-[20px]">
-      {modifier && displayModifier(modifier)}
+      {modifiers?.length &&
+        modifiers.map((modifierGroup, index) => (
+          <Fragment key={index}>{displayModifier(modifierGroup)}+</Fragment>
+        ))}
       <span className="-mb-[1px]">{value}</span>
     </kbd>
   </button>

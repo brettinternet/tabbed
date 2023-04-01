@@ -5,8 +5,6 @@ import { isDefined } from 'utils/helpers'
 
 import { getHotkeys, ShortcutsMap } from './global'
 
-const modifier = isMac ? 'Option' : 'Alt'
-
 const windowShortcuts = [...new Array(9)].reduce<ShortcutsMap>(
   (acc, _, index) => {
     const digit = index + 1
@@ -15,7 +13,7 @@ const windowShortcuts = [...new Array(9)].reduce<ShortcutsMap>(
       [digit]: {
         hotkey: `alt+${digit}`,
         code: `Digit${digit}`,
-        display: `${modifier}+${digit}`,
+        display: `${isMac ? 'Option' : 'Alt'}+${digit}`,
         description: `Focus ${digit === 9 ? 'last window' : `window ${digit}`}`,
       },
     }

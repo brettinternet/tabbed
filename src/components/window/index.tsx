@@ -161,6 +161,11 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
           title ? 'justify-between' : 'justify-end'
         )}
       >
+        {focused && (
+          <div className="absolute left-0 top-0">
+            <Active aria-label="Window is focused" title="Focused" />
+          </div>
+        )}
         {title && (
           <div className="line-clamp-2 max-w-full inline-block font-semibold text-gray-700 dark:text-gray-400">
             {title}
@@ -172,10 +177,12 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
               value={windowOrder}
               onClick={handleOpen}
               ariaLabel="focus window"
-              modifier={{
-                mac: 'option',
-                other: 'alt',
-              }}
+              modifiers={[
+                {
+                  mac: 'option',
+                  other: 'alt',
+                },
+              ]}
             />
           )}
           {stateAction && (
@@ -216,7 +223,6 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
               className="text-purple-600 dark:text-indigo-200"
             />
           )}
-          {focused && <Active aria-label="Window is focused" title="Focused" />}
         </div>
       </div>
       <div className="flex flex-row items-center justify-center">

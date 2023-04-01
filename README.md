@@ -33,6 +33,7 @@ Visualize and organize your browser sessions, windows and tabs.
   - [x] Settings are applied to all open clients and background tasks
 - [x] Move tabs with keyboard (see related bug)
 - [ ] Support internationalization
+- [ ] Add tooltips for additional button/shortcut descriptions
 - [ ] Better tab and focus ring support
 - [ ] Search tabs
 - [ ] Multi-tab drag and drop
