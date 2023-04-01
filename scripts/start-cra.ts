@@ -13,5 +13,5 @@ const start = spawn('npx', ['craco', 'start'], {
   shell: true,
   cwd,
 })
-
 start.stdout.pipe(process.stdout)
+start.stderr.pipe(process.stderr)

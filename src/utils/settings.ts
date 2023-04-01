@@ -1,7 +1,6 @@
 // Types shared between background and client
 import { assign } from 'lodash'
 
-import { isProd } from 'utils/env'
 import { Valueof } from 'utils/helpers'
 import { LocalStorage } from 'utils/storage'
 
@@ -72,7 +71,7 @@ export const defaultSettings: Settings = {
     width: 600,
   },
   theme: Themes.LIGHT,
-  debugMode: !isProd,
+  debugMode: !IS_PROD,
   saveClosedWindows: false,
   sortFocusedWindowFirst: false,
   saveIncognito: false,

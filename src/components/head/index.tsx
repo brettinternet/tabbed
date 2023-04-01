@@ -1,8 +1,6 @@
 import { useEffect } from 'react'
 
-import { isProd, buildTime, buildVersion } from 'utils/env'
-
-const version = buildVersion || (!isProd && 'dev')
+const version = BUILD_VERSION || (!IS_PROD && 'dev')
 
 type HeadProps = {
   title: string
@@ -14,7 +12,7 @@ export const Head: React.FC<HeadProps> = ({ title }) => {
     if (version) {
       document.documentElement.dataset.version = version
     }
-    document.documentElement.dataset.time = buildTime
+    document.documentElement.dataset.time = BUILD_TIME
   }, [title])
 
   return null

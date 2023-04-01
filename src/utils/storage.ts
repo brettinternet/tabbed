@@ -1,7 +1,6 @@
 // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/storage/StorageArea/set
 import browser from 'webextension-polyfill'
 
-import { isProd } from 'utils/env'
 import type { Valueof } from 'utils/helpers'
 
 const LocalStorageKey = {
@@ -33,7 +32,7 @@ export class LocalStorage {
  * @WARNING destructive, only use in dev
  */
 export const purgeAllStorage = async () => {
-  if (!isProd) {
+  if (!IS_PROD) {
     await browser.storage.local.clear()
   }
 }

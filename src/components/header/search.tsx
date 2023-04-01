@@ -7,8 +7,8 @@ import { useRef } from 'react'
 import { Button } from 'components/button'
 import { Icon, IconName } from 'components/icon'
 import { Input } from 'components/input'
-import { getMessage } from 'utils/i18n'
 
+// import { getMessage } from 'utils/i18n'
 import { useSearchValue } from './store'
 
 export const Search: React.FC = () => {
@@ -51,7 +51,7 @@ export const Search: React.FC = () => {
     <form
       role="search"
       onSubmit={handleSubmit}
-      aria-label={getMessage('search__form_label', 'Sessions and tabs')}
+      // aria-label={getMessage('search__form_label', 'Sessions and tabs')}
       className="relative"
     >
       <Icon
@@ -63,7 +63,7 @@ export const Search: React.FC = () => {
         id="search"
         className="w-full xxs:pr-8 rounded-full px-7 py-1"
         type="text"
-        placeholder={getMessage('search__input_placeholder', 'Search')}
+        // placeholder={getMessage('search__input_placeholder', 'Search')}
         onChange={debouncedChange}
         spellCheck="false"
         shape="none"
@@ -73,7 +73,7 @@ export const Search: React.FC = () => {
         <Button
           type="button"
           className="hidden xxs:flex items-center justify-center absolute top-0 right-0 h-full w-8"
-          aria-label={getMessage('search__input_clear', 'Clear')}
+          // aria-label={getMessage('search__input_clear', 'Clear')}
           onClick={clear}
           variant="none"
           iconProps={{ name: IconName.CLOSE, size: 'sm' }}

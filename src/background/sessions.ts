@@ -2,7 +2,6 @@ import { debounce } from 'lodash'
 import browser from 'webextension-polyfill'
 
 import { handleMessageError } from 'utils/error'
-import { SAVE_SESSIONS } from 'utils/flags'
 import { log } from 'utils/logger'
 import {
   CurrentSessionChangeMessage,
@@ -31,7 +30,7 @@ export const configureClosedWindowListener = ({
   // Auto save closed windows
   const handleClosedWindow = async (closedWindowId: number) => {
     const win = browser.windows.get(closedWindowId)
-    if (SAVE_SESSIONS) {
+    if (FEATURE_SAVE_SESSIONS) {
       // const closedWindow =
       //   sessionsManager.current.searchWindowByAssignedId(closedWindowId)
       // if (closedWindow && !(!saveIncognito && closedWindow.incognito)) {

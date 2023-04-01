@@ -56,7 +56,7 @@ const manifest: Record<string, any> = {
       },
     ],
   },
-  default_locale: 'en',
+  // default_locale: 'en',
   permissions: [
     'contextMenus',
     // 'notifications',

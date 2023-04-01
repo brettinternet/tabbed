@@ -1,8 +1,9 @@
 const CracoEsbuildPlugin = require('craco-esbuild')
-const { ProvidePlugin } = require('webpack')
+const { ProvidePlugin, DefinePlugin } = require('webpack')
 const path = require('path')
+const env = require('./env')
 
-const isProd = process.env.NODE_ENV === 'production'
+const isProd = env.IS_PROD
 
 /**
  * Craco extends CRA internals
@@ -35,6 +36,12 @@ module.exports = {
       new ProvidePlugin({
         React: 'react',
       }),
+      new DefinePlugin(
+        Object.entries(env).reduce(
+          (acc, [key, value]) => ({ ...acc, [key]: JSON.stringify(value) }),
+          {}
+        )
+      ),
     ],
   },
   plugins: [

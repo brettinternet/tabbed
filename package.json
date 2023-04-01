@@ -7,12 +7,12 @@
     "start-chrome": "cross-env TARGET=chrome REACT_APP_TARGET=chrome run-s clean copy-public manifest build:tailwind && run-p start:*",
     "start:app": "cross-env BROWSER=none ts-node -P scripts/tsconfig.json scripts/start-cra",
     "start:tailwind": "npx tailwindcss --postcss -i ./src/styles/index.css -o ./src/index.css --watch",
-    "start:background": "esbuild src/background/index.ts --bundle --sourcemap --outdir=build/background --inject:env-proxy.js --watch",
+    "start:background": "ts-node -P scripts/tsconfig.json esbuild.ts",
     "build": "cross-env NODE_ENV=production run-s build-chrome",
     "build-chrome": "cross-env TARGET=chrome REACT_APP_TARGET=chrome run-s clean build:tailwind build:app build:background build:manifest build:post-build",
     "build:app": "craco build",
     "build:tailwind": "npx tailwindcss -m --postcss -i ./src/styles/index.css -o ./src/index.css",
-    "build:background": "esbuild src/background/index.ts --bundle --minify --sourcemap --outdir=build/background --inject:env-proxy.js",
+    "build:background": "ts-node -P scripts/tsconfig.json esbuild.ts",
     "build:manifest": "run-s manifest",
     "build:post-build": "ts-node -P scripts/tsconfig.json scripts/post-build",
     "eject": "react-scripts eject",
@@ -25,7 +25,8 @@
     "test": "run-s test:*",
     "test:jest": "craco test",
     "test:lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "test:ts": "tsc --noEmit"
+    "test:ts": "tsc --noEmit",
+    "analyze": "source-map-explorer 'build/static/js/*'"
   },
   "browserslist": {
     "production": [
@@ -94,6 +95,7 @@
     "postcss-import": "^15.1.0",
     "prettier": "^2.8.7",
     "sort-package-json": "^2.4.1",
+    "source-map-explorer": "^2.5.3",
     "tailwindcss": "^3.3.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.3"

@@ -8,11 +8,8 @@ import {
   openExtensionExistingTab,
   openExtensionPopout,
 } from 'utils/browser'
-import { isFirefox, popupUrl, sidebarUrl } from 'utils/env'
-import { SAVE_SESSIONS } from 'utils/flags'
-import { isDefined } from 'utils/helpers'
+import { popupUrl, sidebarUrl } from 'utils/env'
 import { log } from 'utils/logger'
-import { addSaved, loadSessionsManager, save } from 'utils/sessions-manager'
 import { Settings, ExtensionClickActions } from 'utils/settings'
 
 const menuIds = {
@@ -84,7 +81,7 @@ export const configureMenus = async () => {
     contexts: ['action'],
   })
 
-  if (SAVE_SESSIONS) {
+  if (FEATURE_SAVE_SESSIONS) {
     browser.contextMenus.create({
       id: menuIds.saveContext,
       title: 'Save session',
@@ -104,7 +101,7 @@ export const configureMenus = async () => {
    * This is not possible now on Chrome
    * https://stackoverflow.com/questions/17928979/how-to-programmatically-open-chrome-extension-popup-html
    */
-  if (isFirefox) {
+  if (IS_FIREFOX) {
     browser.contextMenus.create({
       id: menuIds.popup,
       title: 'Open popup',

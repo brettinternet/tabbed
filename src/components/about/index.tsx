@@ -1,11 +1,5 @@
 import { Link } from 'components/link'
-import {
-  authorUrl,
-  buildTime,
-  buildVersion,
-  privacyPolicyUrl,
-  repoUrl,
-} from 'utils/env'
+import { authorUrl, privacyPolicyUrl, repoUrl } from 'utils/env'
 
 const H1: React.FC<React.PropsWithChildren> = ({ children }) => (
   <h1 className="text-xl text-center font-light">{children}</h1>
@@ -36,10 +30,12 @@ export const About: React.FC = () => {
       <section className="space-y-4">
         <H1>Build</H1>
         <ul className="space-y-2 text-center">
-          <li>
-            Build date: {new Date(buildTime).toISOString().substring(0, 10)}
-          </li>
-          {buildVersion && <li>Version: {buildVersion}</li>}
+          {BUILD_TIME && (
+            <li>
+              Build date: {new Date(BUILD_TIME).toISOString().substring(0, 10)}
+            </li>
+          )}
+          {BUILD_VERSION && <li>Version: {BUILD_VERSION}</li>}
           <li>
             <Link newWindow href={repoUrl}>
               View source

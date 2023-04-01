@@ -3,11 +3,7 @@ import { resolve } from 'path'
 
 const projectRoot = resolve(__dirname, '..')
 const buildPath = resolve(projectRoot, 'build')
-const queue = [
-  resolve(buildPath, 'asset-manifest.json'),
-  // for now until i18n is supported
-  resolve(buildPath, '_locales'),
-]
+const queue = [resolve(buildPath, 'asset-manifest.json')]
 
 void Promise.all(
   queue.map(async (item) => {

@@ -11,7 +11,6 @@ import { useSettings } from 'components/settings/store'
 import { useShortcuts } from 'components/shortcuts/global'
 import { ToastContainer } from 'components/toast'
 import { CONNECT_NAME_CLIENT_PREFIX, sendConnect } from 'utils/connect'
-import { isProd } from 'utils/env'
 
 import { usePort } from './store'
 
@@ -60,5 +59,5 @@ export const AppWithErrorBoundary = withErrorBoundary(App, {
       </Button>
     </>
   ),
-  showErrorMessage: !isProd,
+  showErrorMessage: !IS_PROD,
 })

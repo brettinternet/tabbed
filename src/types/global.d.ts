@@ -2,14 +2,18 @@ import '@types/chrome'
 
 declare global {
   interface Window {
-    // Identifies Firefox when missing: https://stackoverflow.com/a/9851769
-    InstallTrigger?: unknown
-
     // For debugging in dev
     browser?: unkown
     sessionsManager?: unknown
-    app?: unknown
   }
+
+  // via DefinePlugin, replaced at build time
+  const IS_PROD: boolean | undefined
+  const IS_CHROME: boolean | undefined
+  const IS_FIREFOX: boolean | undefined
+  const BUILD_VERSION: string | undefined
+  const BUILD_TIME: string | undefined
+  const FEATURE_SAVE_SESSIONS: boolean | undefined
 
   /**
    * Used to check specific disparities between Chrome and Firefox APIs

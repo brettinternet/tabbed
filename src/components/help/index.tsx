@@ -6,12 +6,7 @@ import { Icon, IconName } from 'components/icon'
 import { Link } from 'components/link'
 import { H2 } from 'components/markup/h2'
 import { Shortcuts } from 'components/shortcuts'
-import {
-  bugReportUrl,
-  featureRequestUrl,
-  isChrome,
-  newBugReportUrl,
-} from 'utils/env'
+import { bugReportUrl, featureRequestUrl, newBugReportUrl } from 'utils/env'
 
 import { openOptions } from './handlers'
 
@@ -47,7 +42,7 @@ const faqs: Faq[] = [
     q: 'How can I view incognito/private windows?',
     a: (
       <>
-        {isChrome ? (
+        {IS_CHROME ? (
           <>
             Enable access to incognito windows in the browser extension options.{' '}
             <Button variant="link" shape="none" onClick={openOptions}>

@@ -12,8 +12,6 @@ import { H2 } from 'components/markup/h2'
 import { Message } from 'components/message'
 import { RadioGroup } from 'components/radiogroup'
 import { Toggle } from 'components/toggle'
-import { isChrome } from 'utils/env'
-import { SAVE_SESSIONS } from 'utils/flags'
 import { isDefined } from 'utils/helpers'
 import { ExtensionClickActions, Themes } from 'utils/settings'
 
@@ -142,7 +140,7 @@ export const Settings: React.FC = () => {
 
       <H2>Sessions</H2>
 
-      {SAVE_SESSIONS && (
+      {FEATURE_SAVE_SESSIONS && (
         <div className="space-y-3">
           <Toggle
             label="Save closed windows"
@@ -156,7 +154,7 @@ export const Settings: React.FC = () => {
         </div>
       )}
 
-      {SAVE_SESSIONS && (
+      {FEATURE_SAVE_SESSIONS && (
         <div className="space-y-3">
           <Toggle
             label="Save closed incognito windows"
@@ -165,7 +163,7 @@ export const Settings: React.FC = () => {
           />
           <Description>
             Allows autosave to save incognito windows.{' '}
-            {isChrome && (
+            {IS_CHROME && (
               <>
                 <Button onClick={openOptions} variant="link" shape="none">
                   Open extension options
@@ -188,7 +186,7 @@ export const Settings: React.FC = () => {
         </Description>
       </div>
 
-      {SAVE_SESSIONS && (
+      {FEATURE_SAVE_SESSIONS && (
         <div className="space-y-3">
           <Label className="space-y-2">
             <div>Excluded URLs</div>

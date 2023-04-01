@@ -3,14 +3,12 @@ import { createRoot } from 'react-dom/client'
 import browser from 'webextension-polyfill'
 
 import { AppWithErrorBoundary } from 'components/app'
-import { isProd } from 'utils/env'
 import { log } from 'utils/logger'
-import { reportWebVitals } from 'utils/report-web-vitals'
 
 import './index.css'
 
 // for debugging
-if (!isProd) {
+if (!IS_PROD) {
   window.browser = browser
 }
 
@@ -26,6 +24,10 @@ root.render(
   </StrictMode>
 )
 
-reportWebVitals((...args) => {
-  log.debug('reportWebVitals', ...args)
-})
+if (!IS_PROD) {
+  import('utils/report-web-vitals').then(({ reportWebVitals }) => {
+    reportWebVitals((...args) => {
+      log.debug('reportWebVitals', ...args)
+    })
+  })
+}
