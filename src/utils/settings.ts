@@ -56,7 +56,9 @@ export type Settings = {
 
 export const defaultSettings: Settings = {
   layout: Layouts.LIST,
-  extensionClickAction: ExtensionClickActions.POPUP,
+  extensionClickAction: IS_PROD
+    ? ExtensionClickActions.POPUP
+    : ExtensionClickActions.TAB,
   showTabCountBadge: true,
   shortcuts: true,
   fontSize: 16,
