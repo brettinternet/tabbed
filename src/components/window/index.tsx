@@ -8,6 +8,7 @@ import { Active } from 'components/indicators'
 import { Shortcut } from 'components/session/shortcut'
 import { useWindowHandlers } from 'components/session/window-handlers'
 import { useWindowShortcuts } from 'components/shortcuts/sessions'
+import { Tooltip } from 'components/tooltip'
 import { useClipboard } from 'utils/clipboard'
 import { BrandedUuid } from 'utils/generate'
 import { stopPropagation } from 'utils/helpers'
@@ -172,10 +173,14 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
           </div>
         )}
         <div className="flex flex-row justify-start items-center overflow-hidden w-full max-w-full space-x-2 h-5">
-          {windowOrder < 9 ||
-            (isLast && (
+          {(windowOrder < 9 || isLast) && (
+            <Tooltip
+              content={`Focus window ${
+                windowOrder < 9 ? windowOrder : isLast ? 9 : windowOrder
+              }`}
+            >
               <Shortcut
-                value={isLast ? 9 : windowOrder}
+                value={windowOrder < 9 ? windowOrder : isLast ? 9 : windowOrder}
                 onClick={handleOpen}
                 ariaLabel="focus window"
                 modifiers={[
@@ -185,7 +190,8 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
                   },
                 ]}
               />
-            ))}
+            </Tooltip>
+          )}
           {stateAction && (
             <Button
               variant="card-action"

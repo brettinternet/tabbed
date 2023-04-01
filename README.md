@@ -52,7 +52,7 @@ A different way to visualize and organize your browser tabs.
   - [x] Settings are applied to all open clients and background tasks
 - [x] Move tabs with keyboard (see related bug)
 - [ ] Support internationalization
-- [ ] Add tooltips for additional button/shortcut descriptions
+- [x] Add tooltips for additional button/shortcut descriptions
 - [ ] Better tab and focus ring support
 - [ ] Search tabs
 - [ ] Multi-tab drag and drop
