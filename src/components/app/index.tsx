@@ -12,9 +12,10 @@ import { useShortcuts } from 'components/shortcuts/global'
 import { ToastContainer } from 'components/toast'
 import { CONNECT_NAME_CLIENT_PREFIX, sendConnect } from 'utils/connect'
 
-import { usePort } from './store'
+import { useLogStartup, usePort } from './store'
 
 const App: React.FC = () => {
+  useLogStartup()
   const [settings] = useSettings()
   useShortcuts(settings?.shortcuts || false)
   const [port, setPort, portRef] = usePort()
@@ -52,11 +53,24 @@ export const AppWithErrorBoundary = withErrorBoundary(App, {
         variant="none"
         shape="none"
         onClick={() => {
+          window.location.reload()
+        }}
+      >
+        refresh the page
+      </Button>{' '}
+      or{' '}
+      <Button
+        className="text-white underline"
+        inline
+        variant="none"
+        shape="none"
+        onClick={() => {
           browser.runtime.reload()
         }}
       >
-        click to reload the extension
+        reload the extension
       </Button>
+      .
     </>
   ),
   showErrorMessage: !IS_PROD,

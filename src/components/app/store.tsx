@@ -5,7 +5,7 @@ import browser, { Runtime } from 'webextension-polyfill'
 import { Button } from 'components/button'
 import { useToasts } from 'components/toast/store'
 import { popupUrl, tabUrl, popoutUrl, sidebarUrl } from 'utils/env'
-import { log } from 'utils/logger'
+import { log, logStartup } from 'utils/logger'
 
 const logContext = 'app/store'
 
@@ -17,6 +17,17 @@ export const isPopout = window.location.href.includes(popoutUrl)
 export const isSidebar = window.location.href.includes(sidebarUrl)
 export const isSidebarSupported = !!browser.sidebarAction
 export const isMac = window.navigator.userAgent.toLowerCase().includes('mac')
+
+export const useLogStartup = () => {
+  const mounted = useRef(false)
+
+  useEffect(() => {
+    if (!mounted.current) {
+      void logStartup()
+      mounted.current = true
+    }
+  }, [])
+}
 
 const backgroundPortAtom = atom<Runtime.Port | undefined>(undefined)
 const portErrorToastIdAtom = atom<string | undefined>(undefined)

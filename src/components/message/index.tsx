@@ -62,7 +62,9 @@ export const Message: React.FC<MessageProps> = ({
     )}
     {...props}
   >
-    {children || (
+    {children ? (
+      <div>{children}</div>
+    ) : (
       <p>
         {title && <b className="mr-1">{title}</b>}
         {body}
