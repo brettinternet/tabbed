@@ -4,9 +4,28 @@
 
 <h1 align="center">Tabbed</h1>
 
-Visualize and organize your browser sessions, windows and tabs.
+A different way to visualize and organize your browser tabs.
 
 ![app screenshot of window columns with tabs](./assets/screenshot.png)
+
+#### Tabs
+
+- Reorder and reassign to separate window with drag and drop
+- Focus, close and drag to new window
+- Pin, free memory, mute, and copy URL to clipboard
+
+#### Windows
+
+- Custom reorder with drag and drop
+- Change window state, view tab count
+- Incognito support when enabled
+- Copy window tabs URLs to clipboard
+
+#### Customize
+
+- Configurable UI settings
+- Control over how the extension opens in a popup, popout window, or tab
+- App shortcuts to access menus, move tabs to new windows, and focus windows
 
 ## Features
 
