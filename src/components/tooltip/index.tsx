@@ -13,6 +13,7 @@ type TooltipProps = React.PropsWithChildren<{
   placement?: Placement
   portalEnabled?: boolean
   content: React.ReactNode
+  delay?: number
 }>
 
 export const Tooltip: React.FC<TooltipProps> = ({
@@ -22,6 +23,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
   placement = 'top',
   portalEnabled = true,
   content,
+  delay = 0.7,
 }) => {
   const [show, setShow] = useState<boolean>(false)
   const [trigger, setTrigger] = useState<HTMLElement | null>(null)
@@ -52,7 +54,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
                 opacity: 1,
                 dur: 0.1,
                 transition: {
-                  delay: 0.7,
+                  delay,
                 },
               }}
               exit={{ opacity: 0 }}
