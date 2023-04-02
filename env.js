@@ -1,9 +1,19 @@
+const dotenv = require('dotenv')
+const pkg = require('./package.json')
+dotenv.config()
+
+const IS_PROD = process.env.NODE_ENV === 'production'
+if (IS_PROD) {
+  dotenv.config({ path: './.env.production' })
+} else {
+  dotenv.config({ path: './.env.development' })
+}
+
+const BUILD_VERSION = IS_PROD ? pkg.version : 'dev'
+
 /**
  * Env vars provided to craco and esbuild configs
  */
-const IS_PROD = process.env.NODE_ENV === 'production'
-const BUILD_VERSION = IS_PROD ? '0.0.1 alpha' : 'dev'
-
 module.exports = {
   IS_PROD,
   IS_CHROME: process.env.TARGET === 'chrome',
