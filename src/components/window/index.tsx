@@ -172,12 +172,13 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
             {title}
           </div>
         )}
-        <div className="flex flex-row justify-start items-center overflow-hidden w-full max-w-full space-x-2 h-5">
+        <div className="flex flex-row justify-start items-center w-full max-w-full space-x-2 h-5">
           {(windowOrder < 9 || isLast) && (
             <Tooltip
               content={`Focus window ${
                 windowOrder < 9 ? windowOrder : isLast ? 9 : windowOrder
               }`}
+              wrapperClassName="h-full"
             >
               <Shortcut
                 value={windowOrder < 9 ? windowOrder : isLast ? 9 : windowOrder}

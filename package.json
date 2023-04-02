@@ -52,6 +52,7 @@
     "@mdi/js": "^7.2.96",
     "@mdi/react": "^1.6.1",
     "@popperjs/core": "^2.11.7",
+    "@react-aria/focus": "^3.11.0",
     "bowser": "^2.11.0",
     "class-transformer": "^0.5.1",
     "classnames": "^2.3.2",

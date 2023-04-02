@@ -9,6 +9,7 @@ import { Portal } from 'utils/portal'
 
 type TooltipProps = React.PropsWithChildren<{
   className?: ClassNames
+  wrapperClassName?: ClassNames
   offset?: number
   placement?: Placement
   portalEnabled?: boolean
@@ -19,6 +20,7 @@ type TooltipProps = React.PropsWithChildren<{
 export const Tooltip: React.FC<TooltipProps> = ({
   children,
   className,
+  wrapperClassName,
   offset = 10,
   placement = 'top',
   portalEnabled = true,
@@ -62,7 +64,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
               style={styles.popper}
               {...attributes.popper}
               className={cn(
-                'z-menu bg-slate-700 text-gray-200 px-1 rounded',
+                'z-menu bg-slate-700 text-gray-200 px-1 rounded shadow-md',
                 className
               )}
             >
@@ -75,6 +77,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
         ref={setTrigger}
         onMouseEnter={showTooltip}
         onMouseLeave={hideTooltip}
+        className={cn(wrapperClassName)}
       >
         {children}
       </div>

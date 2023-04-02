@@ -9,9 +9,8 @@ import {
 import cn, { Argument as ClassNames } from 'classnames'
 import { motion } from 'framer-motion'
 import { memo } from 'react'
-import { focusRingClass } from 'styles'
 
-import { Tab } from 'components/tab'
+import { Tab, getTabBackgroundColor } from 'components/tab'
 import { Session } from 'utils/session'
 import { SessionWindow } from 'utils/session-window'
 
@@ -22,6 +21,7 @@ import {
   getWindowTabDraggableId,
   useActiveDragKind,
 } from './dnd-store'
+import { FocusDraggable } from './focus'
 
 type InnerTabListProps = {
   windowId: SessionWindow['id']
@@ -46,12 +46,17 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
             dragProvided: DraggableProvided,
             { isDragging, isDropAnimating }: DraggableStateSnapshot
           ) => (
-            <div
+            <FocusDraggable
               ref={dragProvided.innerRef}
               {...dragProvided.draggableProps}
               {...dragProvided.dragHandleProps}
-              className={cn('mb-2 rounded cursor-grab', focusRingClass)}
+              isDragging={isDragging}
+              className={[
+                'mb-2 rounded cursor-grab',
+                getTabBackgroundColor(tab.active),
+              ]}
               onClick={handleFocusDraggable}
+              kind="tab"
             >
               <motion.div
                 layout={!(isDragging || isDropAnimating)}
@@ -84,7 +89,7 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
                   isLastTab={index === tabs.length - 1}
                 />
               </motion.div>
-            </div>
+            </FocusDraggable>
           )}
         </Draggable>
       )

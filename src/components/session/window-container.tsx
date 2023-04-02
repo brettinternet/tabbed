@@ -11,7 +11,9 @@ import { WindowHeader } from 'components/window'
 import { Session } from 'utils/session'
 import { SessionWindow } from 'utils/session-window'
 
+import { handleFocusDraggable } from './dnd-handlers'
 // import { handleFocusDraggable } from './dnd-handlers'
+import { FocusDraggable } from './focus'
 import { TabsList } from './tabs-list'
 
 type ColorOptions = {
@@ -27,8 +29,6 @@ const getContainerBackground = ({ isDragging, incognito }: ColorOptions) => {
   if (incognito) {
     return 'bg-indigo-100 dark:bg-gray-800'
   }
-
-  return 'bg-gray-100 dark:bg-gray-900'
 }
 
 const getHeaderBackground = ({ isDragging, incognito }: ColorOptions) => {
@@ -39,8 +39,6 @@ const getHeaderBackground = ({ isDragging, incognito }: ColorOptions) => {
   if (incognito) {
     return 'bg-indigo-100 dark:bg-purple-900'
   }
-
-  return 'bg-gray-100 dark:bg-gray-900'
 }
 
 type SessionWindowProps = {
@@ -64,7 +62,8 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
       dragProvided: DraggableProvided,
       { isDragging, isDropAnimating }: DraggableStateSnapshot
     ) => (
-      <div
+      <FocusDraggable
+        isDragging={isDragging}
         className={cn(
           'flex flex-col transition-colors duration-150',
           getContainerBackground({
@@ -72,13 +71,12 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
             incognito: win.incognito,
           }),
           isDragging && 'rounded shadow-lg'
-          // TODO: make space around element for focus ring to show through
-          // focusRingClass
         )}
         ref={dragProvided.innerRef}
         {...dragProvided.draggableProps}
         {...dragProvided.dragHandleProps}
-        // onClick={handleFocusDraggable}
+        onClick={handleFocusDraggable}
+        kind="window"
       >
         <motion.div
           layout={!(isDragging || isDropAnimating)}
@@ -104,7 +102,7 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
             index={index}
             isLast={isLast}
             className={classNames(
-              'md:h-window-header overflow-hidden cursor-grab',
+              'md:h-window-header cursor-grab',
               'transition-colors duration-150',
               getHeaderBackground({ isDragging, incognito: win.incognito })
             )}
@@ -117,7 +115,7 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
             className="cursor-default"
           />
         </motion.div>
-      </div>
+      </FocusDraggable>
     )}
   </Draggable>
 )

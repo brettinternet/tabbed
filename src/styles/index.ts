@@ -1,6 +1,5 @@
 export const focusClassIndicator = 'focusable-element-can-escape'
 
-const focusClass = 'focus:outline outline-offset-2 outline-4 outline-blue-400'
-// const focusClass = 'focus:ring-4 ring-offset-2'
+const focusClass = 'ring-4 ring-blue-400 ring-inset'
 
 export const focusRingClass = `${focusClassIndicator} ${focusClass}`

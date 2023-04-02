@@ -62,6 +62,11 @@ export const Shortcut: ShortcutsMap = {
     display: 'Backquote',
     description: 'Toggle settings display',
   },
+  arrowDown: {
+    hotkey: 'down',
+    code: 'ArrowDown',
+    display: 'Arrow down',
+  },
   // slash: {
   //   hotkey: '/',
   //   display: '/',
@@ -117,6 +122,7 @@ export const useShortcuts = (enabled: boolean) => {
   useHotkeys(
     getHotkeys(Shortcut),
     (event) => {
+      console.log('event: ', event)
       switch (event.code) {
         case Shortcut.question.code:
           if (event.shiftKey) {
@@ -137,6 +143,16 @@ export const useShortcuts = (enabled: boolean) => {
           break
         case Shortcut.backtick.code:
           updateModal.settings.toggle()
+          break
+        case Shortcut.arrowDown.code:
+          if (document.activeElement === document.body) {
+            const firstDraggable = document.body.querySelector(
+              '[data-rfd-draggable-id]'
+            )
+            if (firstDraggable instanceof HTMLElement) {
+              firstDraggable.focus()
+            }
+          }
           break
         // case Shortcut.slash.code: {
         //   updateModal.off()
