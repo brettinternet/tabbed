@@ -7,14 +7,6 @@ import {
   SavedSessionCategoryType,
 } from 'utils/session'
 import {
-  removeTabs as _removeTabs,
-  update as _updateTab,
-} from 'utils/session-tab'
-import {
-  removeWindows as _removeWindows,
-  update as _updateWindow,
-} from 'utils/session-window'
-import {
   updateCurrentSession,
   addSaved,
   getSession,

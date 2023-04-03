@@ -24,8 +24,8 @@
     "format:prettier": "prettier --write \"**/*.{ts,tsx,js,jsx}\"",
     "test": "run-s test:*",
     "test:jest": "craco test",
-    "test:lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test:ts": "tsc --noEmit",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "analyze": "source-map-explorer 'build/static/js/*'",
     "pack-mac": "/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --pack-extension=build"
   },

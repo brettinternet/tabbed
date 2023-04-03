@@ -1,9 +1,9 @@
-import en from 'date-fns/locale/en-US'
-import browser from 'webextension-polyfill'
+// import en from 'date-fns/locale/en-US'
+// import browser from 'webextension-polyfill'
 
-import { log } from 'utils/logger'
+// import { log } from 'utils/logger'
 
-const logContext = 'utils/i18n'
+// const logContext = 'utils/i18n'
 
 export type Locales = 'en'
 

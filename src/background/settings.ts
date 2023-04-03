@@ -1,5 +1,4 @@
 import { assign } from 'lodash'
-import browser from 'webextension-polyfill'
 
 import { configureClosedWindowListener } from 'background/sessions'
 import { getKeys } from 'utils/helpers'

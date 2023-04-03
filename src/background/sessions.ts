@@ -1,4 +1,4 @@
-import { debounce } from 'lodash'
+import { debounce, noop } from 'lodash'
 import browser from 'webextension-polyfill'
 
 import { handleMessageError } from 'utils/error'
@@ -20,42 +20,43 @@ const logContext = 'background/sessions'
  * setup listener to handle closed windows
  */
 // TODO: tell client to update or update session in background?
-export const configureClosedWindowListener = ({
-  saveIncognito,
-  saveClosedWindows,
-}: {
-  saveIncognito: boolean
-  saveClosedWindows: boolean
-}) => {
-  // Auto save closed windows
-  const handleClosedWindow = async (closedWindowId: number) => {
-    const win = browser.windows.get(closedWindowId)
-    if (FEATURE_SAVE_SESSIONS) {
-      // const closedWindow =
-      //   sessionsManager.current.searchWindowByAssignedId(closedWindowId)
-      // if (closedWindow && !(!saveIncognito && closedWindow.incognito)) {
-      //   // When tabs are moved they can trigger the closed window handler
-      //   const currentTabIds = (await browser.tabs.query({}))?.map(({ id }) => id)
-      //   closedWindow.tabs = closedWindow.tabs.filter(
-      //     (tab) => !currentTabIds.includes(tab.assignedTabId)
-      //   )
-      //   if (closedWindow.tabs.length) {
-      //     await sessionsManager.addPrevious(
-      //       SavedSession.from({
-      //         windows: [closedWindow],
-      //       })
-      //     )
-      //   }
-      // }
-    }
-  }
+export const configureClosedWindowListener = noop
+// export const configureClosedWindowListener = ({
+//   // saveIncognito,
+//   saveClosedWindows,
+// }: {
+//   saveIncognito: boolean
+//   saveClosedWindows: boolean
+// }) => {
+//   // Auto save closed windows
+//   if (FEATURE_SAVE_SESSIONS) {
+//   const handleClosedWindow = async (_closedWindowId: number) => {
+//     const win = browser.windows.get(closedWindowId)
+//       const closedWindow =
+//         sessionsManager.current.searchWindowByAssignedId(closedWindowId)
+//       if (closedWindow && !(!saveIncognito && closedWindow.incognito)) {
+//         // When tabs are moved they can trigger the closed window handler
+//         const currentTabIds = (await browser.tabs.query({}))?.map(({ id }) => id)
+//         closedWindow.tabs = closedWindow.tabs.filter(
+//           (tab) => !currentTabIds.includes(tab.assignedTabId)
+//         )
+//         if (closedWindow.tabs.length) {
+//           await sessionsManager.addPrevious(
+//             SavedSession.from({
+//               windows: [closedWindow],
+//             })
+//           )
+//         }
+//       }
+//     }
+//   }
 
-  if (saveClosedWindows) {
-    browser.windows.onRemoved.addListener(handleClosedWindow)
-  } else {
-    browser.windows.onRemoved.removeListener(handleClosedWindow)
-  }
-}
+//   if (saveClosedWindows) {
+//     browser.windows.onRemoved.addListener(handleClosedWindow)
+//   } else {
+//     browser.windows.onRemoved.removeListener(handleClosedWindow)
+//   }
+// }
 
 export const startBackgroundSessionListeners = async (
   initialSettings: Settings

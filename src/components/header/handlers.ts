@@ -14,6 +14,7 @@ export const useSearch = () => {
   const tryToastError = useTryToastError(logContext)
   const port = useBackground()
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const searchSessions = useCallback(
     tryToastError(
       createMessageAction<SearchSessionsMessage>(
