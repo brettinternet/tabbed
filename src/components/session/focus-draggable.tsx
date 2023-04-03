@@ -1,7 +1,7 @@
 import { FocusRing } from '@react-aria/focus'
 import cn, { Argument as ClassNames } from 'classnames'
 import { forwardRef, useRef } from 'react'
-import { focusRingClass } from 'styles'
+import { focusRingClass, focusRingClassInset } from 'styles'
 
 import { ifHTMLElement, isScrolledIntoView } from 'utils/dom'
 
@@ -241,7 +241,16 @@ export const FocusDraggable = forwardRef<HTMLDivElement, FocusDraggableProps>(
         : getTabFocusHandlers(isDragging, localRef)
 
     return (
-      <FocusRing focusRingClass={focusRingClass} focusClass="outline-none">
+      <FocusRing
+        focusRingClass={
+          kind === 'window'
+            ? !isDragging
+              ? focusRingClassInset
+              : undefined
+            : focusRingClass
+        }
+        focusClass="outline-none"
+      >
         <div
           ref={(ref) => {
             localRef.current = ref

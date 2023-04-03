@@ -42,7 +42,8 @@ const Kbd: React.FC<React.PropsWithChildren> = ({ children }) => (
 const renderShortcuts = (shortcuts: ShortcutsMap) =>
   Object.values(shortcuts).map(
     ({ display, description }, index) =>
-      description && (
+      description &&
+      display && (
         <tr key={index}>
           <Th>{description}</Th>
           <Td>

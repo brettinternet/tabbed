@@ -154,7 +154,7 @@ export const TabsList: React.FC<TabsListProps> = ({
       ) => (
         <div
           className={cn(
-            'flex flex-col md:w-80 lg:w-96',
+            'flex flex-col md:w-80 lg:w-96 transition-colors duration-150',
             className,
             getWrapperBackground(
               dropSnapshot.isDraggingOver,

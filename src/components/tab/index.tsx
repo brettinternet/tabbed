@@ -29,6 +29,9 @@ export type TabProps = {
   isLastTab: boolean
 }
 
+/**
+ * Don't add color transition here, causes glitch with tab moving
+ */
 export const getTabBackgroundColor = (active?: boolean) =>
   active
     ? 'bg-green-50 dark:bg-teal-900'
@@ -108,7 +111,7 @@ export const Tab: React.FC<TabProps> = ({
   return (
     <div
       className={cn(
-        'relative overflow-hidden group rounded border border-gray-100 dark:border-gray-700 transition-color duration-100',
+        'relative overflow-hidden group rounded border border-gray-100 dark:border-gray-700',
         isDragging ? 'shadow-xl' : 'shadow',
         className
       )}
@@ -141,7 +144,7 @@ export const Tab: React.FC<TabProps> = ({
             </div>
           </div>
         </div>
-        <div className="flex flex-row justify-start items-center overflow-hidden w-full max-w-full space-x-2">
+        <div className="flex flex-row justify-start items-center w-full max-w-full space-x-2">
           {(audible || muted) && (
             <FocusButton
               iconProps={{

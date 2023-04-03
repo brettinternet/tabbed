@@ -4,6 +4,7 @@ import { focusClassIndicator } from 'styles'
 
 import { isPopup } from 'components/app/store'
 import { useModal } from 'components/modal/store'
+import { XOR } from 'utils/helpers'
 
 // import { log } from 'utils/logger'
 
@@ -37,9 +38,7 @@ import { useModal } from 'components/modal/store'
 type ShortcutEntry = {
   hotkey: string
   code: string
-  display: string
-  description?: string
-}
+} & XOR<{}, { display: string; description: string }>
 
 export type ShortcutsMap = Record<string, ShortcutEntry>
 
@@ -62,10 +61,21 @@ export const Shortcut: ShortcutsMap = {
     display: 'Backquote',
     description: 'Toggle settings display',
   },
+  arrowUp: {
+    hotkey: 'up',
+    code: 'ArrowUp',
+  },
+  arrowRight: {
+    hotkey: 'right',
+    code: 'ArrowRight',
+  },
   arrowDown: {
     hotkey: 'down',
     code: 'ArrowDown',
-    display: 'Arrow down',
+  },
+  arrowLeft: {
+    hotkey: 'left',
+    code: 'ArrowLeft',
   },
   // slash: {
   //   hotkey: '/',
@@ -122,7 +132,6 @@ export const useShortcuts = (enabled: boolean) => {
   useHotkeys(
     getHotkeys(Shortcut),
     (event) => {
-      console.log('event: ', event)
       switch (event.code) {
         case Shortcut.question.code:
           if (event.shiftKey) {
@@ -144,8 +153,11 @@ export const useShortcuts = (enabled: boolean) => {
         case Shortcut.backtick.code:
           updateModal.settings.toggle()
           break
+        case Shortcut.arrowUp.code:
+        case Shortcut.arrowRight.code:
         case Shortcut.arrowDown.code:
-          if (document.activeElement === document.body) {
+        case Shortcut.arrowLeft.code:
+          if (!modal && document.activeElement === document.body) {
             const firstDraggable = document.body.querySelector(
               '[data-rfd-draggable-id]'
             )

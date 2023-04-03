@@ -4,7 +4,6 @@ import {
   DraggableStateSnapshot,
 } from '@hello-pangea/dnd'
 import { FocusScope } from '@react-aria/focus'
-import classNames from 'classnames'
 import cn from 'classnames'
 import { motion } from 'framer-motion'
 
@@ -100,7 +99,7 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
               window={win}
               index={index}
               isLast={isLast}
-              className={classNames(
+              className={cn(
                 'md:h-window-header cursor-grab',
                 'transition-colors duration-150',
                 getHeaderBackground({ isDragging, incognito: win.incognito })

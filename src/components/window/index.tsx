@@ -151,7 +151,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
   return (
     <div
       className={cn(
-        'group relative py-3 px-6 flex justify-between items-center transition-colors duration-75 hover:bg-gray-200 dark:hover:bg-gray-800',
+        'group relative py-3 px-6 flex justify-between items-center',
         className
       )}
     >
