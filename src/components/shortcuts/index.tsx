@@ -99,7 +99,30 @@ export const Shortcuts: React.FC = () => (
     <Section>
       <H1>Sessions</H1>
       <Table>
-        <tbody>{renderShortcuts(SessionShortcuts)}</tbody>
+        <tbody>
+          <tr>
+            <Th>Arrow keys to select windows or tabs</Th>
+            <Td>
+              <Kbd>←</Kbd>
+              <Kbd>↑</Kbd>
+              <Kbd>→</Kbd>
+              <Kbd>↓</Kbd>
+            </Td>
+          </tr>
+          <tr>
+            <Th>Pick up or drop to move an item</Th>
+            <Td>
+              <Kbd>Space</Kbd>
+            </Td>
+          </tr>
+          <tr>
+            <Th>Focus on window or tab action buttons</Th>
+            <Td>
+              <Kbd>Tab</Kbd>
+            </Td>
+          </tr>
+          {renderShortcuts(SessionShortcuts)}
+        </tbody>
       </Table>
     </Section>
   </div>
