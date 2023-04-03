@@ -53,7 +53,7 @@ A different way to visualize and organize your browser tabs.
 - [x] Move tabs with keyboard (see related bug)
 - [ ] Support internationalization
 - [x] Add tooltips for additional button/shortcut descriptions
-- [ ] Better tab and focus ring support
+- [x] Better tab and focus ring support
 - [ ] Search tabs
 - [ ] Multi-tab drag and drop
 - [ ] Support combining windows
@@ -66,6 +66,14 @@ A different way to visualize and organize your browser tabs.
 ## Privacy
 
 See this extension's [Privacy Policy](./PRIVACYPOLICY.md).
+
+## Releases
+
+### Chrome
+
+Chrome prevents [loading external extensions from a CRX file](https://developer.chrome.com/docs/extensions/mv3/external_extensions/) on Mac and Windows.
+
+You can unzip and [load the unpacked extension](https://developer.chrome.com/docs/extensions/mv3/getstarted/development-basics/#load-unpacked), which is simply the build output zipped.
 
 ## Develop
 
@@ -80,6 +88,8 @@ Start development server.
 ```
 npm start
 ```
+
+### Load unpacked extension
 
 #### Chrome
 
