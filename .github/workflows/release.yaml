@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+env:
+  APP_NAME: tabbed
+  VERSION: 0.0.2
+
+jobs:
+  build:
+    if: "!contains(github.event.head_commit.message, 'skipci')"
+    name: Build extension
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 18
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: |-
+          npm run build-chrome
+          zip -r ${{ env.APP_NAME }}-${{ env.VERSION }}-${{ github.event.pull_request.head.sha }}.zip build
+
+      - name: Archive artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.APP_NAME }}-${{ env.VERSION }}-${{ github.sha }}-zip
+          path: ${{ env.APP_NAME }}-${{ env.VERSION }}-${{ github.event.pull_request.head.sha }}.zip
+
+      - name: Pack
+        uses: cardinalby/webext-buildtools-pack-extension-dir-action@v1
+        with:
+          extensionDir: build
+          zipFilePath: ${{ env.APP_NAME }}-${{ env.VERSION }}.zip
+
+      - name: Archive artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.APP_NAME }}-${{ env.VERSION }}-pack
+          path: ${{ env.APP_NAME }}-${{ env.VERSION }}.zip
+
+  release:
+    if: "!contains(github.event.head_commit.message, 'skipci')"
+    name: Upload extension to releases
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.APP_NAME }}-${{ env.VERSION }}-pack
+
+      # https://github.com/cardinalby/webext-buildtools-chrome-crx-action
+      - name: Sign packed extension
+        uses: cardinalby/webext-buildtools-chrome-crx-action@v2
+        with:
+          zipFilePath: ${{ env.APP_NAME }}-${{ env.VERSION }}.zip
+          crxFilePath: ${{ env.APP_NAME }}-${{ env.VERSION }}.crx
+          privateKey: ${{ secrets.CHROME_CRX_PRIVATE_KEY }}
+
+      # https://github.com/marketplace/actions/upload-files-to-a-github-release
+      - name: Upload packed extension to releases
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ env.APP_NAME }}-${{ env.VERSION }}.crx
+          asset_name: ${{ env.APP_NAME }}-${{ env.VERSION }}.crx
+          tag: ${{ github.ref }}
+          overwrite: true
+          body: "${{ env.VERSION }}"

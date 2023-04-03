@@ -19,3 +19,8 @@ yarn-error.log*
 
 # tailwind CLI output
 /src/index.css
+
+# keys and packaging outputs
+*.pem
+*.zip
+*.crx
