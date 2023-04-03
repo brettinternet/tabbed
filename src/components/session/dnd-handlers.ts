@@ -20,17 +20,6 @@ import { getSession, save, updateSessionsManager } from 'utils/sessions-manager'
 
 import { useHelpers } from './helpers'
 
-export const handleFocusDraggable: React.MouseEventHandler<HTMLElement> = (
-  event
-) => {
-  if (event.target instanceof HTMLElement) {
-    const draggable = event.target.closest('[data-rfd-draggable-id]')
-    if (draggable instanceof HTMLElement) {
-      draggable.focus()
-    }
-  }
-}
-
 type MoveTabArgs = {
   from: {
     sessionId: Session['id']
@@ -296,6 +285,10 @@ export const useDndHandlers = () => {
             )
           ) {
             void save(updatedSessionsManager)
+          }
+          return {
+            windowId: to.windowId,
+            tabId: target.id,
           }
         }
       } else {

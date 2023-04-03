@@ -3,6 +3,7 @@ import {
   DraggableProvided,
   DraggableStateSnapshot,
 } from '@hello-pangea/dnd'
+import { FocusScope } from '@react-aria/focus'
 import classNames from 'classnames'
 import cn from 'classnames'
 import { motion } from 'framer-motion'
@@ -11,9 +12,7 @@ import { WindowHeader } from 'components/window'
 import { Session } from 'utils/session'
 import { SessionWindow } from 'utils/session-window'
 
-import { handleFocusDraggable } from './dnd-handlers'
-// import { handleFocusDraggable } from './dnd-handlers'
-import { FocusDraggable } from './focus'
+import { FocusDraggable } from './focus-draggable'
 import { TabsList } from './tabs-list'
 
 type ColorOptions = {
@@ -65,7 +64,7 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
       <FocusDraggable
         isDragging={isDragging}
         className={cn(
-          'flex flex-col transition-colors duration-150',
+          'flex flex-col transition-colors duration-150 rounded',
           getContainerBackground({
             isDragging: isDragging,
             incognito: win.incognito,
@@ -75,7 +74,6 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
         ref={dragProvided.innerRef}
         {...dragProvided.draggableProps}
         {...dragProvided.dragHandleProps}
-        onClick={handleFocusDraggable}
         kind="window"
       >
         <motion.div
@@ -96,17 +94,19 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
           }}
           exit={{ width: 0, opacity: 0 }}
         >
-          <WindowHeader
-            sessionId={sessionId}
-            window={win}
-            index={index}
-            isLast={isLast}
-            className={classNames(
-              'md:h-window-header cursor-grab',
-              'transition-colors duration-150',
-              getHeaderBackground({ isDragging, incognito: win.incognito })
-            )}
-          />
+          <FocusScope>
+            <WindowHeader
+              sessionId={sessionId}
+              window={win}
+              index={index}
+              isLast={isLast}
+              className={classNames(
+                'md:h-window-header cursor-grab',
+                'transition-colors duration-150',
+                getHeaderBackground({ isDragging, incognito: win.incognito })
+              )}
+            />
+          </FocusScope>
           <TabsList
             sessionId={sessionId}
             windowId={win.id}

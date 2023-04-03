@@ -84,7 +84,7 @@ export type ButtonProps = {
   shape?: ShapeValue
   inline?: boolean
   shortcut?: React.ReactNode
-} & React.ButtonHTMLAttributes<HTMLButtonElement>
+} & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'className'>
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (

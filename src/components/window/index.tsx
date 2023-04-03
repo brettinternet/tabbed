@@ -1,17 +1,17 @@
 import cn, { Argument as ClassNames } from 'classnames'
 import browser from 'webextension-polyfill'
 
-import { Button } from 'components/button'
-import { Dropdown, DropdownButtonProps } from 'components/dropdown'
+import { DropdownButtonProps } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
 import { Active } from 'components/indicators'
+import { FocusButton, FocusDropdown } from 'components/session/focus-button'
 import { Shortcut } from 'components/session/shortcut'
 import { useWindowHandlers } from 'components/session/window-handlers'
 import { useWindowShortcuts } from 'components/shortcuts/sessions'
 import { Tooltip } from 'components/tooltip'
 import { useClipboard } from 'utils/clipboard'
+import { stopPropagation } from 'utils/dom'
 import { BrandedUuid } from 'utils/generate'
-import { stopPropagation } from 'utils/helpers'
 import {
   CurrentSessionWindow,
   isCurrentSessionWindow,
@@ -194,7 +194,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
             </Tooltip>
           )}
           {stateAction && (
-            <Button
+            <FocusButton
               variant="card-action"
               shape="none"
               className="text-xxs px-1 border rounded h-full"
@@ -204,13 +204,13 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
               title={stateActionTitle}
             >
               {state}
-            </Button>
+            </FocusButton>
           )}
           <div className="text-gray-500 px-1 text-xxs">
             {tabs.length} tab{tabs.length > 1 && 's'}
           </div>
           {'assignedWindowId' in win && (
-            <Button
+            <FocusButton
               variant="none"
               shape="icon"
               className="text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-50"
@@ -234,7 +234,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
         </div>
       </div>
       <div className="flex flex-row items-center justify-center">
-        <Dropdown
+        <FocusDropdown
           dropdownOffset={-24}
           buttonProps={{
             className: 'text-gray-400 hover:text-gray-700',

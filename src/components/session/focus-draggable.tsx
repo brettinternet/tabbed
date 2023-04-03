@@ -1,21 +1,27 @@
-import { DraggableProvidedDraggableProps } from '@hello-pangea/dnd'
 import { FocusRing } from '@react-aria/focus'
 import cn, { Argument as ClassNames } from 'classnames'
 import { forwardRef, useRef } from 'react'
 import { focusRingClass } from 'styles'
 
-import { isScrolledIntoView } from 'utils/helpers'
+import { ifHTMLElement, isScrolledIntoView } from 'utils/dom'
 
-type DataDraggable = Pick<
-  DraggableProvidedDraggableProps,
-  'data-rfd-draggable-id'
->
+import { draggableDataAttrName } from './dnd-store'
 
-const draggableDataProp: keyof DataDraggable = 'data-rfd-draggable-id'
-const kindDataProp = 'data-kind'
+export const kindDataAttrName = 'data-kind'
 
-const ifHTMLElement = (element: unknown): HTMLElement | undefined => {
-  return element instanceof HTMLElement ? element : undefined
+export const handleKeyEvent = (event: React.KeyboardEvent<HTMLElement>) => {
+  event.preventDefault()
+  event.stopPropagation()
+}
+
+export const getClosestDraggableAncestor = (element: HTMLElement) =>
+  ifHTMLElement(element?.closest(`[${draggableDataAttrName}]`))
+
+const handleFocusDraggable: React.MouseEventHandler<HTMLElement> = (event) => {
+  const draggable = ifHTMLElement(event.target)?.closest(
+    `[${draggableDataAttrName}]`
+  )
+  ifHTMLElement(draggable)?.focus()
 }
 
 type ScrollOptions = {
@@ -42,14 +48,40 @@ const queryNeighborTab = (
   neightborWindowelement: HTMLElement
 ): HTMLElement | undefined => {
   const draggableCurrentChildren = windowElement?.querySelectorAll(
-    `[${draggableDataProp}][${kindDataProp}="tab"]`
+    `[${draggableDataAttrName}][${kindDataAttrName}="tab"]`
   )
   const draggableNeighborChildren = neightborWindowelement?.querySelectorAll(
-    `[${draggableDataProp}][${kindDataProp}="tab"]`
+    `[${draggableDataAttrName}][${kindDataAttrName}="tab"]`
   )
   if (draggableCurrentChildren && draggableNeighborChildren) {
     const index = Array.from(draggableCurrentChildren).indexOf(tab)
-    return ifHTMLElement(draggableNeighborChildren[index])
+    return (
+      ifHTMLElement(draggableNeighborChildren[index]) ||
+      ifHTMLElement(
+        draggableNeighborChildren[draggableNeighborChildren.length - 1]
+      )
+    )
+  }
+}
+
+export const focusTabUp = (element: HTMLElement) => {
+  const previousElement = ifHTMLElement(element.previousElementSibling)
+  if (previousElement?.hasAttribute(draggableDataAttrName)) {
+    previousElement.focus()
+    scrollToElement(previousElement, { end: false, xAxis: false })
+  } else {
+    const draggableAncestor = ifHTMLElement(
+      element.parentElement?.closest(`[${draggableDataAttrName}]`)
+    )
+    draggableAncestor?.focus()
+  }
+}
+
+export const focusTabDown = (element: HTMLElement) => {
+  const nextElement = ifHTMLElement(element.nextElementSibling)
+  if (nextElement?.hasAttribute(draggableDataAttrName)) {
+    nextElement.focus()
+    scrollToElement(nextElement, { end: true, xAxis: false })
   }
 }
 
@@ -66,12 +98,11 @@ const getWindowFocusHandlers = (
       switch (event.key) {
         // Focus sibling window
         case 'ArrowRight': {
-          event.preventDefault()
-          event.stopPropagation()
+          handleKeyEvent(event)
           const nextElement = ifHTMLElement(
             elementRef.current.nextElementSibling
           )
-          if (nextElement?.hasAttribute(draggableDataProp)) {
+          if (nextElement?.hasAttribute(draggableDataAttrName)) {
             nextElement.focus()
             scrollToElement(nextElement, { end: true, xAxis: true })
           }
@@ -79,12 +110,11 @@ const getWindowFocusHandlers = (
         }
         // Focus sibling window
         case 'ArrowLeft': {
-          event.preventDefault()
-          event.stopPropagation()
+          handleKeyEvent(event)
           const previousElement = ifHTMLElement(
             elementRef.current.previousElementSibling
           )
-          if (previousElement?.hasAttribute(draggableDataProp)) {
+          if (previousElement?.hasAttribute(draggableDataAttrName)) {
             previousElement.focus()
             scrollToElement(previousElement, { end: false, xAxis: true })
           }
@@ -92,10 +122,9 @@ const getWindowFocusHandlers = (
         }
         // Focus first draggable child (tab)
         case 'ArrowDown': {
-          event.preventDefault()
-          event.stopPropagation()
+          handleKeyEvent(event)
           const firstDraggable = ifHTMLElement(
-            elementRef.current.querySelector(`[${draggableDataProp}]`)
+            elementRef.current.querySelector(`[${draggableDataAttrName}]`)
           )
           if (firstDraggable) {
             firstDraggable.focus()
@@ -122,11 +151,10 @@ const getTabFocusHandlers = (
       switch (event.key) {
         // Focus window
         case 'ArrowRight': {
-          event.preventDefault()
-          event.stopPropagation()
+          handleKeyEvent(event)
           const parentWindowElement = ifHTMLElement(
             elementRef.current.parentElement?.closest(
-              `[${draggableDataProp}][${kindDataProp}="window"]`
+              `[${draggableDataAttrName}][${kindDataAttrName}="window"]`
             )
           )
           const nextWindowElement = ifHTMLElement(
@@ -135,7 +163,7 @@ const getTabFocusHandlers = (
           if (
             parentWindowElement &&
             nextWindowElement &&
-            nextWindowElement?.hasAttribute(draggableDataProp)
+            nextWindowElement?.hasAttribute(draggableDataAttrName)
           ) {
             const target =
               queryNeighborTab(
@@ -150,11 +178,10 @@ const getTabFocusHandlers = (
         }
         // Focus left tab
         case 'ArrowLeft': {
-          event.preventDefault()
-          event.stopPropagation()
+          handleKeyEvent(event)
           const parentWindowElement = ifHTMLElement(
             elementRef.current.parentElement?.closest(
-              `[${draggableDataProp}][${kindDataProp}="window"]`
+              `[${draggableDataAttrName}][${kindDataAttrName}="window"]`
             )
           )
           const previousWindowElement = ifHTMLElement(
@@ -163,7 +190,7 @@ const getTabFocusHandlers = (
           if (
             parentWindowElement &&
             previousWindowElement &&
-            previousWindowElement?.hasAttribute(draggableDataProp)
+            previousWindowElement?.hasAttribute(draggableDataAttrName)
           ) {
             const target =
               queryNeighborTab(
@@ -181,35 +208,14 @@ const getTabFocusHandlers = (
         }
         // Focus sibling tab
         case 'ArrowUp': {
-          event.preventDefault()
-          event.stopPropagation()
-          const previousElement = ifHTMLElement(
-            elementRef.current.previousElementSibling
-          )
-          if (previousElement?.hasAttribute(draggableDataProp)) {
-            previousElement.focus()
-            scrollToElement(previousElement, { end: false, xAxis: false })
-          } else {
-            const draggableAncestor = ifHTMLElement(
-              elementRef.current.parentElement?.closest(
-                `[${draggableDataProp}]`
-              )
-            )
-            draggableAncestor?.focus()
-          }
+          handleKeyEvent(event)
+          focusTabUp(elementRef.current)
           break
         }
         // Focus sibling tab
         case 'ArrowDown': {
-          event.preventDefault()
-          event.stopPropagation()
-          const nextElement = ifHTMLElement(
-            elementRef.current.nextElementSibling
-          )
-          if (nextElement?.hasAttribute(draggableDataProp)) {
-            nextElement.focus()
-            scrollToElement(nextElement, { end: true, xAxis: false })
-          }
+          handleKeyEvent(event)
+          focusTabDown(elementRef.current)
           break
         }
       }
@@ -235,10 +241,7 @@ export const FocusDraggable = forwardRef<HTMLDivElement, FocusDraggableProps>(
         : getTabFocusHandlers(isDragging, localRef)
 
     return (
-      <FocusRing
-        focusRingClass={!isDragging ? focusRingClass : undefined}
-        focusClass="outline-none"
-      >
+      <FocusRing focusRingClass={focusRingClass} focusClass="outline-none">
         <div
           ref={(ref) => {
             localRef.current = ref
@@ -250,9 +253,9 @@ export const FocusDraggable = forwardRef<HTMLDivElement, FocusDraggableProps>(
           }}
           className={cn(className)}
           {...props}
-          {...{ [kindDataProp]: kind }}
+          {...{ [kindDataAttrName]: kind }}
           onKeyDown={handleKeyDown}
-          // tabIndex={0}
+          onClick={handleFocusDraggable}
         >
           {children}
         </div>

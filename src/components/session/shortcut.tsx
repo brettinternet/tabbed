@@ -4,6 +4,8 @@ import { Fragment } from 'react'
 import { isMac } from 'components/app/store'
 import { Icon, IconName } from 'components/icon'
 
+import { useFocusKeyHandler } from './focus-button'
+
 type Modifier = 'command' | 'control' | 'option' | 'alt' | 'shift'
 type ModifierGroup = NonNullable<ShortcutProps['modifiers']>[number]
 
@@ -39,7 +41,10 @@ const displayModifier = (modifier: ModifierGroup) => {
   }
 }
 
-type ShortcutProps = {
+type ShortcutProps = React.DetailedHTMLProps<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  HTMLButtonElement
+> & {
   value: number | string
   className?: ClassNames
   onClick: React.MouseEventHandler<HTMLButtonElement>
@@ -56,25 +61,32 @@ export const Shortcut: React.FC<ShortcutProps> = ({
   onClick,
   ariaLabel,
   modifiers,
-}) => (
-  <button
-    onClick={onClick}
-    aria-label={ariaLabel}
-    className={cn(
-      'flex flex-row items-center justify-center h-full space-x-1 border border-dotted rounded px-1',
-      'border-gray-400 text-gray-500 dark:border-gray-600 dark:text-gray-400',
-      className
-    )}
-  >
-    <kbd className="text-xxs inline-flex items-center">
-      {modifiers?.length &&
-        modifiers.map((modifierGroup, index) => (
-          <Fragment key={index}>
-            {displayModifier(modifierGroup)}
-            <T>+</T>
-          </Fragment>
-        ))}
-      <T>{value}</T>
-    </kbd>
-  </button>
-)
+  ...props
+}) => {
+  const { focusProps } = useFocusKeyHandler()
+  return (
+    <button
+      {...props}
+      {...focusProps}
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className={cn(
+        'flex flex-row items-center justify-center h-full space-x-1 border border-dotted rounded px-1',
+        'border-gray-400 text-gray-500 dark:border-gray-600 dark:text-gray-400',
+        className,
+        focusProps.className
+      )}
+    >
+      <kbd className="text-xxs inline-flex items-center">
+        {modifiers?.length &&
+          modifiers.map((modifierGroup, index) => (
+            <Fragment key={index}>
+              {displayModifier(modifierGroup)}
+              <T>+</T>
+            </Fragment>
+          ))}
+        <T>{value}</T>
+      </kbd>
+    </button>
+  )
+}

@@ -6,6 +6,7 @@ import {
   DraggableProvided,
   DraggableStateSnapshot,
 } from '@hello-pangea/dnd'
+import { FocusScope } from '@react-aria/focus'
 import cn, { Argument as ClassNames } from 'classnames'
 import { motion } from 'framer-motion'
 import { memo } from 'react'
@@ -14,14 +15,13 @@ import { Tab, getTabBackgroundColor } from 'components/tab'
 import { Session } from 'utils/session'
 import { SessionWindow } from 'utils/session-window'
 
-import { handleFocusDraggable } from './dnd-handlers'
 import {
   ActiveDragKind,
   DroppableType,
   getWindowTabDraggableId,
   useActiveDragKind,
 } from './dnd-store'
-import { FocusDraggable } from './focus'
+import { FocusDraggable } from './focus-draggable'
 
 type InnerTabListProps = {
   windowId: SessionWindow['id']
@@ -55,7 +55,6 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
                 'mb-2 rounded cursor-grab',
                 getTabBackgroundColor(tab.active),
               ]}
-              onClick={handleFocusDraggable}
               kind="tab"
             >
               <motion.div
@@ -79,15 +78,17 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
                   opacity: 0,
                 }}
               >
-                <Tab
-                  tab={tab}
-                  sessionId={sessionId}
-                  windowId={windowId}
-                  isDragging={isDragging}
-                  isWindowFocused={isWindowFocused}
-                  index={index}
-                  isLastTab={index === tabs.length - 1}
-                />
+                <FocusScope>
+                  <Tab
+                    tab={tab}
+                    sessionId={sessionId}
+                    windowId={windowId}
+                    isDragging={isDragging}
+                    isWindowFocused={isWindowFocused}
+                    index={index}
+                    isLastTab={index === tabs.length - 1}
+                  />
+                </FocusScope>
               </motion.div>
             </FocusDraggable>
           )}

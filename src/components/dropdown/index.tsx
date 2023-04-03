@@ -41,7 +41,7 @@ type GroupedActions = {
   actionGroups: DropdownButtonProps[][]
 }
 
-type MenuProps = {
+export type DropdownProps = {
   className?: ClassNames
   buttonProps?: ButtonProps
   dropdownOffset?: number
@@ -53,7 +53,7 @@ type MenuProps = {
 } & (Actions | GroupedActions) &
   React.PropsWithChildren
 
-export const Dropdown: React.FC<MenuProps> = (props) => {
+export const Dropdown: React.FC<DropdownProps> = (props) => {
   const {
     children,
     className,

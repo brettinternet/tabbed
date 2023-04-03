@@ -2,10 +2,12 @@ import {
   DropResult,
   OnBeforeCaptureResponder,
   SensorAPI,
+  DraggableProvidedDraggableProps,
 } from '@hello-pangea/dnd'
 import { atom, useAtom } from 'jotai'
 import { useCallback, useRef } from 'react'
 
+import { ifHTMLElement } from 'utils/dom'
 import { brandUuid, getBrandKind, UuidKind } from 'utils/generate'
 import { isDefined, Valueof } from 'utils/helpers'
 import { SessionTab } from 'utils/session-tab'
@@ -13,6 +15,14 @@ import { SessionWindow } from 'utils/session-window'
 
 import { useDndHandlers } from './dnd-handlers'
 import { useSessionsManager } from './store'
+
+type DataDraggable = Pick<
+  DraggableProvidedDraggableProps,
+  'data-rfd-draggable-id'
+>
+
+export const draggableDataAttrName: keyof DataDraggable =
+  'data-rfd-draggable-id'
 
 /**
  * Dragging element type, or undefined when not dragged
@@ -153,6 +163,10 @@ export const useDndSessions = () => {
                 index: destination.index,
               },
             })
+            // focus moved window
+            ifHTMLElement(
+              document.querySelector(`[${draggableDataAttrName}="${win.id}"]`)
+            )?.focus()
           } else {
             // reordering tab
             // TODO: support all session types
@@ -182,6 +196,18 @@ export const useDndSessions = () => {
                     destination.droppableId ===
                     DroppableId.NEW_INCOGNITO_WINDOW,
                 },
+              }).then((target) => {
+                // focus moved tab
+                if (target) {
+                  ifHTMLElement(
+                    document.querySelector(
+                      `[${draggableDataAttrName}="${getWindowTabDraggableId(
+                        target.windowId,
+                        target.tabId
+                      )}"]`
+                    )
+                  )?.focus()
+                }
               })
             }
           }

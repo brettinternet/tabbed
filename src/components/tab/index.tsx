@@ -1,16 +1,13 @@
-import { FocusRing } from '@react-aria/focus'
 import cn, { Argument as ClassNames } from 'classnames'
-import { focusClassIndicator } from 'styles'
 
-import { Button } from 'components/button'
-import { Dropdown } from 'components/dropdown'
 import { Icon, IconName } from 'components/icon'
 import { Active } from 'components/indicators'
+import { FocusButton, FocusDropdown } from 'components/session/focus-button'
 import { Shortcut } from 'components/session/shortcut'
 import { useTabHandlers } from 'components/session/tab-handlers'
 import { isExtensionUrl } from 'utils/browser'
 import { useClipboard } from 'utils/clipboard'
-import { stopPropagation } from 'utils/helpers'
+import { stopPropagation } from 'utils/dom'
 import { Session } from 'utils/session'
 import {
   isCurrentSessionTab,
@@ -146,7 +143,7 @@ export const Tab: React.FC<TabProps> = ({
         </div>
         <div className="flex flex-row justify-start items-center overflow-hidden w-full max-w-full space-x-2">
           {(audible || muted) && (
-            <Button
+            <FocusButton
               iconProps={{
                 name: muted ? IconName.MUTE : IconName.AUDIBLE,
                 size: 'xs',
@@ -168,24 +165,6 @@ export const Tab: React.FC<TabProps> = ({
               className="text-red-500"
             />
           )}
-          {/* TODO: tab shortcuts */}
-          {/* {tabOrder < 9 ? (
-            <Shortcut
-              value={tabOrder}
-              onClick={handleOpen}
-              ariaLabel="focus tab"
-              modifiers={[{ mac: 'command', other: 'control' }]}
-            />
-          ) : (
-            isLastTab && (
-              <Shortcut
-                value={9}
-                onClick={handleOpen}
-                ariaLabel="focus tab"
-                modifiers={[{ mac: 'command', other: 'control' }]}
-              />
-            )
-          )} */}
           {isExtensionUrl(url) && (
             <Shortcut
               value="S"
@@ -197,14 +176,13 @@ export const Tab: React.FC<TabProps> = ({
               ]}
             />
           )}
-          <Button
+          <FocusButton
             iconProps={{ name: IconName.PIN, size: 'xs' }}
             className={cn(
               'transition-opacity duration-100',
               pinned
                 ? 'text-orange-600 hover:bg-gray-100 dark:border-gray-600'
-                : 'opacity-0 group-hover:opacity-100 focus:opacity-100',
-              focusClassIndicator
+                : 'opacity-0 group-hover:opacity-100 focus:opacity-100'
             )}
             variant={pinned ? 'none' : 'card-action'}
             shape="outline"
@@ -216,88 +194,84 @@ export const Tab: React.FC<TabProps> = ({
         </div>
       </div>
       <div className="absolute transition-opacity duration-100 h-full right-0 bottom-0 top-0 flex flex-col items-center justify-between p-3">
-        <FocusRing focusRingClass={focusClassIndicator}>
-          <Button
-            iconProps={{ name: IconName.CLOSE, size: 'xs' }}
-            variant="card-action"
-            className={cn(
+        <FocusButton
+          iconProps={{ name: IconName.CLOSE, size: 'xs' }}
+          variant="card-action"
+          className={cn(
+            'rounded-full text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-50',
+            'opacity-0 group-hover:opacity-100 focus:opacity-100',
+            active
+              ? 'bg-green-50 dark:bg-teal-900'
+              : 'bg-gray-50 dark:bg-gray-700'
+          )}
+          onClick={handleRemove}
+          onDoubleClick={stopPropagation}
+          aria-label={isCurrentSession ? 'Close' : 'Remove'}
+          title={isCurrentSession ? 'Close' : 'Remove'}
+        />
+
+        <FocusDropdown
+          buttonProps={{
+            className: cn(
               'rounded-full text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-50',
               'opacity-0 group-hover:opacity-100 focus:opacity-100',
               active
                 ? 'bg-green-50 dark:bg-teal-900'
                 : 'bg-gray-50 dark:bg-gray-700'
-            )}
-            onClick={handleRemove}
-            onDoubleClick={stopPropagation}
-            aria-label={isCurrentSession ? 'Close' : 'Remove'}
-            title={isCurrentSession ? 'Close' : 'Remove'}
-          />
-        </FocusRing>
-
-        <FocusRing focusRingClass={focusClassIndicator}>
-          <Dropdown
-            buttonProps={{
-              className: cn(
-                'rounded-full text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-50',
-                'opacity-0 group-hover:opacity-100 focus:opacity-100',
-                active
-                  ? 'bg-green-50 dark:bg-teal-900'
-                  : 'bg-gray-50 dark:bg-gray-700'
-              ),
-            }}
-            iconProps={{
-              size: 'sm',
-            }}
-            actionGroups={[
-              [
-                {
-                  onClick: handleOpen,
-                  text: 'Open',
-                  iconProps: { name: IconName.WINDOW_OPEN },
+            ),
+          }}
+          iconProps={{
+            size: 'sm',
+          }}
+          actionGroups={[
+            [
+              {
+                onClick: handleOpen,
+                text: 'Open',
+                iconProps: { name: IconName.WINDOW_OPEN },
+              },
+              {
+                onClick: handlePinToggle,
+                text: pinned ? 'Unpin' : 'Pin',
+                iconProps: { name: IconName.PIN },
+              },
+              {
+                onClick: handleMuteToggle,
+                text: muted ? 'Unmute' : 'Mute',
+                iconProps: { name: IconName.MUTE },
+              },
+              {
+                onClick: handleCopyUrl,
+                text: 'Copy URL',
+                iconProps: { name: IconName.COPY_TO_CLIPBOARD },
+              },
+            ],
+            [
+              {
+                onClick: () => {
+                  updateTab({
+                    sessionId,
+                    windowId,
+                    tabId,
+                    options: { discarded: !discarded },
+                  })
                 },
-                {
-                  onClick: handlePinToggle,
-                  text: pinned ? 'Unpin' : 'Pin',
-                  iconProps: { name: IconName.PIN },
+                text: 'Free memory',
+                iconProps: { name: IconName.TAB_DISCARD },
+                disabled: discarded,
+              },
+              {
+                onClick: handleRemove,
+                text: isCurrentSession ? 'Close' : 'Remove',
+                iconProps: {
+                  name: isCurrentSession
+                    ? IconName.WINDOW_REMOVE
+                    : IconName.DELETE,
                 },
-                {
-                  onClick: handleMuteToggle,
-                  text: muted ? 'Unmute' : 'Mute',
-                  iconProps: { name: IconName.MUTE },
-                },
-                {
-                  onClick: handleCopyUrl,
-                  text: 'Copy URL',
-                  iconProps: { name: IconName.COPY_TO_CLIPBOARD },
-                },
-              ],
-              [
-                {
-                  onClick: () => {
-                    updateTab({
-                      sessionId,
-                      windowId,
-                      tabId,
-                      options: { discarded: !discarded },
-                    })
-                  },
-                  text: 'Free memory',
-                  iconProps: { name: IconName.TAB_DISCARD },
-                  disabled: discarded,
-                },
-                {
-                  onClick: handleRemove,
-                  text: isCurrentSession ? 'Close' : 'Remove',
-                  iconProps: {
-                    name: isCurrentSession
-                      ? IconName.WINDOW_REMOVE
-                      : IconName.DELETE,
-                  },
-                },
-              ],
-            ]}
-          />
-        </FocusRing>
+              },
+            ],
+          ]}
+        />
       </div>
     </div>
   )
