@@ -28,8 +28,10 @@ jobs:
       - name: Build
         run: npm run build-chrome
 
-      - name: Zip build
-        run: zip -r ${{ env.APP_NAME }}-${{ env.VERSION }}-unpacked.zip build
+      - name: Rename and zip build output
+        run: |-
+          mv build ${{ env.APP_NAME }}-${{ env.VERSION }}
+          zip -r ${{ env.APP_NAME }}-${{ env.VERSION }}-unpacked.zip ${{ env.APP_NAME }}-${{ env.VERSION }}
 
       - name: Archive artifact
         uses: actions/upload-artifact@v2
