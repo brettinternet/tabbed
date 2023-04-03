@@ -27,16 +27,14 @@ export const useFocusKeyHandler = () => {
         }
         break
       }
-      case 'ArrowRight': {
+      case 'ArrowRight':
         handleKeyEvent(event)
         focusManager.focusNext({ wrap: true })
         break
-      }
-      case 'ArrowLeft': {
+      case 'ArrowLeft':
         handleKeyEvent(event)
         focusManager.focusPrevious({ wrap: true })
         break
-      }
       case 'ArrowDown': {
         if (isHTMLElement(event.target)) {
           handleKeyEvent(event)

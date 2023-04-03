@@ -1,5 +1,5 @@
 import { Droppable } from '@hello-pangea/dnd'
-import cn from 'classnames'
+import cn, { Argument as ClassNames } from 'classnames'
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import browser from 'webextension-polyfill'
@@ -12,9 +12,13 @@ import { DroppableId, DroppableType } from './dnd-store'
 
 type EmptyWindowProps = {
   isTabDragging: boolean
+  className?: ClassNames
 }
 
-export const EmptyWindow: React.FC<EmptyWindowProps> = ({ isTabDragging }) => {
+export const EmptyWindow: React.FC<EmptyWindowProps> = ({
+  isTabDragging,
+  className,
+}) => {
   const [allowIncognito, setAllowIncognito] = useState(false)
 
   useEffect(() => {
@@ -26,7 +30,12 @@ export const EmptyWindow: React.FC<EmptyWindowProps> = ({ isTabDragging }) => {
   }, [])
 
   return (
-    <div className="pb-3 md:pb-0 md:w-80 lg:w-96 bg-gray-100 dark:bg-gray-900">
+    <div
+      className={cn(
+        'pb-3 md:pb-0 md:w-80 lg:w-96 bg-gray-100 dark:bg-gray-900',
+        className
+      )}
+    >
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

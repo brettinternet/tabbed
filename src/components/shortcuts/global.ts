@@ -4,6 +4,7 @@ import { focusClassIndicator } from 'styles'
 
 import { isPopup } from 'components/app/store'
 import { useModal } from 'components/modal/store'
+import { focusFirstDraggable } from 'components/session/focus-draggable'
 import { XOR } from 'utils/helpers'
 
 // import { log } from 'utils/logger'
@@ -158,12 +159,7 @@ export const useShortcuts = (enabled: boolean) => {
         case Shortcut.arrowDown.code:
         case Shortcut.arrowLeft.code:
           if (!modal && document.activeElement === document.body) {
-            const firstDraggable = document.body.querySelector(
-              '[data-rfd-draggable-id]'
-            )
-            if (firstDraggable instanceof HTMLElement) {
-              firstDraggable.focus()
-            }
+            focusFirstDraggable()
           }
           break
         // case Shortcut.slash.code: {

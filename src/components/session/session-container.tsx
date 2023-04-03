@@ -48,7 +48,10 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
             />
           ))}
           {provided.placeholder}
-          <EmptyWindow isTabDragging={activeDragKind === ActiveDragKind.TAB} />
+          <EmptyWindow
+            isTabDragging={activeDragKind === ActiveDragKind.TAB}
+            className={[direction === 'vertical' && 'mt-4']}
+          />
         </div>
       )}
     </Droppable>
