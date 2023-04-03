@@ -26,9 +26,10 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: |-
-          npm run build-chrome
-          zip -r ${{ env.APP_NAME }}-${{ env.VERSION }}-${{ github.event.pull_request.head.sha }}.zip build
+        run: npm run build-chrome
+
+      - name: Zip build
+        run: zip -r ${{ env.APP_NAME }}-${{ env.VERSION }}-${{ github.event.pull_request.head.sha }}.zip build
 
       - name: Archive artifact
         uses: actions/upload-artifact@v2
@@ -70,13 +71,16 @@ jobs:
           crxFilePath: ${{ env.APP_NAME }}-${{ env.VERSION }}.crx
           privateKey: ${{ secrets.CHROME_CRX_PRIVATE_KEY }}
 
+      - name: Zip crx
+        run: zip -r ${{ env.APP_NAME }}-${{ env.VERSION }}.zip ${{ env.APP_NAME }}-${{ env.VERSION }}.crx
+
       # https://github.com/marketplace/actions/upload-files-to-a-github-release
       - name: Upload packed extension to releases
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ env.APP_NAME }}-${{ env.VERSION }}.crx
-          asset_name: ${{ env.APP_NAME }}-${{ env.VERSION }}.crx
+          file: ${{ env.APP_NAME }}-${{ env.VERSION }}.zip
+          asset_name: ${{ env.APP_NAME }}-${{ env.VERSION }}.zip
           tag: ${{ github.ref }}
           overwrite: true
           body: "${{ env.VERSION }}"
