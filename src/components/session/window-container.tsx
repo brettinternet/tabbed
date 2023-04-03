@@ -61,7 +61,6 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
       { isDragging, isDropAnimating }: DraggableStateSnapshot
     ) => (
       <FocusDraggable
-        isDragging={isDragging}
         className={cn(
           'flex flex-col transition-colors duration-150 rounded',
           getContainerBackground({

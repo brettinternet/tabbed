@@ -6,7 +6,7 @@ import { focusRingClass, focusRingClassInset, headerHeight } from 'styles'
 import { ifHTMLElement, isHTMLElement } from 'utils/dom'
 import { useMedia } from 'utils/window'
 
-import { draggableDataAttrName } from './dnd-store'
+import { draggableDataAttrName, useActiveDragKind } from './dnd-store'
 
 export const kindDataAttrName = 'data-kind'
 
@@ -306,14 +306,15 @@ const getTabFocusHandlers = (isDragging: boolean, direction: AppDirection) => {
 
 type FocusDraggableProps = React.PropsWithChildren<
   Omit<React.HTMLProps<HTMLDivElement>, 'className'> & {
-    isDragging: boolean
     kind: DraggableKind
     className?: ClassNames
   }
 >
 
 export const FocusDraggable = forwardRef<HTMLDivElement, FocusDraggableProps>(
-  ({ children, isDragging, className, kind, ...props }, parentRef) => {
+  ({ children, className, kind, ...props }, parentRef) => {
+    const [activeDragKind] = useActiveDragKind()
+    const isDragging = !!activeDragKind
     const direction = useMedia<AppDirection>([
       'vertical',
       'vertical',

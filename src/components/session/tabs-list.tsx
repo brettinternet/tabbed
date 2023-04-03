@@ -50,7 +50,6 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
               ref={dragProvided.innerRef}
               {...dragProvided.draggableProps}
               {...dragProvided.dragHandleProps}
-              isDragging={isDragging}
               className={[
                 'mb-2 rounded cursor-grab',
                 getTabBackgroundColor(tab.active),
