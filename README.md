@@ -73,7 +73,7 @@ See this extension's [Privacy Policy](./PRIVACYPOLICY.md).
 
 Chrome prevents [loading external extensions from a CRX file](https://developer.chrome.com/docs/extensions/mv3/external_extensions/) on Mac and Windows.
 
-You can unzip and [load the unpacked extension](https://developer.chrome.com/docs/extensions/mv3/getstarted/development-basics/#load-unpacked), which is simply the build output zipped.
+You can unzip and [load the unpacked extension](https://developer.chrome.com/docs/extensions/mv3/getstarted/development-basics/#load-unpacked), which is simply the build output zipped in [releases](https://github.com/brettinternet/tabbed/releases).
 
 ## Develop
 
