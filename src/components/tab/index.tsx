@@ -34,7 +34,7 @@ export type TabProps = {
  */
 export const getTabBackgroundColor = (active?: boolean) =>
   active
-    ? 'bg-green-50 dark:bg-teal-900'
+    ? 'bg-green-50 dark:bg-cyan-950'
     : 'bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700'
 
 export const Tab: React.FC<TabProps> = ({

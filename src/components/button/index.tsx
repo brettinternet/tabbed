@@ -40,7 +40,7 @@ const getVariantClass = (variant: VariantValue) => {
     case Variant.CARD_ACTION:
       return 'text-gray-500 border-gray-300 hover:text-gray-500 hover:border-gray-400 dark:text-gray-400 dark:hover:text-gray-300 dark:border-gray-500 dark:hover:border-gray-500'
     case Variant.ITEM:
-      return 'text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300'
+      return 'text-gray-700 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-300'
   }
 }
 

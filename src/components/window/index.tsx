@@ -237,7 +237,8 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
         <FocusDropdown
           dropdownOffset={-24}
           buttonProps={{
-            className: 'text-gray-400 hover:text-gray-700',
+            className:
+              'text-gray-400 hover:text-gray-700 dark:hover:text-gray-50',
           }}
           iconProps={{
             size: 'sm',
