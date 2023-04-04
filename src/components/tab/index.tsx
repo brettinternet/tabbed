@@ -135,11 +135,11 @@ export const Tab: React.FC<TabProps> = ({
           {/* width is full width - image width (w-8) - padding right (p-3) */}
           <div className="w-[calc(100%-2.75rem)]">
             {title && (
-              <div className="line-clamp-2 leading-3 font-semibold text-gray-700 dark:text-gray-400 mb-1">
+              <div className="line-clamp-2 leading-3 font-semibold text-gray-700 dark:text-gray-300 mb-1">
                 {title}
               </div>
             )}
-            <div className="truncate max-w-full leading-3 inline-block text-blue-500 text-xxs font-light">
+            <div className="truncate max-w-full leading-3 inline-block text-blue-500 dark:text-blue-300 text-xxs font-light">
               {url}
             </div>
           </div>
@@ -184,7 +184,7 @@ export const Tab: React.FC<TabProps> = ({
             className={cn(
               'transition-opacity duration-100',
               pinned
-                ? 'text-orange-600 hover:bg-gray-100 dark:border-gray-600'
+                ? 'text-orange-600 dark:text-orange-400 hover:bg-gray-100 dark:hover:bg-gray-600 dark:border-gray-600'
                 : 'opacity-0 group-hover:opacity-100 focus:opacity-100'
             )}
             variant={pinned ? 'none' : 'card-action'}

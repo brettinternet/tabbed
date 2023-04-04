@@ -168,7 +168,7 @@ export const WindowHeader: React.FC<WindowHeaderProps> = ({
           </div>
         )}
         {title && (
-          <div className="line-clamp-2 max-w-full inline-block font-semibold text-gray-700 dark:text-gray-400">
+          <div className="line-clamp-2 max-w-full inline-block font-semibold text-gray-700 dark:text-gray-300">
             {title}
           </div>
         )}
