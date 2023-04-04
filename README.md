@@ -53,7 +53,7 @@ A different way to visualize and organize your browser tabs.
 - [x] Move tabs with keyboard (see related bug)
 - [ ] Support internationalization
 - [x] Add tooltips for additional button/shortcut descriptions
-- [x] Better tab and focus ring support
+- [x] Better keyboard navigation and focus ring support (open issues: [vertical](https://github.com/hello-pangea/dnd/issues/449) and [horizontal list drag](https://github.com/hello-pangea/dnd/issues/537))
 - [ ] Search tabs
 - [ ] Multi-tab drag and drop
 - [ ] Support combining windows
