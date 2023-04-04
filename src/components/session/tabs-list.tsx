@@ -55,6 +55,9 @@ const InnerTabList: React.FC<InnerTabListProps> = ({
                 getTabBackgroundColor(tab.active),
               ]}
               kind="tab"
+              sessionId={sessionId}
+              windowId={windowId}
+              tabId={tab.id}
             >
               <motion.div
                 layout={!(isDragging || isDropAnimating)}

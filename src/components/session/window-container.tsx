@@ -75,6 +75,8 @@ export const WindowContainer: React.FC<SessionWindowProps> = ({
         {...dragProvided.draggableProps}
         {...dragProvided.dragHandleProps}
         kind="window"
+        sessionId={sessionId}
+        windowId={win.id}
       >
         <motion.div
           layout={!(isDragging || isDropAnimating)}

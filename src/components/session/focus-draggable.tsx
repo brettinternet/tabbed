@@ -5,9 +5,14 @@ import { FocusRing } from 'components/focus'
 import { useAllowFocusRing } from 'components/focus'
 import { headerHeight } from 'components/header'
 import { ifHTMLElement, isHTMLElement } from 'utils/dom'
+import { Session } from 'utils/session'
+import { SessionTab } from 'utils/session-tab'
+import { SessionWindow } from 'utils/session-window'
 import { useMedia } from 'utils/window'
 
 import { draggableDataAttrName, useActiveDragKind } from './dnd-store'
+import { useTabHandlers } from './tab-handlers'
+import { useWindowHandlers } from './window-handlers'
 
 export const kindDataAttrName = 'data-kind'
 
@@ -209,7 +214,8 @@ const focusTabLeft = (element: HTMLElement, direction: AppDirection) => {
 const getWindowFocusHandlers = (
   isDragging: boolean,
   direction: AppDirection,
-  callback: () => void
+  callback: () => void,
+  onActivate: () => void
 ) => {
   const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (event) => {
     if (
@@ -218,6 +224,10 @@ const getWindowFocusHandlers = (
       event.target === document.activeElement
     ) {
       switch (event.key) {
+        case 'Enter':
+          handleKeyEvent(event, callback)
+          onActivate()
+          break
         // Focus sibling window
         case 'ArrowRight':
           handleKeyEvent(event, callback)
@@ -252,7 +262,8 @@ const getWindowFocusHandlers = (
 const getTabFocusHandlers = (
   isDragging: boolean,
   direction: AppDirection,
-  callback?: () => void
+  callback: () => void,
+  onActivate: () => void
 ) => {
   const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (event) => {
     if (
@@ -261,6 +272,10 @@ const getTabFocusHandlers = (
       event.target === document.activeElement
     ) {
       switch (event.key) {
+        case 'Enter':
+          handleKeyEvent(event, callback)
+          onActivate()
+          break
         case 'ArrowRight':
           if (direction === 'horizontal') {
             handleKeyEvent(event, callback)
@@ -318,12 +333,18 @@ type FocusDraggableProps = React.PropsWithChildren<
   Omit<React.HTMLProps<HTMLDivElement>, 'className'> & {
     kind: DraggableKind
     className?: ClassNames
+    sessionId: Session['id']
+    windowId: SessionWindow['id']
+    tabId?: SessionTab['id']
   }
 >
 
 export const FocusDraggable = forwardRef<HTMLDivElement, FocusDraggableProps>(
-  ({ children, className, kind, ...props }, parentRef) => {
-    const [, setShowFocusRing] = useAllowFocusRing()
+  (
+    { children, className, kind, sessionId, windowId, tabId, ...props },
+    parentRef
+  ) => {
+    const [, setAllowFocusRing] = useAllowFocusRing()
     const [activeDragKind] = useActiveDragKind()
     const isDragging = !!activeDragKind
     const direction = useMedia<AppDirection>([
@@ -333,13 +354,21 @@ export const FocusDraggable = forwardRef<HTMLDivElement, FocusDraggableProps>(
       'vertical',
       'horizontal',
     ])
-    const activate = useCallback(() => {
-      setShowFocusRing(true)
-    }, [setShowFocusRing])
+    const { openTabs } = useTabHandlers()
+    const { openWindows } = useWindowHandlers()
+    const enableFocusRing = useCallback(() => {
+      setAllowFocusRing(true)
+    }, [setAllowFocusRing])
     const handleKeyDown =
       kind === 'window'
-        ? getWindowFocusHandlers(isDragging, direction, activate)
-        : getTabFocusHandlers(isDragging, direction, activate)
+        ? getWindowFocusHandlers(isDragging, direction, enableFocusRing, () => {
+            openWindows({ sessionId, windowIds: [windowId] })
+          })
+        : getTabFocusHandlers(isDragging, direction, enableFocusRing, () => {
+            if (tabId) {
+              openTabs({ sessionId, tabs: [{ windowId, tabIds: [tabId] }] })
+            }
+          })
 
     return (
       <FocusRing disabled={isDragging} inset={kind === 'window'}>
