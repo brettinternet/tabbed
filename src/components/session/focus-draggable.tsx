@@ -1,8 +1,9 @@
-import { FocusRing } from '@react-aria/focus'
 import cn, { Argument as ClassNames } from 'classnames'
-import { forwardRef } from 'react'
-import { focusRingClass, focusRingClassInset, headerHeight } from 'styles'
+import { forwardRef, useCallback } from 'react'
 
+import { FocusRing } from 'components/focus'
+import { useAllowFocusRing } from 'components/focus'
+import { headerHeight } from 'components/header'
 import { ifHTMLElement, isHTMLElement } from 'utils/dom'
 import { useMedia } from 'utils/window'
 
@@ -13,9 +14,13 @@ export const kindDataAttrName = 'data-kind'
 type AppDirection = 'vertical' | 'horizontal'
 type DraggableKind = 'tab' | 'window'
 
-export const handleKeyEvent = (event: React.KeyboardEvent<HTMLElement>) => {
+export const handleKeyEvent = (
+  event: React.KeyboardEvent<HTMLElement>,
+  callback?: () => void
+) => {
   event.preventDefault()
   event.stopPropagation()
+  callback?.()
 }
 
 export const getClosestDraggableAncestor = (
@@ -203,7 +208,8 @@ const focusTabLeft = (element: HTMLElement, direction: AppDirection) => {
 
 const getWindowFocusHandlers = (
   isDragging: boolean,
-  direction: AppDirection
+  direction: AppDirection,
+  callback: () => void
 ) => {
   const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (event) => {
     if (
@@ -214,21 +220,21 @@ const getWindowFocusHandlers = (
       switch (event.key) {
         // Focus sibling window
         case 'ArrowRight':
-          handleKeyEvent(event)
+          handleKeyEvent(event, callback)
           focusNextWindow(event.target, direction)
           break
         // Focus sibling window
         case 'ArrowLeft':
-          handleKeyEvent(event)
+          handleKeyEvent(event, callback)
           focusPreviousWindow(event.target, direction)
           break
         case 'ArrowDown':
-          handleKeyEvent(event)
+          handleKeyEvent(event, callback)
           focusFirstDraggable(event.target)
           break
         case 'ArrowUp':
           if (direction === 'vertical') {
-            handleKeyEvent(event)
+            handleKeyEvent(event, callback)
             const previousWindow = ifHTMLElement(
               event.target.previousElementSibling
             )
@@ -243,7 +249,11 @@ const getWindowFocusHandlers = (
   return handleKeyDown
 }
 
-const getTabFocusHandlers = (isDragging: boolean, direction: AppDirection) => {
+const getTabFocusHandlers = (
+  isDragging: boolean,
+  direction: AppDirection,
+  callback?: () => void
+) => {
   const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (event) => {
     if (
       !isDragging &&
@@ -253,7 +263,7 @@ const getTabFocusHandlers = (isDragging: boolean, direction: AppDirection) => {
       switch (event.key) {
         case 'ArrowRight':
           if (direction === 'horizontal') {
-            handleKeyEvent(event)
+            handleKeyEvent(event, callback)
             focusTabRight(event.target, direction)
           } else {
             const parentWindow = getClosestDraggableAncestor(
@@ -267,7 +277,7 @@ const getTabFocusHandlers = (isDragging: boolean, direction: AppDirection) => {
           break
         case 'ArrowLeft':
           if (direction === 'horizontal') {
-            handleKeyEvent(event)
+            handleKeyEvent(event, callback)
             focusTabLeft(event.target, direction)
           } else {
             const parentWindow = getClosestDraggableAncestor(
@@ -280,11 +290,11 @@ const getTabFocusHandlers = (isDragging: boolean, direction: AppDirection) => {
           }
           break
         case 'ArrowUp':
-          handleKeyEvent(event)
+          handleKeyEvent(event, callback)
           focusTabUp(event.target, direction)
           break
         case 'ArrowDown':
-          handleKeyEvent(event)
+          handleKeyEvent(event, callback)
           const parentWindow = getClosestDraggableAncestor(
             event.target,
             'window'
@@ -313,6 +323,7 @@ type FocusDraggableProps = React.PropsWithChildren<
 
 export const FocusDraggable = forwardRef<HTMLDivElement, FocusDraggableProps>(
   ({ children, className, kind, ...props }, parentRef) => {
+    const [, setShowFocusRing] = useAllowFocusRing()
     const [activeDragKind] = useActiveDragKind()
     const isDragging = !!activeDragKind
     const direction = useMedia<AppDirection>([
@@ -322,22 +333,16 @@ export const FocusDraggable = forwardRef<HTMLDivElement, FocusDraggableProps>(
       'vertical',
       'horizontal',
     ])
+    const activate = useCallback(() => {
+      setShowFocusRing(true)
+    }, [setShowFocusRing])
     const handleKeyDown =
       kind === 'window'
-        ? getWindowFocusHandlers(isDragging, direction)
-        : getTabFocusHandlers(isDragging, direction)
+        ? getWindowFocusHandlers(isDragging, direction, activate)
+        : getTabFocusHandlers(isDragging, direction, activate)
 
     return (
-      <FocusRing
-        focusClass="outline-none"
-        focusRingClass={
-          !isDragging
-            ? kind === 'window'
-              ? focusRingClassInset
-              : focusRingClass
-            : undefined
-        }
-      >
+      <FocusRing inset={kind === 'window'}>
         <div
           ref={parentRef}
           className={cn(className)}

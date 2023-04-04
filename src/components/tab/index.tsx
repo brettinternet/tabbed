@@ -196,13 +196,13 @@ export const Tab: React.FC<TabProps> = ({
           />
         </div>
       </div>
-      <div className="absolute transition-opacity duration-100 h-full right-0 bottom-0 top-0 flex flex-col items-center justify-between p-3">
+      <div className="absolute h-full right-0 bottom-0 top-0 flex flex-col items-center justify-between p-3">
         <FocusButton
           iconProps={{ name: IconName.CLOSE, size: 'xs' }}
           variant="card-action"
           className={cn(
             'rounded-full text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-50',
-            'opacity-0 group-hover:opacity-100 focus:opacity-100',
+            'opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity duration-100',
             active
               ? 'bg-green-50 dark:bg-teal-900'
               : 'bg-gray-50 dark:bg-gray-700'
@@ -217,7 +217,7 @@ export const Tab: React.FC<TabProps> = ({
           buttonProps={{
             className: cn(
               'rounded-full text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-50',
-              'opacity-0 group-hover:opacity-100 focus:opacity-100',
+              'opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity duration-100',
               active
                 ? 'bg-green-50 dark:bg-teal-900'
                 : 'bg-gray-50 dark:bg-gray-700'

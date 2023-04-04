@@ -1,7 +1,9 @@
 import { DragDropContext } from '@hello-pangea/dnd'
 
 import { isPopup } from 'components/app/store'
+import { useAllowFocusRingListener } from 'components/focus'
 import { useSettings } from 'components/settings/store'
+import { useFocusShortcuts } from 'components/shortcuts/sessions'
 import { defaultSettings } from 'utils/settings'
 
 import { useDndSessions } from './dnd-store'
@@ -18,6 +20,8 @@ if (isPopup) {
  * https://github.com/atlassian/react-beautiful-dnd/blob/master/docs/guides/responders.md
  */
 export const SessionLayout = () => {
+  useAllowFocusRingListener()
+  useFocusShortcuts()
   const [settings] = useSettings()
   const { onBeforeCapture, onDragEnd, sessionsManager } = useDndSessions()
 

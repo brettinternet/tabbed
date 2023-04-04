@@ -7,6 +7,8 @@ import { ModalDropdown } from './modal-dropdown'
 
 // import { Search } from './search'
 
+export * from './constants'
+
 type HeaderProps = {
   className?: ClassNames
 }

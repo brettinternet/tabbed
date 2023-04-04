@@ -1,10 +1,9 @@
 // import { noop } from 'lodash'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { focusClassIndicator } from 'styles'
 
 import { isPopup } from 'components/app/store'
+import { focusClassIndicator } from 'components/focus'
 import { useModal } from 'components/modal/store'
-import { focusFirstDraggable } from 'components/session/focus-draggable'
 import { XOR } from 'utils/helpers'
 
 // import { log } from 'utils/logger'
@@ -61,22 +60,6 @@ export const Shortcut: ShortcutsMap = {
     code: 'Backquote',
     display: 'Backquote',
     description: 'Toggle settings display',
-  },
-  arrowUp: {
-    hotkey: 'up',
-    code: 'ArrowUp',
-  },
-  arrowRight: {
-    hotkey: 'right',
-    code: 'ArrowRight',
-  },
-  arrowDown: {
-    hotkey: 'down',
-    code: 'ArrowDown',
-  },
-  arrowLeft: {
-    hotkey: 'left',
-    code: 'ArrowLeft',
   },
   // slash: {
   //   hotkey: '/',
@@ -153,14 +136,6 @@ export const useShortcuts = (enabled: boolean) => {
           break
         case Shortcut.backtick.code:
           updateModal.settings.toggle()
-          break
-        case Shortcut.arrowUp.code:
-        case Shortcut.arrowRight.code:
-        case Shortcut.arrowDown.code:
-        case Shortcut.arrowLeft.code:
-          if (!modal && document.activeElement === document.body) {
-            focusFirstDraggable()
-          }
           break
         // case Shortcut.slash.code: {
         //   updateModal.off()
