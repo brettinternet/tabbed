@@ -317,7 +317,11 @@ const getTabFocusHandlers = (
           const lastDraggable = parentWindow
             ? getLastDraggable(parentWindow)
             : undefined
-          if (lastDraggable === event.target && parentWindow) {
+          if (
+            lastDraggable === event.target &&
+            parentWindow &&
+            direction === 'vertical'
+          ) {
             focusNextWindow(parentWindow, direction)
           } else {
             focusTabDown(event.target, direction)
