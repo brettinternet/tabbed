@@ -1,5 +1,5 @@
 import cn from 'classnames'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import browser from 'webextension-polyfill'
 
 import { Button } from 'components/button'
@@ -42,9 +42,15 @@ export const Settings: React.FC = () => {
   const [popupDimensions, setPopupDimensions] = useState(
     settings?.popupDimensions
   )
+  useEffect(() => {
+    setPopupDimensions(settings?.popupDimensions)
+  }, [settings?.popupDimensions])
   const [excludedUrlsValue, setExcludedUrlsValue] = useState(
     settings?.excludedUrls.raw
   )
+  useEffect(() => {
+    setExcludedUrlsValue(settings?.excludedUrls.raw)
+  }, [settings?.excludedUrls.raw])
   const excludedUrlsTextArea = useRef<HTMLTextAreaElement>(null)
 
   if (!settings) {
