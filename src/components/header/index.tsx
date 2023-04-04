@@ -1,6 +1,8 @@
 import cn, { Argument as ClassNames } from 'classnames'
 
+import { Button } from 'components/button'
 import { Icon, IconName } from 'components/icon'
+import { openExtensionNewTab } from 'utils/browser'
 import { appName } from 'utils/env'
 
 import { ModalDropdown } from './modal-dropdown'
@@ -30,7 +32,10 @@ export const Header: React.FC<HeaderProps> = ({ className }) => {
         {/* <li className="w-full mr-3 md:ml-auto md:mr-0 md:max-w-xs">
           <Search />
         </li> */}
-        <li className="md:ml-auto">
+        <li className="hidden xxs:block ml-auto md:hidden">
+          <Button onClick={openExtensionNewTab}>Open in tab</Button>
+        </li>
+        <li className="ml-2 md:ml-auto">
           <ModalDropdown />
         </li>
       </ul>
