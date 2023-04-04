@@ -10,6 +10,7 @@ import { useCallback, useRef } from 'react'
 import { ifHTMLElement } from 'utils/dom'
 import { brandUuid, getBrandKind, UuidKind } from 'utils/generate'
 import { isDefined, Valueof } from 'utils/helpers'
+import { Session } from 'utils/session'
 import { SessionTab } from 'utils/session-tab'
 import { SessionWindow } from 'utils/session-window'
 
@@ -36,26 +37,33 @@ export const ActiveDragKind = {
 
 export type ActiveDragKindType = Valueof<typeof ActiveDragKind> | undefined
 
-const windowTabSeparator = '|'
+const idSeparator = '|'
 
 export const getWindowTabDraggableId = (
   windowId: SessionWindow['id'],
   tabId: SessionTab['id']
-) => `${windowId}${windowTabSeparator}${tabId}`
+) => `${windowId}${idSeparator}${tabId}`
+
+export const getSessionWindowDraggableId = (
+  sessionId: Session['id'],
+  windowId: SessionWindow['id']
+) => `${sessionId}${idSeparator}${windowId}`
 
 const parseDraggableIdWindowTab = (draggableId: string) => {
-  let [windowIdStr, tabIdStr] = draggableId.split(windowTabSeparator)
-  if (windowIdStr.startsWith(UuidKind.WINDOW)) {
-    const windowId = brandUuid<'window'>(windowIdStr)
-    if (tabIdStr && tabIdStr.startsWith(UuidKind.TAB)) {
-      const tabId = brandUuid<'tab'>(tabIdStr)
-      return {
-        windowId,
-        tabId,
-      }
-    }
+  const [firstIdStr, secondIdStr] = draggableId.split(idSeparator)
+  if (firstIdStr.startsWith(UuidKind.SESSION)) {
     return {
-      windowId,
+      sessionId: brandUuid<'session'>(firstIdStr),
+      windowId: secondIdStr?.startsWith(UuidKind.WINDOW)
+        ? brandUuid<'window'>(secondIdStr)
+        : undefined,
+    }
+  } else if (firstIdStr.startsWith(UuidKind.WINDOW)) {
+    return {
+      windowId: brandUuid<'window'>(firstIdStr),
+      tabId: secondIdStr?.startsWith(UuidKind.TAB)
+        ? brandUuid<'tab'>(secondIdStr)
+        : undefined,
     }
   }
   return {}

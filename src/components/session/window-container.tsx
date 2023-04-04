@@ -40,6 +40,7 @@ const getHeaderBackground = ({ isDragging, incognito }: ColorOptions) => {
 }
 
 type SessionWindowProps = {
+  draggableId: string
   sessionId: Session['id']
   window: SessionWindow
   index: number
@@ -50,12 +51,13 @@ type SessionWindowProps = {
  * TODO: Scroll snap support? https://github.com/atlassian/react-beautiful-dnd/issues/2298
  */
 export const WindowContainer: React.FC<SessionWindowProps> = ({
+  draggableId,
   sessionId,
   window: win,
   index,
   isLast,
 }) => (
-  <Draggable draggableId={`${sessionId}-${win.id}`} index={index}>
+  <Draggable draggableId={draggableId} index={index}>
     {(
       dragProvided: DraggableProvided,
       { isDragging, isDropAnimating }: DraggableStateSnapshot

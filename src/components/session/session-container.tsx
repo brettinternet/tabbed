@@ -3,7 +3,12 @@ import { Droppable } from '@hello-pangea/dnd'
 import { Session } from 'utils/session'
 import { useMedia } from 'utils/window'
 
-import { ActiveDragKind, DroppableType, useActiveDragKind } from './dnd-store'
+import {
+  ActiveDragKind,
+  DroppableType,
+  getSessionWindowDraggableId,
+  useActiveDragKind,
+} from './dnd-store'
 import { EmptyWindow } from './empty-window'
 import { WindowContainer } from './window-container'
 
@@ -38,15 +43,19 @@ export const SessionContainer: React.FC<SessionContainerProps> = ({
           // inline flex extends x-axis past body, modeled after board.tsx link above
           className="md:inline-flex"
         >
-          {session.windows.map((win, index) => (
-            <WindowContainer
-              key={`${session.id}-${win.id}`}
-              sessionId={session.id}
-              window={win}
-              index={index}
-              isLast={index === session.windows.length - 1}
-            />
-          ))}
+          {session.windows.map((win, index) => {
+            const id = getSessionWindowDraggableId(session.id, win.id)
+            return (
+              <WindowContainer
+                key={id}
+                draggableId={id}
+                sessionId={session.id}
+                window={win}
+                index={index}
+                isLast={index === session.windows.length - 1}
+              />
+            )
+          })}
           {provided.placeholder}
           <EmptyWindow
             isTabDragging={activeDragKind === ActiveDragKind.TAB}

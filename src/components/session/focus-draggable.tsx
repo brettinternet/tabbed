@@ -342,7 +342,7 @@ export const FocusDraggable = forwardRef<HTMLDivElement, FocusDraggableProps>(
         : getTabFocusHandlers(isDragging, direction, activate)
 
     return (
-      <FocusRing inset={kind === 'window'}>
+      <FocusRing disabled={isDragging} inset={kind === 'window'}>
         <div
           ref={parentRef}
           className={cn(className)}

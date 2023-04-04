@@ -7,21 +7,29 @@ import {
 import { focusRingClass, focusRingClassInset } from './constants'
 import { useAllowFocusRing } from './store'
 
-type FocusRingProps = TemplateFocusRingProps & {
+type CustomFocusRingProps = {
   inset?: boolean
+  disabled?: boolean
 }
+
+type FocusRingProps = TemplateFocusRingProps & CustomFocusRingProps
 
 export const FocusRing: React.FC<FocusRingProps> = ({
   children,
   inset,
+  disabled,
   ...props
 }) => {
-  const [show] = useAllowFocusRing()
+  const [allow] = useAllowFocusRing()
   return (
     <TemplateFocusRing
       focusClass="outline-none"
       focusRingClass={
-        show ? (inset ? focusRingClassInset : focusRingClass) : undefined
+        allow && !disabled
+          ? inset
+            ? focusRingClassInset
+            : focusRingClass
+          : undefined
       }
       {...props}
     >
@@ -30,18 +38,22 @@ export const FocusRing: React.FC<FocusRingProps> = ({
   )
 }
 
-export const useFocusRing = (inset?: boolean) => {
+export const useFocusRing = ({
+  inset,
+  disabled,
+}: CustomFocusRingProps = {}) => {
   const { isFocusVisible, focusProps } = useTemplateFocusRing()
   const [isAllowFocusRing, setAllowFocusRing] = useAllowFocusRing()
   return {
     isFocusVisible: isFocusVisible && isAllowFocusRing,
     setAllowFocusRing,
     focusProps: {
-      className: isFocusVisible
-        ? inset
-          ? focusRingClassInset
-          : focusRingClass
-        : undefined,
+      className:
+        isFocusVisible && !disabled
+          ? inset
+            ? focusRingClassInset
+            : focusRingClass
+          : undefined,
       ...focusProps,
     },
   }
