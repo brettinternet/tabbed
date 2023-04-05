@@ -4,7 +4,7 @@
 
 <h1 align="center">Tabbed</h1>
 
-A different way to visualize and organize your browser tabs.
+Tabbed is a Chrome extension experiment to visualize and organize browser tabs.
 
 ![app screenshot of window columns with tabs](./assets/screenshot.png)
 
